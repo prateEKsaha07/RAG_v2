@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 import os
 from langchain_cohere import ChatCohere
 from langchain_classic.chains import RetrievalQA
-load_dotenv()
 
+load_dotenv()
 embeddings = HuggingFaceEmbeddings(
     model_name = "all-MiniLM-L6-v2"
 )
@@ -27,6 +27,7 @@ qa_chain = RetrievalQA.from_chain_type(
     return_source_documents=True
 )
 
-response = qa_chain.invoke({"query": "answer is 1 or 3 line only If sports are a universal equalizer, how can we preserve them as an accessible classroom for character rather than a commercial enterprise?"})
+response = qa_chain.invoke({"query": "answer is 1 or 3 line only Why is cooking important for human culture?"})
+print(response['source_documents'][0].metadata)
 print(response['result'])
 # print(response['source_documents'])

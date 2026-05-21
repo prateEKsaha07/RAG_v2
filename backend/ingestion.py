@@ -2,31 +2,48 @@ from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 loader = DirectoryLoader("data/", 
-                         glob="**/*.txt", 
+                         glob="**/*.md", 
                          loader_cls = TextLoader,
                          loader_kwargs={"encoding": "utf-8"})
 
 documents = loader.load()
 print(f"Successfully loaded {len(documents)} text files.")
-print(documents[0].page_content)
 
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size = 200,
-    chunk_overlap = 20,
-    length_function=len
+headers_to_split_on = [
+    ("#", "Header 1"),
+    ("##", "Header 2"),
+    ("###", "Header 3"),
+]
+
+markdown_splitter = MarkdownHeaderTextSplitter(
+    headers_to_split_on=headers_to_split_on
 )
 
-chunks = text_splitter.split_documents(documents)
+all_chunks = []
+for doc in documents:
+    text = doc.page_content
+    chunks = markdown_splitter.split_text(text)
+    for chunk in chunks:
+        chunk.metadata["source"] = doc.metadata["source"]
+    all_chunks.extend(chunks)
 
-print(len(chunks))
+    if chunks:
+        print("Chunk Content:\n")
+        print(chunks[0].page_content)
+
+        print("\nChunk Metadata:\n")
+        print(chunks[0].metadata)
+
+        print("\n" + "=" * 50 + "\n")
 
 embeddings = HuggingFaceEmbeddings(
     model_name = "all-MiniLM-L6-v2"
 )
-vector = embeddings.embed_query(chunks[0].page_content)
+vector = embeddings.embed_query(all_chunks[0].page_content)
 
-vectorStores = FAISS.from_documents(documents, embeddings)
+vectorStores = FAISS.from_documents(all_chunks, embeddings)
 vectorStores.save_local("faiss_index")
 print("vectorDB saved")
