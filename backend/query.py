@@ -27,7 +27,3 @@ qa_chain = RetrievalQA.from_chain_type(
     return_source_documents=True
 )
 
-response = qa_chain.invoke({"query": "answer is 1 or 3 line only Why is cooking important for human culture?"})
-print(response['source_documents'][0].metadata)
-print(response['result'])
-# print(response['source_documents'])

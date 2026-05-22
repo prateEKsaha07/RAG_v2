@@ -12,14 +12,10 @@ embeddings = HuggingFaceEmbeddings(
     model_name = "all-MiniLM-L6-v2"
 )
 vectorStoreDB =FAISS.load_local("faiss_index",embeddings,allow_dangerous_deserialization=True)
-print("Index loaded")
-
 llm = ChatCohere(
     model="command-r7b-12-2024",
     cohere_api_key=os.getenv("COHERE_API_KEY")
 )
-print("LLM initialized")
-
 docs = vectorStoreDB.docstore._dict
 
 def parse_json_response(text):
@@ -67,9 +63,6 @@ Study material:
 
     return random.sample(all_questions, min(5, len(all_questions)))
 
-quiz= generate_quiz("food")
-print(quiz[0])
-
 def evaluate_answers(quiz, student_answers):
     results = []
     weak_topics = []
@@ -110,23 +103,3 @@ def get_recommendations(weak_topics):
             })
     
     return recommendations
-
-
-fake_answers = ["A", "B", "A", "C", "D"]
-results, weak_topics = evaluate_answers(quiz, fake_answers)
-
-print("=== RESULTS ===")
-for i, r in enumerate(results):
-    status = "Right" if r['is_correct'] else "Wrong"
-    print(f"Q{i+1}: {status} | Your answer: {r['your_answer']} | Correct: {r['correct_answer']}")
-
-print("\n=== WEAK TOPICS ===")
-for topic in weak_topics:
-    print(f"→ {topic['topic']} ({topic['source']})")
-
-recommendations = get_recommendations(weak_topics)
-for rec in recommendations:
-    print(f"Weak Topic: {rec['weak_topic']}")
-    print(f"Revise This: {rec['revise_this'][:150]}")
-    print(f"Source: {rec['source']}")
-    print("---")
