@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from ingestion import run_ingestion
 from fastapi.middleware.cors import CORSMiddleware
 import shutil
+from typing import List, Dict, Any
 
 app = FastAPI()
 
@@ -11,8 +12,8 @@ class QuizRequest(BaseModel):
     subject: str
 
 class EvaluateRequest(BaseModel):
-    quiz: list
-    answers: list
+    quiz: list[Any]
+    answers: list[Any]
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,7 +32,11 @@ def generateQuiz( request: QuizRequest):
     return {"quiz": quiz}
 
 @app.post("/evaluate")
-def evaluate( request: EvaluateRequest):
+async def evaluate_endpoint(request: EvaluateRequest):
+    print("Received quiz length:", len(request.quiz))
+    print("Received answers:", request.answers)
+    print("Quiz item 0:", request.quiz[0] if request.quiz else "empty")
+    
     results, weak_topics = evaluate_answers(request.quiz, request.answers)
     recommendations = get_recommendations(weak_topics)
     return {
@@ -39,7 +44,8 @@ def evaluate( request: EvaluateRequest):
         "weak_topics": weak_topics,
         "recommendations": recommendations
     }
-@app.post("/ingestion")
+
+@app.post("/ingest")
 def ingestion(file: UploadFile = File(...)):
     file_path = f"data/{file.filename}"
     with open(file_path,"wb") as f:
