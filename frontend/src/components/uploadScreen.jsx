@@ -18,7 +18,7 @@ function UploadScreen({ onSuccess }) {
       const formData = new FormData()
       formData.append("file", file)
       const response = await axios.post(
-        "http://localhost:8000/ingest",
+        "https://rag-v2-backend.onrender.com/ingest",
         formData
       )
       setMessage(`✅ ${response.data.chunks_created} chunks created!`)

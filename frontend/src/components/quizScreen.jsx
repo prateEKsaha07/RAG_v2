@@ -17,7 +17,7 @@ function QuizScreen({ subject, onSubmit }) {
       setLoading(true)
       setError("")
       const response = await axios.post(
-        "http://localhost:8000/generate-quiz",
+        "https://rag-v2-backend.onrender.com/generate-quiz",
         { subject }
       )
       setQuiz(response.data.quiz || [])
@@ -43,7 +43,7 @@ function QuizScreen({ subject, onSubmit }) {
       console.log("quiz[0]:", quiz[0])
       
       const response = await axios.post(
-        "http://localhost:8000/evaluate",
+        "https://rag-v2-backend.onrender.com/evaluate",
         { quiz, answers: answersArray }
       )
       onSubmit(quiz, response.data)
