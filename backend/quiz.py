@@ -5,12 +5,14 @@ import json
 from langchain_cohere import ChatCohere
 from langchain_community.vectorstores import FAISS
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_cohere import CohereEmbeddings
 load_dotenv()
 
-embeddings = HuggingFaceEmbeddings(
-    model_name = "all-MiniLM-L6-v2"
+embeddings = CohereEmbeddings(
+    model="embed-english-light-v3.0",
+    cohere_api_key=os.getenv("COHERE_API_KEY")
 )
+
 vectorStoreDB =FAISS.load_local("faiss_index",embeddings,allow_dangerous_deserialization=True)
 llm = ChatCohere(
     model="command-r7b-12-2024",

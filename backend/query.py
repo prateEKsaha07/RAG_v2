@@ -1,13 +1,14 @@
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
 from dotenv import load_dotenv
 import os
 from langchain_cohere import ChatCohere
+from langchain_cohere import CohereEmbeddings
 from langchain_classic.chains import RetrievalQA
 
 load_dotenv()
-embeddings = HuggingFaceEmbeddings(
-    model_name = "all-MiniLM-L6-v2"
+embeddings = CohereEmbeddings(
+    model="embed-english-light-v3.0",
+    cohere_api_key=os.getenv("COHERE_API_KEY")
 )
 vectorStoreDB =FAISS.load_local("faiss_index",embeddings,allow_dangerous_deserialization=True)
 
