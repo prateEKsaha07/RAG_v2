@@ -1,12 +1,14 @@
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_cohere import CohereEmbeddings
+
 from dotenv import load_dotenv
 import os
 
 def run_ingestion():
     load_dotenv()
+    from langchain_cohere import CohereEmbeddings
+    
     embeddings = CohereEmbeddings(
         model="embed-english-light-v3.0",
         cohere_api_key=os.getenv("COHERE_API_KEY")

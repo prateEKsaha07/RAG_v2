@@ -17,7 +17,7 @@ function LandingPage({ onGetStarted }) {
       {/* Hero */}
       <div className="text-center py-24 px-8">
         <h2 className="text-5xl font-bold text-gray-800 mb-6">
-          Study Smarter with AI 🧠
+          Study Smarter with AI
         </h2>
         <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
           Upload your study notes, generate quizzes, identify weak topics 
@@ -29,7 +29,7 @@ function LandingPage({ onGetStarted }) {
                      text-lg font-semibold hover:bg-blue-700 
                      shadow-lg hover:shadow-xl transition"
         >
-          Start Studying →
+          Start Now →
         </button>
       </div>
 

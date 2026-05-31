@@ -14,6 +14,9 @@ from query import get_answer
 load_dotenv()
 app = FastAPI()
 
+print("Starting server...")
+print("API Key exists:", bool(os.getenv("COHERE_API_KEY")))
+
 embeddings = CohereEmbeddings(
     model="embed-english-light-v3.0",
     cohere_api_key=os.getenv("COHERE_API_KEY")

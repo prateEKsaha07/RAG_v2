@@ -8,18 +8,6 @@ from dotenv import load_dotenv
 from langchain_cohere import CohereEmbeddings
 load_dotenv()
 
-# embeddings = CohereEmbeddings(
-#     model="embed-english-light-v3.0",
-#     cohere_api_key=os.getenv("COHERE_API_KEY")
-# )
-
-# vectorStoreDB =FAISS.load_local("faiss_index",embeddings,allow_dangerous_deserialization=True)
-# llm = ChatCohere(
-#     model="command-r7b-12-2024",
-#     cohere_api_key=os.getenv("COHERE_API_KEY")
-# )
-# docs = vectorStoreDB.docstore._dict
-
 def parse_json_response(text):
     text = re.sub(r'```json|```', '', text).strip()
     match = re.search(r'\[.*\]', text, re.DOTALL)
