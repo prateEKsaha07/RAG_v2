@@ -17,9 +17,8 @@ function QuizScreen({ subject, onSubmit }) {
       setLoading(true)
       setError("")
       const response = await axios.post(
-        "https://rag-v2-backend.onrender.com/generate-quiz",
-        { subject }
-      )
+    import.meta.env.VITE_API_URL + "/generate-quiz",
+    { subject })
       setQuiz(response.data.quiz || [])
     } catch (error) {
       setError("Failed to generate quiz. Is backend running?")
@@ -43,9 +42,9 @@ function QuizScreen({ subject, onSubmit }) {
       console.log("quiz[0]:", quiz[0])
       
       const response = await axios.post(
-        "https://rag-v2-backend.onrender.com/evaluate",
-        { quiz, answers: answersArray }
-      )
+    import.meta.env.VITE_API_URL + "/evaluate",
+    { quiz, answers: answersArray }
+)
       onSubmit(quiz, response.data)
     } catch (error) {
       console.error("Error details:", error.response?.data)

@@ -7,6 +7,9 @@ function UploadScreen({ onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
 
+  const API_URL = import.meta.env.VITE_API_URL
+  console.log("API URL:", API_URL)
+
   const handleUpload = async () => {
     if (!file || !subject) {
       setMessage("Please select a file and enter subject name")
@@ -18,10 +21,10 @@ function UploadScreen({ onSuccess }) {
       const formData = new FormData()
       formData.append("file", file)
       const response = await axios.post(
-        "https://rag-v2-backend.onrender.com/ingest",
-        formData
-      )
-      setMessage(`✅ ${response.data.chunks_created} chunks created!`)
+    import.meta.env.VITE_API_URL + "/ingest",
+    formData
+)
+      setMessage(`${response.data.chunks_created} chunks created!`)
       setTimeout(() => onSuccess(subject), 1000)
     } catch (error) {
       setMessage("❌ Upload failed. Is your backend running?")

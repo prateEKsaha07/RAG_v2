@@ -8,17 +8,17 @@ from dotenv import load_dotenv
 from langchain_cohere import CohereEmbeddings
 load_dotenv()
 
-embeddings = CohereEmbeddings(
-    model="embed-english-light-v3.0",
-    cohere_api_key=os.getenv("COHERE_API_KEY")
-)
+# embeddings = CohereEmbeddings(
+#     model="embed-english-light-v3.0",
+#     cohere_api_key=os.getenv("COHERE_API_KEY")
+# )
 
-vectorStoreDB =FAISS.load_local("faiss_index",embeddings,allow_dangerous_deserialization=True)
-llm = ChatCohere(
-    model="command-r7b-12-2024",
-    cohere_api_key=os.getenv("COHERE_API_KEY")
-)
-docs = vectorStoreDB.docstore._dict
+# vectorStoreDB =FAISS.load_local("faiss_index",embeddings,allow_dangerous_deserialization=True)
+# llm = ChatCohere(
+#     model="command-r7b-12-2024",
+#     cohere_api_key=os.getenv("COHERE_API_KEY")
+# )
+# docs = vectorStoreDB.docstore._dict
 
 def parse_json_response(text):
     text = re.sub(r'```json|```', '', text).strip()
@@ -27,14 +27,15 @@ def parse_json_response(text):
         return json.loads(match.group())
     return json.loads(text)
 
-def get_chunks_by_subject(subject_file):
-    all_documents = list(vectorStoreDB.docstore._dict.values())
-    subject_chunks = [doc for doc in all_documents if subject_file in doc.metadata.get("source", "")]
+def get_chunks_by_subject(subject_file,vectorStoreDB):
+    all_documents = list(vectorStoreDB.docstore._dict.values())   
+    subject_chunks = [doc for doc in all_documents 
+                     if subject_file.lower() in doc.metadata.get("source", "").lower()]  
     selected = random.sample(subject_chunks, min(3, len(subject_chunks)))
     return selected
 
-def generate_quiz(subject_file):
-    chunks = get_chunks_by_subject(subject_file)
+def generate_quiz(subject_file, llm, vectorStoreDB):
+    chunks = get_chunks_by_subject(subject_file, vectorStoreDB)
     
     all_questions = []
     
@@ -91,7 +92,7 @@ def evaluate_answers(quiz, student_answers):
     return results, weak_topics
 
 
-def get_recommendations(weak_topics):
+def get_recommendations(weak_topics, vectorStoreDB):
     recommendations = []
     
     for topic in weak_topics:
