@@ -185,6 +185,3 @@ def get_notes_endpoint(subject: str = None, tags: str = None):
 def get_subjects_endpoint():
     return {"subjects": get_subjects()}
 
-
-
-
