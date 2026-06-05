@@ -1,0 +1,20 @@
+{
+  "subject": "Java",
+  "tags": [
+    "object oriented programming",
+    "classes and objects",
+    "inheritance",
+    "polymorphism",
+    "encapsulation",
+    "abstraction",
+    "interfaces",
+    "exception handling",
+    "collections framework",
+    "multithreading",
+    "file handling",
+    "java streams",
+    "generics",
+    "design patterns",
+    "memory management"
+  ]
+}

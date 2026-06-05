@@ -10,6 +10,16 @@ from typing import List, Dict, Any
 from langchain_cohere import CohereEmbeddings, ChatCohere
 from langchain_community.vectorstores import FAISS
 from query import get_answer
+from notes import (
+    create_note,
+    get_all_notes,
+    get_note_content,
+    update_note,
+    delete_note,
+    get_subjects,
+    generate_tags,
+    fetch_url_title
+)
 
 load_dotenv()
 app = FastAPI()
@@ -42,9 +52,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-
 
 @app.get("/")
 def home():
@@ -94,3 +101,90 @@ class AskRequest(BaseModel):
 def ask_endpoint(request: AskRequest):
     response = get_answer(request.question, llm, vectorStoreDB)
     return response
+
+# Notes endpoints
+
+
+# specific first
+class GenerateTagsRequest(BaseModel):
+    note_content: str
+    subject: str
+@app.post("/notes/generate-tags")
+def generate_tags_endpoint(request: GenerateTagsRequest):
+    tags = generate_tags(request.note_content, request.subject, llm)
+    return {"tags": tags}
+
+class FetchURLRequest(BaseModel):
+    url: str
+@app.post("/notes/fetch-url")
+def fetch_url_endpoint(request: FetchURLRequest):
+    return {"title": fetch_url_title(request.url)}
+
+@app.post("/notes/ingest")
+def ingest_notes_endpoint():
+    from notes import ingest_notes
+    result = ingest_notes(embeddings)
+    
+    # Reload notes FAISS after ingestion
+    global notes_db
+    notes_db = FAISS.load_local(
+        "notes_faiss_index", embeddings,
+        allow_dangerous_deserialization=True
+    )
+    return result
+
+# then general
+
+@app.get("/notes/{filename}")
+def get_note_content_endpoint(filename: str):
+    return get_note_content(filename)
+
+class UpdateNoteRequest(BaseModel):
+    title: str
+    content: str
+    tags: List[str]
+    urls: List[Any] = []
+@app.put("/notes/{filename}")
+def update_note_endpoint(filename: str, request: UpdateNoteRequest):
+    return update_note(
+        filename=filename,
+        title=request.title,
+        content=request.content,
+        tags=request.tags,
+        urls=request.urls
+    )
+
+@app.delete("/notes/{filename}")
+def delete_note_endpoint(filename: str):
+    return delete_note(filename)
+
+
+class CreateNoteRequest(BaseModel):
+    subject: str
+    title: str
+    content: str
+    tags: List[str]
+    urls: List[Any] = []
+@app.post("/notes")
+def create_note_endpoint(request: CreateNoteRequest):
+    result = create_note(
+        subject=request.subject,
+        title=request.title,
+        content=request.content,
+        tags=request.tags,
+        urls=request.urls
+    )
+    return result
+
+@app.get("/notes")
+def get_notes_endpoint(subject: str = None, tags: str = None):
+    tag_list = tags.split(",") if tags else None
+    return {"notes": get_all_notes(subject, tag_list)}
+
+@app.get("/subjects")
+def get_subjects_endpoint():
+    return {"subjects": get_subjects()}
+
+
+
+

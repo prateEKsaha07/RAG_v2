@@ -1,0 +1,252 @@
+from datetime import datetime
+from fileinput import filename
+from importlib import metadata
+import os
+import json
+
+NOTES_DIR = "data/notes/"
+TAGS_DIR = "tags/"
+METADATA_FILE = "notes_metadata.json"
+
+def generate_filename(subject):
+    now = datetime.now()
+    now = now.strftime("%Y-%m-%d-%H-%M-%S")
+    return f"{now}_{subject}.md"
+
+def load_metadata():
+    if not os.path.exists(METADATA_FILE):
+        return []
+    with open(METADATA_FILE, "r") as f:
+        return json.load(f)
+
+def save_metadata(metadata):
+    with open(METADATA_FILE, "w") as f:
+        json.dump(metadata, f, indent=2)
+
+def load_tags(subject):
+    tag_file = os.path.join(TAGS_DIR, f"{subject}.json")
+    
+    if os.path.exists(tag_file):
+        with open(tag_file, "r") as f:
+            return json.load(f)["tags"]
+    else:
+        with open(os.path.join(TAGS_DIR, "default.json"), "r") as f:
+            return json.load(f)["tags"]
+
+def create_note(subject,title,content,tags,urls=[]):
+    word_count = len(content.split())
+    if word_count > 500:
+        raise ValueError("Content exceeds 500 words limit.")
+
+    filename = generate_filename(subject)
+    filepath = os.path.join(NOTES_DIR, filename)
+    now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    frontmatter = f"""
+---
+title: {title}
+subject: {subject}
+tags: {json.dumps(tags)}
+created_at: {now}
+referenced_urls: {', '.join(urls)}
+---
+"""
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(frontmatter + content)
+
+    metadata = load_metadata()
+    metadata.append({
+        "filename": filename,
+        "subject": subject,
+        "title": title,
+        "tags": tags,
+        "urls": urls,
+        "word_count": word_count,
+        "created": now,
+        "last_edited": now,
+        "ingested": False
+    })
+    save_metadata(metadata)
+    
+    return {"success": True, "filename": filename}
+
+def get_all_notes(subject=None, tags=None):
+    metadata = load_metadata()
+    print(f"Total notes: {len(metadata)}")
+    print(f"Filtering by subject: {subject}")
+    if metadata:
+        print(f"First note: {metadata[0]}")
+    if subject:
+        metadata = [n for n in metadata 
+                   if n["subject"].lower() == subject.lower()]
+    if tags:
+        metadata = [n for n in metadata 
+                   if any(tag in n["tags"] for tag in tags)]
+    return metadata
+
+def get_note_content(filename):
+    filepath = os.path.join(NOTES_DIR, filename)
+    
+    if not os.path.exists(filepath):
+        return {"error": "File not found"}
+    
+    with open(filepath, "r", encoding="utf-8") as f:
+        return {"content": f.read()}
+    
+def update_note(filename, title, content, tags, urls=[]):
+    word_count = len(content.split())
+    if word_count > 500:
+        raise ValueError("Content exceeds 500 words limit.")
+    
+    metadata = load_metadata()
+    note_meta = next((n for n in metadata if n["filename"] == filename), None)
+    if not note_meta:
+        return {"error": "Note metadata not found"}
+
+    subject = note_meta["subject"]
+
+    if not os.path.exists(os.path.join(NOTES_DIR, filename)):
+        return {"error": "File not found"} 
+
+    now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    frontmatter = f"""
+---
+title: {title}
+subject: {subject}
+tags: {json.dumps(tags)}
+updates_at: {now}
+referenced_urls: {', '.join(urls)}
+---
+"""
+    with open(os.path.join(NOTES_DIR, filename), "w", encoding="utf-8") as f:
+        f.write(frontmatter + content)
+    
+    for note in metadata:
+        if note["filename"] == filename:
+            note["title"] = title
+            note["tags"] = tags
+            note["urls"] = urls
+            note["last_edited"] = now
+            note["ingested"] = False
+            break
+    
+    save_metadata(metadata)
+
+    return {"success": True}
+
+def delete_note(filename):
+    filepath = os.path.join(NOTES_DIR, filename)
+    if not os.path.exists(filepath):
+        return {"error": "File not found"}
+    os.remove(filepath)
+    metadata = load_metadata()
+    metadata = [n for n in metadata if n["filename"] != filename]
+    save_metadata(metadata)
+    
+    return {"success": True}
+
+def get_subjects():
+    subjects = []
+    for file in os.listdir(TAGS_DIR):
+        if file.endswith(".json") and file != "default.json":
+            subjects.append(file[:-5])
+    return subjects
+
+def generate_tags(note_content, subject, llm):
+    subject_tags = load_tags(subject)
+    preview = note_content[:1000]
+    
+    prompt = f"""You are a tagging system for study notes.
+Select between 3 and 5 most relevant tags from the list below.
+RULES:
+- Return MINIMUM 3, MAXIMUM 5 tags
+- ONLY use tags from predefined list
+- Do NOT create new tags
+- Return ONLY a JSON array
+
+Predefined tags for {subject}:
+{subject_tags}
+
+Note content:
+{preview}
+
+Return format: ["tag1", "tag2", "tag3"]"""
+
+    response = llm.invoke(prompt)
+    
+    try:
+        from quiz import parse_json_response
+        tags = parse_json_response(response.content)
+
+        valid_tags = [tag for tag in tags if tag in subject_tags]
+        
+        if len(valid_tags) < 3:
+            valid_tags = subject_tags[:3]
+        if len(valid_tags) > 5:
+            valid_tags = valid_tags[:5]
+            
+        return valid_tags
+    except:
+        return subject_tags[:3]
+    
+def fetch_url_title(url):
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        response = requests.get(url, timeout=5)
+        soup = BeautifulSoup(response.text, "html.parser")
+        title = soup.title.string if soup.title else url
+        return title.strip()
+    except:
+        return url
+    
+# ingest
+def ingest_notes(embeddings):
+    from langchain_community.document_loaders import DirectoryLoader, TextLoader
+    from langchain_text_splitters import MarkdownHeaderTextSplitter
+    from langchain_community.vectorstores import FAISS
+    
+    # Check if notes folder has any files
+    notes = os.listdir(NOTES_DIR)
+    if not notes:
+        return {"error": "No notes to ingest"}
+    
+    # Load all notes
+    loader = DirectoryLoader(
+        NOTES_DIR,
+        glob="**/*.md",
+        loader_cls=TextLoader,
+        loader_kwargs={"encoding": "utf-8"}
+    )
+    documents = loader.load()
+    
+    # Split by headers
+    headers_to_split_on = [
+        ("#", "Header 1"),
+        ("##", "Header 2"),
+        ("###", "Header 3"),
+    ]
+    splitter = MarkdownHeaderTextSplitter(
+        headers_to_split_on=headers_to_split_on
+    )
+    
+    all_chunks = []
+    for doc in documents:
+        chunks = splitter.split_text(doc.page_content)
+        for chunk in chunks:
+            chunk.metadata["source"] = doc.metadata["source"]
+        all_chunks.extend(chunks)
+    
+    # Save to notes FAISS index
+    vectorstore = FAISS.from_documents(all_chunks, embeddings)
+    vectorstore.save_local("notes_faiss_index")
+    
+    # Mark all notes as ingested
+    metadata = load_metadata()
+    for note in metadata:
+        note["ingested"] = True
+    save_metadata(metadata)
+    
+    return {
+        "success": True,
+        "chunks_created": len(all_chunks)
+    }

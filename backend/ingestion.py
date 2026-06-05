@@ -14,7 +14,7 @@ def run_ingestion():
         cohere_api_key=os.getenv("COHERE_API_KEY")
     )
 
-    loader = DirectoryLoader("data/", 
+    loader = DirectoryLoader("data/uploads/", 
                          glob="**/*.md", 
                          loader_cls=TextLoader,
                          loader_kwargs={"encoding": "utf-8"})
