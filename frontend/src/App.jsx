@@ -5,12 +5,16 @@ import Dashboard from "./components/Dashboard"
 import QuizScreen from "./components/QuizScreen"
 import ResultScreen from "./components/ResultScreen"
 import QAScreen from "./components/QAScreen"
+import NotesScreen from "./components/NotesScreen"
+import NoteEditor from "./components/NoteEditor"
+import NoteView from "./components/NoteView"
 
 function App() {
   const [screen, setScreen] = useState("landing")
   const [subject, setSubject] = useState("")
   const [quiz, setQuiz] = useState(null)
   const [results, setResults] = useState(null)
+  const [editingNote, setEditingNote] = useState(null)
 
   const handleGetStarted = () => setScreen("upload")
 
@@ -45,6 +49,7 @@ function App() {
           onQuiz={() => setScreen("quiz")}
           onQA={() => setScreen("qa")}
           onUpload={() => setScreen("upload")}
+          onNotes={() => setScreen("notes")}
         />
       )}
       {screen === "quiz" && (
@@ -67,6 +72,42 @@ function App() {
           onBack={() => setScreen("dashboard")}
         />
       )}
+      {screen === "notes" && (
+  <NotesScreen
+    onBack={() => setScreen("dashboard")}
+    onCreateNote={() => {
+      setEditingNote(null)
+      setScreen("note-editor")
+    }}
+    onEditNote={(filename) => {
+      setEditingNote(filename)
+      setScreen("note-editor")
+    }}
+    onViewNote={(filename) => {
+      setEditingNote(filename)
+      setScreen("note-view")
+    }}
+  />
+)}
+
+      {screen === "note-editor" && (
+        <NoteEditor
+          filename={editingNote}
+          onBack={() => {
+          setEditingNote(null)
+          setScreen("notes")
+          }}
+        />
+      )}
+    {screen === "note-view" && (
+      <NoteView
+      filename={editingNote}
+      onBack={() => setScreen("notes")}
+      onEdit={() => setScreen("note-editor")}
+      />
+    )}
+
+
     </div>
   )
 }

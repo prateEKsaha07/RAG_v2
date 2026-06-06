@@ -133,6 +133,7 @@ def ingest_notes_endpoint():
     )
     return result
 
+
 # then general
 
 @app.get("/notes/{filename}")
@@ -184,4 +185,15 @@ def get_notes_endpoint(subject: str = None, tags: str = None):
 @app.get("/subjects")
 def get_subjects_endpoint():
     return {"subjects": get_subjects()}
+
+@app.get("/uploads/{subject}")
+def get_upload_content(subject: str):
+    import glob
+    # Find file matching subject name
+    files = glob.glob(f"data/uploads/{subject}*")
+    if not files:
+        return {"error": "No upload found for this subject"}
+    
+    with open(files[0], "r", encoding="utf-8") as f:
+        return {"content": f.read()}
 

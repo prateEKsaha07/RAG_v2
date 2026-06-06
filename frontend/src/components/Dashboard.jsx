@@ -1,4 +1,4 @@
-function Dashboard({ subject, onQuiz, onQA, onUpload }) {
+function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes }) {
   return (
     <div className="min-h-screen bg-gray-100">
 
@@ -50,7 +50,18 @@ function Dashboard({ subject, onQuiz, onQA, onUpload }) {
               Get instant answers from your study notes using AI
             </p>
           </button>
-
+          <button
+  onClick={onNotes}
+  className="bg-white rounded-xl p-8 shadow hover:shadow-lg 
+             transition text-left border-2 border-transparent 
+             hover:border-purple-500"
+>
+  <p className="text-4xl mb-4">📓</p>
+  <h3 className="text-xl font-bold mb-2">My Notes</h3>
+  <p className="text-gray-500 text-sm">
+    Create and manage your study notes with AI tagging
+  </p>
+</button>
         </div>
       </div>
     </div>
