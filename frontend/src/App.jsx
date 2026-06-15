@@ -8,6 +8,9 @@ import QAScreen from "./components/QAScreen"
 import NotesScreen from "./components/NotesScreen"
 import NoteEditor from "./components/NoteEditor"
 import NoteView from "./components/NoteView"
+import GoalSetupScreen from "./components/GoalSetupScreen"
+import RoadmapScreen from "./components/RoadmapScreen"
+
 
 function App() {
   const [screen, setScreen] = useState("landing")
@@ -15,7 +18,7 @@ function App() {
   const [quiz, setQuiz] = useState(null)
   const [results, setResults] = useState(null)
   const [editingNote, setEditingNote] = useState(null)
-
+  const [roadmapSubject, setRoadmapSubject] = useState("")
   const handleGetStarted = () => setScreen("upload")
 
     const handleUploadSuccess = (subjectName) => {
@@ -50,6 +53,7 @@ function App() {
           onQA={() => setScreen("qa")}
           onUpload={() => setScreen("upload")}
           onNotes={() => setScreen("notes")}
+          onRoadmap={() => setScreen("goal-setup")}
         />
       )}
       {screen === "quiz" && (
@@ -106,7 +110,22 @@ function App() {
       onEdit={() => setScreen("note-editor")}
       />
     )}
-
+    {screen === "goal-setup" && (
+       <GoalSetupScreen
+    onBack={() => setScreen("dashboard")}
+    onViewRoadmap={(subject) => {
+      setRoadmapSubject(subject)
+      setScreen("roadmap")
+    }}/>
+    
+    )}
+    
+    {screen === "roadmap" && (
+        <RoadmapScreen
+    subject={roadmapSubject}
+    onBack={() => setScreen("goal-setup")}
+  />
+    )}
 
     </div>
   )

@@ -1,4 +1,4 @@
-function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes }) {
+function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap }) {
   return (
     <div className="min-h-screen bg-gray-100">
 
@@ -24,6 +24,19 @@ function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes }) {
 
         {/* Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <button
+  onClick={onRoadmap}
+  className="bg-white rounded-xl p-8 shadow hover:shadow-lg 
+             transition text-left border-2 border-transparent 
+             hover:border-orange-500"
+>
+  <p className="text-4xl mb-4">🗺️</p>
+  <h3 className="text-xl font-bold mb-2">Study Roadmap</h3>
+  <p className="text-gray-500 text-sm">
+    Generate a personalized study plan based on your weak topics
+  </p>
+</button>
 
           <button
             onClick={onQuiz}
