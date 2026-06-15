@@ -43,7 +43,7 @@ function QuizScreen({ subject, onSubmit }) {
       
       const response = await axios.post(
     import.meta.env.VITE_API_URL + "/evaluate",
-    { quiz, answers: answersArray }
+    { quiz, answers: answersArray , subject }
 )
       onSubmit(quiz, response.data)
     } catch (error) {

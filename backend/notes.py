@@ -28,7 +28,14 @@ def load_tags(subject):
     
     if os.path.exists(tag_file):
         with open(tag_file, "r") as f:
-            return json.load(f)["tags"]
+            data = json.load(f)
+            if "units" in data:
+                all_topics = []
+                for unit in data["units"]:
+                    all_topics.extend(unit["topics"])
+                return all_topics
+            else:
+                return data["tags"]
     else:
         with open(os.path.join(TAGS_DIR, "default.json"), "r") as f:
             return json.load(f)["tags"]

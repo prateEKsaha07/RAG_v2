@@ -1,0 +1,693 @@
+{
+  "id": "roadmap_AI_202606160411",
+  "subject": "AI",
+  "scope": "full",
+  "unit_number": null,
+  "hours_per_day": 2,
+  "target_date": "2026-10-01",
+  "created": "2026-06-16 04:11",
+  "status": "active",
+  "weeks": [
+    {
+      "week": 1,
+      "start_date": "2026-06-16",
+      "end_date": "2026-06-22",
+      "topics": [
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "introduction to ai",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "state space representation",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "problem characteristics",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "production systems",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "depth first search",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "breadth first search",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "hill climbing",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "start_date": "2026-06-23",
+      "end_date": "2026-06-29",
+      "topics": [
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "branch and bound",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "best first search",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 1,
+          "unit_name": "General Overview of AI & Search Techniques",
+          "topic": {
+            "name": "constraint satisfaction",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "a star algorithm",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "and or graph",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 3,
+      "start_date": "2026-06-30",
+      "end_date": "2026-07-06",
+      "topics": [
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "ao star algorithm",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "minimax search",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "alpha beta cutoff",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "first order predicate calculus",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 4,
+      "start_date": "2026-07-07",
+      "end_date": "2026-07-13",
+      "topics": [
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "skolemnisation",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "resolution principle",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "semantic networks",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 5,
+      "start_date": "2026-07-14",
+      "end_date": "2026-07-20",
+      "topics": [
+        {
+          "unit": 2,
+          "unit_name": "Heuristic Search & Knowledge Representation",
+          "topic": {
+            "name": "frame systems",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "phases of nlp",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "recursive transition nets",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "augmented transition nets",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 6,
+      "start_date": "2026-07-21",
+      "end_date": "2026-07-27",
+      "topics": [
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "goal stack planning",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "non linear planning",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "probabilistic reasoning",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "probability theory",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 7,
+      "start_date": "2026-07-28",
+      "end_date": "2026-08-03",
+      "topics": [
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "bayes theorem",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "bayesian network",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 3,
+          "unit_name": "NLP Planning and Uncertainty",
+          "topic": {
+            "name": "uncertainty",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "supervised learning",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "unsupervised learning",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 8,
+      "start_date": "2026-08-04",
+      "end_date": "2026-08-10",
+      "topics": [
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "reinforcement learning",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "decision trees",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "clustering",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "k means clustering",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "fuzzy c means",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "hierarchical clustering",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 9,
+      "start_date": "2026-08-11",
+      "end_date": "2026-08-17",
+      "topics": [
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "artificial neural networks",
+            "hours": 3,
+            "is_weak": false,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 4,
+          "unit_name": "Machine Learning Paradigms",
+          "topic": {
+            "name": "inductive learning",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "expert systems introduction",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "expert system architecture",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "rule based expert system",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "forward chaining",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 10,
+      "start_date": "2026-08-18",
+      "end_date": "2026-08-24",
+      "topics": [
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "expert system shells",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "knowledge acquisition",
+            "hours": 3,
+            "is_weak": true,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "mycin case study",
+            "hours": 3,
+            "is_weak": true,
+            "days_needed": 2,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "backward chaining",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        },
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "knowledge base",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    },
+    {
+      "week": 11,
+      "start_date": "2026-08-25",
+      "end_date": "2026-08-31",
+      "topics": [
+        {
+          "unit": 5,
+          "unit_name": "Expert Systems and Applications",
+          "topic": {
+            "name": "inference engine",
+            "hours": 2,
+            "is_weak": false,
+            "days_needed": 1,
+            "status": "not_started",
+            "completed_date": null
+          }
+        }
+      ]
+    }
+  ],
+  "weak_topics": [
+    "AI in Transportation",
+    "AI in Business and Industry"
+  ]
+}

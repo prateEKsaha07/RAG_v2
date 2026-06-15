@@ -1,3 +1,5 @@
+from datetime import datetime
+import json
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File
@@ -19,6 +21,12 @@ from notes import (
     get_subjects,
     generate_tags,
     fetch_url_title
+)
+
+from roadmap import (
+    generate_roadmap,
+    load_roadmap,
+    check_existing_roadmap
 )
 
 load_dotenv()
@@ -45,6 +53,7 @@ class QuizRequest(BaseModel):
 class EvaluateRequest(BaseModel):
     quiz: list[Any]
     answers: list[Any]
+    subject: str 
 
 app.add_middleware(
     CORSMiddleware,
@@ -67,14 +76,32 @@ async def evaluate_endpoint(request: EvaluateRequest):
     print("Received quiz length:", len(request.quiz))
     print("Received answers:", request.answers)
     print("Quiz item 0:", request.quiz[0] if request.quiz else "empty")
+    print("Received:", request.subject)
     
-    results, weak_topics = evaluate_answers(request.quiz, request.answers)
+    results, weak_topics = evaluate_answers(request.quiz, request.answers, request.subject.strip())
     recommendations = get_recommendations(weak_topics, vectorStoreDB)
     return {
         "results": results,
         "weak_topics": weak_topics,
         "recommendations": recommendations
     }
+
+@app.get("/quiz-history")
+def get_quiz_history(subject: str = None):
+    history_file = "analytics/quiz_history.json"
+    
+    if not os.path.exists(history_file):
+        return {"history": []}
+    
+    with open(history_file, "r") as f:
+        history = json.load(f)
+    
+    if subject:
+        history = [h for h in history 
+                  if h["subject"].lower() == subject.lower()]
+    
+    return {"history": history}
+
 
 @app.post("/ingest")
 def ingestion(file: UploadFile = File(...)):
@@ -132,6 +159,7 @@ def ingest_notes_endpoint():
         allow_dangerous_deserialization=True
     )
     return result
+
 
 
 # then general
@@ -197,3 +225,81 @@ def get_upload_content(subject: str):
     with open(files[0], "r", encoding="utf-8") as f:
         return {"content": f.read()}
 
+
+# roadmap endpoints
+class RoadmapRequest(BaseModel):
+    subject: str
+    hours_per_day: int
+    target_date: str
+    scope: str
+    unit_number: int = None
+
+class ExtendDateRequest(BaseModel):
+    new_target_date: str
+
+class CompleteTopicRequest(BaseModel):
+    week: int
+    topic_name: str
+
+
+@app.post("/roadmap")
+def generate_roadmap_endpoint(request: RoadmapRequest):
+    # Check if active roadmap exists
+    if check_existing_roadmap(request.subject):
+        return {"error": "Active roadmap exists. Complete or delete it first."}
+    
+    result = generate_roadmap(
+        subject=request.subject,
+        hours_per_day=request.hours_per_day,
+        target_date=request.target_date,
+        scope=request.scope,
+        unit_number=request.unit_number,
+        llm=llm
+    )
+    return result
+
+@app.get("/roadmap/{subject}")
+def get_roadmap_endpoint(subject: str):
+    roadmap = load_roadmap(subject)
+    if not roadmap:
+        return {"error": "No roadmap found"}
+    return roadmap
+
+@app.delete("/roadmap/{subject}")
+def delete_roadmap_endpoint(subject: str):
+    filepath = f"analytics/roadmaps/roadmap_{subject}.json"
+    if not os.path.exists(filepath):
+        return {"error": "No roadmap found"}
+    os.remove(filepath)
+    return {"success": True, "message": f"Roadmap for {subject} deleted"}
+
+@app.put("/roadmap/{subject}/extend")
+def extend_roadmap_endpoint(subject: str, request: ExtendDateRequest):
+    roadmap = load_roadmap(subject)
+    if not roadmap:
+        return {"error": "No roadmap found"}
+    
+    roadmap["target_date"] = request.new_target_date
+    
+    from roadmap import save_roadmap
+    save_roadmap(subject, roadmap)
+    return {"success": True, "new_target_date": request.new_target_date}
+
+@app.put("/roadmap/{subject}/complete-topic")
+def complete_topic_endpoint(subject: str, request: CompleteTopicRequest):
+    roadmap = load_roadmap(subject)
+    if not roadmap:
+        return {"error": "No roadmap found"}
+    
+    # Find and update topic status
+    for week in roadmap["weeks"]:
+        if week["week"] == request.week:
+            for item in week["topics"]:
+                if item["topic"]["name"] == request.topic_name:
+                    item["topic"]["status"] = "completed"
+                    item["topic"]["completed_date"] = datetime.now().strftime("%Y-%m-%d")
+                    break
+    
+    from roadmap import save_roadmap
+    save_roadmap(subject, roadmap)
+    return {"success": True}
