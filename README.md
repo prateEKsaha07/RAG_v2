@@ -1,3 +1,6 @@
+# RAG_v2
+RAG-based student assistant project, featuring syllabus roadmap analysis, quiz-based weak topic detection, personalized recommendations, and enhanced academic support, with additional AI-powered learning features planned for future developmen
+
 ```
             [ Student / Client Browser ]
                            │
@@ -399,11 +402,10 @@ To transition this proof-of-concept codebase into a scalable, multi-tenant enter
 
 ## 9. Environment Setup & Execution Guide
 ### 9.1 Required Prerequisites
-Python 3.10 or higher installed locally.
 
-Node.js LTS (v18 or higher) runtime environment.
-
-A valid Cohere API Authentication Token.
+- Python 3.10 or higher installed locally.
+- Node.js LTS (v18 or higher) runtime environment.
+- A valid Cohere API Authentication Token.
 
 ### 9.2 Initial Backend Installation Steps
 Navigate into the service folder path:
