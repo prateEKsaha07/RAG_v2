@@ -4,7 +4,7 @@
   "scope": "unit",
   "unit_number": 1,
   "hours_per_day": 3,
-  "target_date": "2026-06-30",
+  "target_date": "2026-06-22",
   "created": "2026-06-16 04:34",
   "status": "active",
   "weeks": [
@@ -57,8 +57,8 @@
             "hours": 2,
             "is_weak": false,
             "days_needed": 1,
-            "status": "not_started",
-            "completed_date": null
+            "status": "completed",
+            "completed_date": "2026-06-19"
           }
         },
         {
@@ -69,8 +69,8 @@
             "hours": 2,
             "is_weak": false,
             "days_needed": 1,
-            "status": "not_started",
-            "completed_date": null
+            "status": "completed",
+            "completed_date": "2026-06-19"
           }
         },
         {

@@ -1,9 +1,11 @@
-function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap }) {
+import Footer from "./Footer"
+import Navbar from "./Navbar"
+function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap, onHome, onAnalytics }) {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 ">
 
       {/* Navbar */}
-      <nav className="bg-white shadow px-8 py-4 flex justify-between items-center">
+      {/* <nav className="bg-white shadow px-8 py-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-blue-700">RAG_V2</h1>
         <button
           onClick={onUpload}
@@ -11,10 +13,10 @@ function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap }) {
         >
           + Upload New Notes
         </button>
-      </nav>
-
+      </nav> */}
+      <Navbar onHome={onHome} showGetStarted={false} />
       {/* Welcome */}
-      <div className="max-w-3xl mx-auto pt-16 px-8 text-center">
+      <div className="max-w-3xl mx-auto pt-16 px-8 text-center pb-16">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">
           Welcome Back! 👋
         </h2>
@@ -63,6 +65,7 @@ function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap }) {
               Get instant answers from your study notes using AI
             </p>
           </button>
+          
           <button
   onClick={onNotes}
   className="bg-white rounded-xl p-8 shadow hover:shadow-lg 
@@ -75,8 +78,21 @@ function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap }) {
     Create and manage your study notes with AI tagging
   </p>
 </button>
+<button
+  onClick={onAnalytics}
+  className="bg-white rounded-xl p-8 shadow hover:shadow-lg 
+             transition text-left border-2 border-transparent 
+             hover:border-pink-500"
+>
+  <p className="text-4xl mb-4">📊</p>
+  <h3 className="text-xl font-bold mb-2">Analytics</h3>
+  <p className="text-gray-500 text-sm">
+    Track your quiz performance and improvement over time
+  </p>
+</button>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

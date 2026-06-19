@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import Navbar from "./Navbar"
+import Footer from "./Footer"
 
 function GoalSetupScreen({ onBack, onViewRoadmap }) {
   const [subjects, setSubjects] = useState([])
@@ -105,7 +107,7 @@ function GoalSetupScreen({ onBack, onViewRoadmap }) {
           ← Dashboard
         </button>
       </nav>
-
+      {/* <Navbar onHome={onBack} showGetStarted={false} /> */}
       <div className="max-w-2xl mx-auto px-8 py-10">
         <h2 className="text-2xl font-bold mb-8">🗺️ Study Roadmap</h2>
 
@@ -269,6 +271,7 @@ function GoalSetupScreen({ onBack, onViewRoadmap }) {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   )
 }

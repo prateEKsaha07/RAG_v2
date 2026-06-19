@@ -1,18 +1,11 @@
-function LandingPage({ onGetStarted }) {
+import Footer from "./Footer"
+import Navbar from "./Navbar"
+function LandingPage({ onGetStarted, onHome }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       
       {/* Navbar */}
-      <nav className="px-8 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-blue-700">RAG_V2</h1>
-        <button
-          onClick={onGetStarted}
-          className="bg-blue-600 text-white px-4 py-2 
-                     rounded-lg hover:bg-blue-700"
-        >
-          Get Started
-        </button>
-      </nav>
+      <Navbar onHome={onHome} onGetStarted={onGetStarted} showGetStarted={true} />
 
       {/* Hero */}
       <div className="text-center py-24 px-8">
@@ -62,11 +55,10 @@ function LandingPage({ onGetStarted }) {
             <p className="text-gray-500 text-sm">
               Ask anything about your notes and get instant grounded answers
             </p>
-          </div>
-
+          </div> 
         </div>
       </div>
-
+      <Footer />
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import Footer from "./Footer"
 
 function RoadmapScreen({ subject, onBack }) {
   const [roadmap, setRoadmap] = useState(null)

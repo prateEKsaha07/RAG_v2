@@ -8,5 +8,36 @@
       "AI in Transportation",
       "AI in Business and Industry"
     ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-06-16 04:49",
+    "score": 2,
+    "total": 5,
+    "weak_topics": [
+      "The Importance of Artificial Intelligence in Modern Society",
+      "Ethical Challenges of Artificial Intelligence",
+      "AI in Business and Industry"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-06-18 10:31",
+    "score": 4,
+    "total": 5,
+    "weak_topics": [
+      "Future of Artificial Intelligence"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-06-18 11:41",
+    "score": 1,
+    "total": 5,
+    "weak_topics": [
+      "AI in Business and Industry",
+      "The Importance of Artificial Intelligence in Modern Society",
+      "AI in Transportation"
+    ]
   }
 ]

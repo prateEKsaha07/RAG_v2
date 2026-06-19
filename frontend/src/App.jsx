@@ -10,6 +10,7 @@ import NoteEditor from "./components/NoteEditor"
 import NoteView from "./components/NoteView"
 import GoalSetupScreen from "./components/GoalSetupScreen"
 import RoadmapScreen from "./components/RoadmapScreen"
+import AnalyticsScreen from "./components/AnalyticsScreen"
 
 
 function App() {
@@ -39,11 +40,13 @@ function App() {
   return (
     <div>
       {screen === "landing" && (
-        <LandingPage onGetStarted={handleGetStarted} />
+        <LandingPage onGetStarted={handleGetStarted}
+         onHome={() => setScreen("landing")} />
       )}
 
       {screen === "upload" && (
-        <UploadScreen onSuccess={handleUploadSuccess} />
+        <UploadScreen onSuccess={handleUploadSuccess}
+        onBack={() => setScreen("landing")} />
       )}
 
       {screen === "dashboard" && (
@@ -54,6 +57,8 @@ function App() {
           onUpload={() => setScreen("upload")}
           onNotes={() => setScreen("notes")}
           onRoadmap={() => setScreen("goal-setup")}
+          onHome={() => setScreen("landing")}
+          onAnalytics={() => setScreen("analytics")}
         />
       )}
       {screen === "quiz" && (
@@ -117,7 +122,6 @@ function App() {
       setRoadmapSubject(subject)
       setScreen("roadmap")
     }}/>
-    
     )}
     
     {screen === "roadmap" && (
@@ -127,6 +131,9 @@ function App() {
   />
     )}
 
+    {screen === "analytics" && (
+      <AnalyticsScreen onBack={() => setScreen("dashboard")} />
+    )}
     </div>
   )
 }

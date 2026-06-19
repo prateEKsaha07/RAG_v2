@@ -1,7 +1,9 @@
 import { useState } from "react"
 import axios from "axios"
+import Footer from "./Footer"
+import Navbar from "./Navbar"
 
-function UploadScreen({ onSuccess }) {
+function UploadScreen({ onSuccess, onBack }) {
   const [file, setFile] = useState(null)
   const [subject, setSubject] = useState("")
   const [loading, setLoading] = useState(false)
@@ -39,7 +41,15 @@ function UploadScreen({ onSuccess }) {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl p-8 shadow">
+    <div className="min-h-screen ">
+      {/* <nav className="bg-white shadow px-8 py-4 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-blue-700">RAG_V2</h1>
+          <button onClick={onBack} className="text-sm text-gray-500 hover:text-blue-600">
+            ← Back
+          </button>
+      </nav> */}
+      <Navbar onHome={() => setScreen("landing")} showGetStarted={false} />
+    <div className="max-w-md mx-auto bg-white rounded-xl p-8 shadow">   
       <h2 className="text-2xl font-bold mb-6">Upload Study Notes</h2>
 
       <div className="mb-4">
@@ -96,6 +106,9 @@ function UploadScreen({ onSuccess }) {
         </p>
       )}
     </div>
+    <Footer />
+    </div>
+
   )
 }
 

@@ -303,3 +303,79 @@ def complete_topic_endpoint(subject: str, request: CompleteTopicRequest):
     from roadmap import save_roadmap
     save_roadmap(subject, roadmap)
     return {"success": True}
+
+# analytics endpoints
+@app.get("/analytics/{subject}")
+def get_analytics(subject:str):
+
+    history_file = "analytics/quiz_history.json"
+        
+    if not os.path.exists(history_file):
+        return {"error": "No analytics data found"}
+    with open(history_file,"r") as f:
+        history = json.load(f)
+        print("Analytics history length:", len(history))
+
+    subject_history = [h for h in history
+                       if h["subject"].lower() == subject.lower()]
+    if not subject_history:
+        return {"error": f"No analytics data found for{subject}"}
+    
+    # score progression over time
+    score_progression = [
+        {
+            "date": h["date"],
+            "percentage": round((h["score"]/h["total"])*100)
+        }
+        for h in subject_history
+    ]
+
+    # weak topics frequency
+    topic_count = {}
+    for h in subject_history:
+        for topic in h["weak_topics"]:
+            topic_count[topic] = topic_count.get(topic, 0) + 1
+
+    # pass fail ratio
+    passes = sum(1 for h in subject_history if h["score"] >= 3)
+    fails = len(subject_history) - passes
+
+    # score distribution
+    distribution = {"0-1": 0, "2-3": 0, "4-5": 0}
+    for h in subject_history:
+        if h["score"] <= 1:
+            distribution["0-1"] += 1
+        elif h["score"] <= 3:
+            distribution["2-3"] += 1
+        else:
+            distribution["4-5"] += 1
+
+    # summary
+    # Summary
+    avg_score = round(sum(h["score"] for h in subject_history) / len(subject_history), 1)
+    best_score = max(h["score"] for h in subject_history)
+    total_attempts = len(subject_history)
+
+    return {
+    "subject": subject,
+    "summary": {
+        "total_attempts": total_attempts,
+        "average_score": avg_score,
+        "best_score": best_score,
+        "total": subject_history[0]["total"]
+    },
+    "score_progression": score_progression,
+    "weak_topics_chart": [
+        {"topic": t, "count": c} 
+        for t, c in sorted(topic_count.items(), key=lambda x: x[1], reverse=True)
+    ],
+    "pass_fail": [
+        {"name": "Pass", "value": passes},
+        {"name": "Fail", "value": fails}
+    ],
+    "score_distribution": [
+        {"range": k, "count": v} 
+        for k, v in distribution.items()
+    ],
+    "attempts_table": subject_history
+}
