@@ -451,3 +451,6 @@ Bash
 npm run dev
 Open your browser and navigate to http://localhost:5173 to interact with the running ecosystem.
 ```
+## License
+
+This project is licensed under the Apache License 2.0. See the `LICENSE` file for details.
