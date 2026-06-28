@@ -1,3 +1,4 @@
+note for test: for tests use Java or Ai in subject name and use them as existing data to text
 # RAG_v2
 RAG-based student assistant project, featuring syllabus roadmap analysis, quiz-based weak topic detection, personalized recommendations, and enhanced academic support, with additional AI-powered learning features planned for future developmen
 
@@ -451,3 +452,6 @@ Bash
 npm run dev
 Open your browser and navigate to http://localhost:5173 to interact with the running ecosystem.
 ```
+## License
+
+This project is licensed under the Apache License 2.0. See the `LICENSE` file for details.
