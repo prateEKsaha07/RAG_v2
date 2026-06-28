@@ -27,7 +27,7 @@ function UploadScreen({ onSuccess, onBack }) {
     formData
 )
       setMessage(`${response.data.chunks_created} chunks created!`)
-      setTimeout(() => onSuccess(subject), 1000)
+      setTimeout(() => onSuccess(subject.toLocaleLowerCase()), 1000)
     } catch (error) {
       setMessage("❌ Upload failed. Is your backend running?")
     } finally {
@@ -36,7 +36,7 @@ function UploadScreen({ onSuccess, onBack }) {
   }
 
   const handleUseExisting = () => {
-    if (subject) onSuccess(subject)
+    if (subject) onSuccess(subject.toLocaleLowerCase())
     else setMessage("Please enter a subject name")
   }
 

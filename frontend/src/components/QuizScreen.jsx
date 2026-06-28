@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
+import { generateQuiz, evaluateAnswers } from "../api"
 
 function QuizScreen({ subject, onSubmit }) {
   const [quiz, setQuiz] = useState([])
@@ -13,43 +13,35 @@ function QuizScreen({ subject, onSubmit }) {
   }, [])
 
   const fetchQuiz = async () => {
-    try {
-      setLoading(true)
-      setError("")
-      const response = await axios.post(
-    import.meta.env.VITE_API_URL + "/generate-quiz",
-    { subject })
-      setQuiz(response.data.quiz || [])
-    } catch (error) {
-      setError("Failed to generate quiz. Is backend running?")
-    } finally {
-      setLoading(false)
-    }
+  try {
+    setLoading(true)
+    setError("")
+    const response = await generateQuiz(subject)
+    setQuiz(response.data.quiz || [])
+  } catch (error) {
+    setError("Failed to generate quiz. Is backend running?")
+  } finally {
+    setLoading(false)
   }
+}
+
 
   const handleAnswer = (questionIndex, option) => {
     setAnswers((prev) => ({ ...prev, [questionIndex]: option }))
   }
 
   const handleSubmit = async () => {
-    try {
-      setSubmitting(true)
-      const answersArray = quiz.map((_, i) => answers[i] || "A")
-      
-      // Log exactly what we're sending
-      console.log("Sending to evaluate:")
-      console.log("answers:", answersArray)
-      console.log("quiz[0]:", quiz[0])
-      
-      const response = await axios.post(
-    import.meta.env.VITE_API_URL + "/evaluate",
-    { quiz, answers: answersArray , subject }
-)
-      onSubmit(quiz, response.data)
-    } catch (error) {
-      console.error("Error details:", error.response?.data)
-    }
+  try {
+    setSubmitting(true)
+    const answersArray = quiz.map((_, i) => answers[i] || "A")
+    const response = await evaluateAnswers(quiz, answersArray, subject)
+    onSubmit(quiz, response.data)
+  } catch (error) {
+    console.error("Error details:", error.response?.data)
+  } finally {
+    setSubmitting(false)
   }
+}
 
   const allAnswered =
     quiz.length > 0 &&

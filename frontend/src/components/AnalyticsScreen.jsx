@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { getAnalytics } from "../api"
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, Legend
@@ -25,25 +26,22 @@ function AnalyticsScreen({ onBack }) {
     setSubjects(response.data.subjects)
   }
 
-  const fetchAnalytics = async (subject) => {
-    setLoading(true)
-    setError("")
-    try {
-      const response = await axios.get(
-        import.meta.env.VITE_API_URL + `/analytics/${subject}`
-      )
-      if (response.data.error) {
-        setError(response.data.error)
-        setAnalytics(null)
-      } else {
-        setAnalytics(response.data)
-      }
-    } catch {
-      setError("Failed to load analytics")
-    } finally {
-      setLoading(false)
+const fetchAnalytics = async (subject) => {
+  setLoading(true)
+  try {
+    const response = await getAnalytics(subject)
+    if (response.data.error) {
+      setError(response.data.error)
+      setAnalytics(null)  // ← important!
+    } else {
+      setAnalytics(response.data)
     }
+  } catch {
+    setError("Failed to load analytics")
+  } finally {
+    setLoading(false)
   }
+}
 
   const handleSubjectChange = (subject) => {
     setSelectedSubject(subject)

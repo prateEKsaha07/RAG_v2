@@ -75,5 +75,120 @@
     "weak_topics": [
       "AI in Transportation"
     ]
+  },
+  {
+    "subject": "Ai",
+    "date": "2026-06-28 23:28",
+    "score": 1,
+    "total": 5,
+    "weak_topics": [
+      "Importance of AI in Healthcare"
+    ]
+  },
+  {
+    "subject": "Ai",
+    "date": "2026-06-28 23:39",
+    "score": 1,
+    "total": 5,
+    "weak_topics": [
+      "AI in Education",
+      "The Importance of Artificial Intelligence in Modern Society"
+    ]
+  },
+  {
+    "subject": "",
+    "date": "2026-06-28 23:47",
+    "score": 2,
+    "total": 5,
+    "weak_topics": [
+      "Java Programming"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-06-29 00:44",
+    "score": 2,
+    "total": 5,
+    "weak_topics": [
+      "The Importance of Artificial Intelligence in Modern Society",
+      "Future of Artificial Intelligence",
+      "Importance of AI in Healthcare"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-06-29 00:51",
+    "score": 1,
+    "total": 5,
+    "weak_topics": [
+      "Future of Artificial Intelligence",
+      "The Importance of Artificial Intelligence in Modern Society",
+      "Importance of AI in Healthcare"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-06-29 00:52",
+    "score": 2,
+    "total": 5,
+    "weak_topics": [
+      "Future of Artificial Intelligence",
+      "Conclusion"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-06-29 00:52",
+    "score": 0,
+    "total": 5,
+    "weak_topics": [
+      "The Importance of Artificial Intelligence in Modern Society",
+      "Future of Artificial Intelligence"
+    ]
+  },
+  {
+    "subject": "java",
+    "date": "2026-06-29 00:54",
+    "score": 1,
+    "total": 5,
+    "weak_topics": [
+      "Java Programming"
+    ]
+  },
+  {
+    "subject": "java",
+    "date": "2026-06-29 00:56",
+    "score": 1,
+    "total": 5,
+    "weak_topics": [
+      "Java Programming"
+    ]
+  },
+  {
+    "subject": "java",
+    "date": "2026-06-29 00:57",
+    "score": 0,
+    "total": 5,
+    "weak_topics": [
+      "Java Programming"
+    ]
+  },
+  {
+    "subject": "java",
+    "date": "2026-06-29 00:58",
+    "score": 1,
+    "total": 5,
+    "weak_topics": [
+      "Java Programming"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-06-29 01:02",
+    "score": 4,
+    "total": 5,
+    "weak_topics": [
+      "Importance of AI in Healthcare"
+    ]
   }
 ]
