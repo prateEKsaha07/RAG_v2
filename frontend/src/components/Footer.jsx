@@ -1,3 +1,5 @@
+// i havnt done any major work here it a pre templet i found online i liked the design to used it here will make changes soon
+
 function Footer() {
   return (
    <>

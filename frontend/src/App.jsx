@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import LandingPage from "./components/LandingPage"
 import UploadScreen from "./components/UploadScreen"
 import Dashboard from "./components/Dashboard"
@@ -11,9 +11,14 @@ import NoteView from "./components/NoteView"
 import GoalSetupScreen from "./components/GoalSetupScreen"
 import RoadmapScreen from "./components/RoadmapScreen"
 import AnalyticsScreen from "./components/AnalyticsScreen"
+import LoginScreen from "./components/LoginScreen"
+import SignupScreen from "./components/SignupScreen"
+import { supabase } from "./supabaseClient"
 
 
 function App() {
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [screen, setScreen] = useState("landing")
   const [subject, setSubject] = useState("")
   const [quiz, setQuiz] = useState(null)
@@ -21,6 +26,28 @@ function App() {
   const [editingNote, setEditingNote] = useState(null)
   const [roadmapSubject, setRoadmapSubject] = useState("")
   const handleGetStarted = () => setScreen("upload")
+
+  useEffect(() => {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    setUser(session?.user ?? null)
+    if (session?.user) setScreen("dashboard")
+    setAuthLoading(false)
+  })
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    (_event, session) => {
+      setUser(session?.user ?? null)
+      if (!session?.user) setScreen("landing")
+    }
+  )
+  return () => subscription.unsubscribe()
+}, [])
+
+  const handleLogout = async () => {
+  await supabase.auth.signOut()
+  setScreen("landing")
+  setUser(null)
+}
 
     const handleUploadSuccess = (subjectName) => {
     setSubject(subjectName)
@@ -40,7 +67,7 @@ function App() {
   return (
     <div>
       {screen === "landing" && (
-        <LandingPage onGetStarted={handleGetStarted}
+        <LandingPage onGetStarted={() => setScreen("login")}
          onHome={() => setScreen("landing")} />
       )}
 
@@ -50,6 +77,7 @@ function App() {
       )}
 
       {screen === "dashboard" && (
+        
         <Dashboard
           subject={subject}
           onQuiz={() => setScreen("quiz")}
@@ -59,6 +87,8 @@ function App() {
           onRoadmap={() => setScreen("goal-setup")}
           onHome={() => setScreen("landing")}
           onAnalytics={() => setScreen("analytics")}
+          user = {user}
+          onLogout={handleLogout}
         />
       )}
       {screen === "quiz" && (
@@ -134,6 +164,24 @@ function App() {
     {screen === "analytics" && (
       <AnalyticsScreen onBack={() => setScreen("dashboard")} />
     )}
+    {screen === "login" && (
+  <LoginScreen
+    onLogin={(user) => {
+      setUser(user)
+      setSubject("")
+      setScreen("upload")
+    }}
+    onSignup={() => setScreen("signup")}
+  />
+)}
+
+{screen === "signup" && (
+  <SignupScreen
+    onSignup={() => setScreen("login")}
+    onLogin={() => setScreen("login")}
+  />
+)}
+
     </div>
   )
 }

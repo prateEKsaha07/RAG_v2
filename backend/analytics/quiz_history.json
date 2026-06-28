@@ -39,5 +39,41 @@
       "The Importance of Artificial Intelligence in Modern Society",
       "AI in Transportation"
     ]
+  },
+  {
+    "subject": "Java",
+    "date": "2026-06-19 19:28",
+    "score": 3,
+    "total": 5,
+    "weak_topics": [
+      "Java Programming"
+    ]
+  },
+  {
+    "subject": "java",
+    "date": "2026-06-27 19:16",
+    "score": 2,
+    "total": 5,
+    "weak_topics": [
+      "Java Programming"
+    ]
+  },
+  {
+    "subject": "Java",
+    "date": "2026-06-28 13:09",
+    "score": 2,
+    "total": 5,
+    "weak_topics": [
+      "Java Programming"
+    ]
+  },
+  {
+    "subject": "AI",
+    "date": "2026-06-28 13:24",
+    "score": 3,
+    "total": 5,
+    "weak_topics": [
+      "AI in Transportation"
+    ]
   }
 ]

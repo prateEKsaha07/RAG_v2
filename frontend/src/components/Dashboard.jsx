@@ -1,6 +1,6 @@
 import Footer from "./Footer"
 import Navbar from "./Navbar"
-function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap, onHome, onAnalytics }) {
+function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap, onHome, onAnalytics, onLogout, user }) {
   return (
     <div className="min-h-screen bg-gray-100 ">
 
@@ -14,15 +14,32 @@ function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap, onHome
           + Upload New Notes
         </button>
       </nav> */}
-      <Navbar onHome={onHome} showGetStarted={false} />
+
+      <Navbar onHome={onHome} showGetStarted={false} onLogout={onLogout} />
       {/* Welcome */}
       <div className="max-w-3xl mx-auto pt-16 px-8 text-center pb-16">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">
-          Welcome Back! 👋
+          Welcome Back {user?.email?.split("@")[0]} 👋 !
+
         </h2>
-        <p className="text-gray-500 mb-12">
-          Current subject: <span className="font-semibold text-blue-600">{subject}</span>
-        </p>
+          {/* Current Subject */}
+<div className="flex items-center justify-center gap-2 mb-12">
+  <p className="text-gray-500">
+    Current subject:
+    <span className="font-semibold text-blue-600 ml-1">
+      {subject || "None selected"}
+    </span>
+  </p>
+  <button
+    onClick={onUpload}
+    className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 
+               rounded-full hover:bg-blue-100 border border-blue-200"
+  >
+    change subject
+  </button>
+</div>
+
+        
 
         {/* Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

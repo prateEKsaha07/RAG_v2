@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-function Navbar({ onGetStarted, showGetStarted = true, onHome }) {
+function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -25,11 +25,17 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome }) {
 
       {/* Get Started */}
       {showGetStarted && (
-        <button onClick={onGetStarted}
-          className="hidden md:block bg-white text-black px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 hover:text-white transition duration-300">
-          Get Started
-        </button>
-      )}
+  <button onClick={onGetStarted}
+    className="hidden md:block bg-white text-black px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 hover:text-white transition duration-300">
+    Get Started
+  </button>
+)}
+{onLogout && (
+  <button onClick={onLogout}
+    className="hidden md:block bg-white text-black px-5 py-2 rounded-lg text-sm font-medium hover:bg-red-600 hover:text-white transition duration-300">
+    Logout
+  </button>
+)}
 
       {/* Mobile Toggle */}
       <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-white">
@@ -53,6 +59,12 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome }) {
               Get Started
             </button>
           )}
+          {onLogout && (
+  <button onClick={onLogout}
+    className="bg-white text-black px-5 py-2 rounded-lg text-sm font-medium hover:bg-red-600 hover:text-white transition">
+    Logout
+  </button>
+)}
         </div>
       )}
     </nav>

@@ -22,6 +22,7 @@ from notes import (
     generate_tags,
     fetch_url_title
 )
+from supabase_client import supabase
 
 from roadmap import (
     generate_roadmap,
@@ -105,7 +106,7 @@ def get_quiz_history(subject: str = None):
 
 @app.post("/ingest")
 def ingestion(file: UploadFile = File(...)):
-    file_path = f"data/{file.filename}"
+    file_path = f"data/uploads/{file.filename}"
     with open(file_path,"wb") as f:
         shutil.copyfileobj(file.file,f)
     
@@ -379,3 +380,6 @@ def get_analytics(subject:str):
     ],
     "attempts_table": subject_history
 }
+
+
+# print(supabase.table("notes").select("*").execute())
