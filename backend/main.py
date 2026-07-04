@@ -198,13 +198,14 @@ class CreateNoteRequest(BaseModel):
     tags: List[str]
     urls: List[Any] = []
 @app.post("/notes")
-def create_note_endpoint(request: CreateNoteRequest):
+def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_user)):
     result = create_note(
         subject=request.subject,
         title=request.title,
         content=request.content,
         tags=request.tags,
-        urls=request.urls
+        urls=request.urls,
+        user_id=user.id
     )
     return result
 

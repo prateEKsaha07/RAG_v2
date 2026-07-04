@@ -40,7 +40,7 @@ def load_tags(subject):
         with open(os.path.join(TAGS_DIR, "default.json"), "r") as f:
             return json.load(f)["tags"]
 
-def create_note(subject,title,content,tags,urls=[]):
+def create_note(subject,title,content,tags,urls=[],user_id=None):
     word_count = len(content.split())
     if word_count > 500:
         raise ValueError("Content exceeds 500 words limit.")
