@@ -19,13 +19,26 @@ function LoginScreen({ onLogin, onSignup }) {
     setLoading(true);
     setError("");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+   const { data, error } = await supabase.auth.signInWithPassword({
+  email,
+  password,
+});
 
-    if (error) setError(error.message);
-    else onLogin(data.user);
+if (error) {
+  setError(error.message);
+} else {
+  console.log("USER:", data.user);
+  console.log("SESSION:", data.session);
+  console.log("ACCESS TOKEN:", data.session?.access_token);
+
+  // Save token for later API calls
+  localStorage.setItem(
+    "access_token",
+    data.session.access_token
+  );
+
+  onLogin(data.user);
+}
 
     setLoading(false);
   };

@@ -163,6 +163,8 @@ function NoteEditor({ filename, onBack }) {
     }
 
     setLoading(true)
+    const token = localStorage.getItem("access_token");
+    console.log("TOKEN:", token);
     try {
       if (isEditing) {
         await axios.put(
@@ -172,7 +174,11 @@ function NoteEditor({ filename, onBack }) {
       } else {
         await axios.post(
           import.meta.env.VITE_API_URL + "/notes",
-          { title, subject, content, tags, urls }
+          { title, subject, content, tags, urls },{
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
         )
       }
       setMessage("✅ Note saved successfully!")

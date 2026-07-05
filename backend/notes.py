@@ -4,9 +4,13 @@ from importlib import metadata
 import os
 import json
 
+import supabase
+
 NOTES_DIR = "data/notes/"
 TAGS_DIR = "tags/"
 METADATA_FILE = "notes_metadata.json"
+
+
 
 def generate_filename(subject):
     now = datetime.now()
@@ -40,7 +44,10 @@ def load_tags(subject):
         with open(os.path.join(TAGS_DIR, "default.json"), "r") as f:
             return json.load(f)["tags"]
 
-def create_note(subject,title,content,tags,urls=[],user_id=None):
+async def create_note(subject,title,content,tags,urls=[],user_id=None):
+    if urls is None:
+        urls = []
+
     word_count = len(content.split())
     if word_count > 500:
         raise ValueError("Content exceeds 500 words limit.")
@@ -60,21 +67,22 @@ referenced_urls: {', '.join(urls)}
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(frontmatter + content)
 
-    metadata = load_metadata()
-    metadata.append({
-        "filename": filename,
-        "subject": subject,
-        "title": title,
-        "tags": tags,
-        "urls": urls,
-        "word_count": word_count,
-        "created": now,
-        "last_edited": now,
-        "ingested": False
-    })
-    save_metadata(metadata)
+    if user_id:
+        from supabase_client import supabase
+
+        result = supabase.table("notes").insert({
+            "user_id": user_id,
+            "filename": filename,
+            "subject": subject,
+            "title": title,
+            "tags": tags,
+            "urls": urls,
+            "word_count": word_count,
+            "ingested": False
+        }).execute()
     
     return {"success": True, "filename": filename}
+
 
 def get_all_notes(subject=None, tags=None):
     metadata = load_metadata()

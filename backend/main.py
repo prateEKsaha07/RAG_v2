@@ -197,9 +197,11 @@ class CreateNoteRequest(BaseModel):
     content: str
     tags: List[str]
     urls: List[Any] = []
+
+# supabase endpoints for notes upgrade
 @app.post("/notes")
-def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_user)):
-    result = create_note(
+async def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_user)):
+    result = await create_note(
         subject=request.subject,
         title=request.title,
         content=request.content,

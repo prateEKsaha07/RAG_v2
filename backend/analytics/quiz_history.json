@@ -190,5 +190,46 @@
     "weak_topics": [
       "Importance of AI in Healthcare"
     ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-07-05 23:57",
+    "score": 2,
+    "total": 5,
+    "weak_topics": [
+      "AI in Education",
+      "AI in Transportation"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-07-05 23:58",
+    "score": 2,
+    "total": 5,
+    "weak_topics": [
+      "AI in Transportation",
+      "The Importance of Artificial Intelligence in Modern Society"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-07-06 00:01",
+    "score": 0,
+    "total": 5,
+    "weak_topics": [
+      "Importance of AI in Healthcare",
+      "AI in Entertainment and Media"
+    ]
+  },
+  {
+    "subject": "ai",
+    "date": "2026-07-06 00:02",
+    "score": 0,
+    "total": 5,
+    "weak_topics": [
+      "Importance of AI in Healthcare",
+      "AI in Transportation",
+      "AI in Entertainment and Media"
+    ]
   }
 ]
