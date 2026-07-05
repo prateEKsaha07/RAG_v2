@@ -43,7 +43,8 @@ def load_tags(subject):
     else:
         with open(os.path.join(TAGS_DIR, "default.json"), "r") as f:
             return json.load(f)["tags"]
-
+        
+# supabase endpoints for notes upgrade
 async def create_note(subject,title,content,tags,urls=[],user_id=None):
     if urls is None:
         urls = []
