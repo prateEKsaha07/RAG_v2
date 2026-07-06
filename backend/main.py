@@ -167,9 +167,10 @@ def ingest_notes_endpoint():
 
 # then general
 
+# supabase endpoints for notes upgrade
 @app.get("/notes/{filename}")
-def get_note_content_endpoint(filename: str):
-    return get_note_content(filename)
+async def get_note_content_endpoint(filename: str, user=Depends(get_current_user)):
+    return await get_note_content(filename,user_id=user.id)
 
 class UpdateNoteRequest(BaseModel):
     title: str

@@ -38,26 +38,41 @@ function NoteEditor({ filename, onBack }) {
     setSubjects(response.data.subjects)
   }
 
-  const loadExistingNote = async () => {
-    const response = await axios.get(
-      import.meta.env.VITE_API_URL + `/notes/${filename}`
-    )
-    // Parse frontmatter and content
-    const raw = response.data.content
-    const lines = raw.split("\n")
-    
-    // Extract fields from frontmatter
-    lines.forEach(line => {
-      if (line.startsWith("title:")) 
-        setTitle(line.replace("title:", "").trim())
-      if (line.startsWith("subject:")) 
-        setSubject(line.replace("subject:", "").trim())
-      if (line.startsWith("tags:")) {
-        try {
-          setTags(JSON.parse(line.replace("tags:", "").trim()))
-        } catch { setTags([]) }
+  // Load existing note content if editing added authentication headers
+ const loadExistingNote = async () => {
+  const token = localStorage.getItem("access_token");
+
+  const response = await axios.get(
+    import.meta.env.VITE_API_URL + `/notes/${filename}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    })
+    }
+  );
+
+  // Parse frontmatter and content
+  const raw = response.data.content;
+  const lines = raw.split("\n");
+
+  // Extract fields from frontmatter
+  lines.forEach(line => {
+    if (line.startsWith("title:"))
+      setTitle(line.replace("title:", "").trim());
+
+    if (line.startsWith("subject:"))
+      setSubject(line.replace("subject:", "").trim());
+
+    if (line.startsWith("tags:")) {
+      try {
+        setTags(JSON.parse(line.replace("tags:", "").trim()));
+      } catch {
+        setTags([]);
+      }
+    }
+  });
+
+
     
     // Extract content after frontmatter
     const contentStart = raw.indexOf("---", 3) + 3
@@ -455,5 +470,4 @@ try {
     </div>
   )
 }
-
 export default NoteEditor

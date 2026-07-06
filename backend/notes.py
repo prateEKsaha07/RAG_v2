@@ -115,15 +115,20 @@ async def get_all_notes(subject=None, tags=None, user_id=None):
     # return metadata
 
 
-def get_note_content(filename):
-    filepath = os.path.join(NOTES_DIR, filename)
+async def get_note_content(filename, user_id=None):
+    from supabase_client import supabase
+
+    # verify the note belongs to the user
+    results = supabase.table("notes").select("*").eq("user_id", user_id).eq("filename", filename).execute()
+    if not results.data:
+        return {"error": "Note not found"}
     
+    filepath = os.path.join(NOTES_DIR, filename)
     if not os.path.exists(filepath):
         return {"error": "File not found"}
     
     with open(filepath, "r", encoding="utf-8") as f:
         return {"content": f.read()}
-
 
 #  supabase endpoints for notes upgrade  
 async def update_note(filename, title, content, tags, urls=[], user_id=None):

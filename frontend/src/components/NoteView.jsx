@@ -10,13 +10,18 @@ function NoteView({ filename, onBack, onEdit }) {
     loadNote()
   }, [])
 
+  // Fetch note content with supabase authentication
   const loadNote = async () => {
     try {
       const response = await axios.get(
-        import.meta.env.VITE_API_URL + `/notes/${filename}`
+        import.meta.env.VITE_API_URL + `/notes/${filename}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }
       )
       const raw = response.data.content
-      
       // Parse frontmatter
       const noteData = {}
       const lines = raw.split("\n")
