@@ -50,13 +50,29 @@ function NotesScreen({ onBack, onCreateNote, onEditNote, onViewNote }) {
     fetchNotes(subject)
   }
 
-  const handleDelete = async (filename) => {
-    if (!confirm("Delete this note?")) return
+// Delete note with supabase authentication
+const handleDelete = async (filename) => {
+  if (!confirm("Delete this note?")) return
+
+  const token = localStorage.getItem("access_token")
+
+  try {
     await axios.delete(
-      import.meta.env.VITE_API_URL + `/notes/${filename}`
+      import.meta.env.VITE_API_URL + `/notes/${filename}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
     )
+
     fetchNotes(selectedSubject)
+
+  } catch (error) {
+    console.error(error)
+    alert("Failed to delete note")
   }
+}
 
   const handleIngest = async () => {
     await axios.post(

@@ -211,15 +211,20 @@ referenced_urls: {', '.join(map(str,urls))}
 #     save_metadata(metadata)
 
 
-def delete_note(filename):
+async def delete_note(filename, user_id=None):
+    from supabase_client import supabase
+
+    results = supabase.table("notes").select("*").eq("filename", filename).eq("user_id", user_id).execute()
+    if not results.data:
+        return {"error": "Note not found"}
+    
     filepath = os.path.join(NOTES_DIR, filename)
     if not os.path.exists(filepath):
         return {"error": "File not found"}
     os.remove(filepath)
-    metadata = load_metadata()
-    metadata = [n for n in metadata if n["filename"] != filename]
-    save_metadata(metadata)
-    
+
+    # delete the note from supabase
+    supabase.table("notes").delete().eq("filename", filename).eq("user_id", user_id).execute()
     return {"success": True}
 
 def get_subjects():

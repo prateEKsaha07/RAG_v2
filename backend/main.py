@@ -189,9 +189,11 @@ async def update_note_endpoint(filename: str, request: UpdateNoteRequest, user=D
         user_id=user.id
     )
 
+
+# supabase endpoints for notes upgrade
 @app.delete("/notes/{filename}")
-def delete_note_endpoint(filename: str):
-    return delete_note(filename)
+async def delete_note_endpoint(filename: str, user=Depends(get_current_user)):
+    return await delete_note(filename, user_id=user.id)
 
 
 class CreateNoteRequest(BaseModel):
