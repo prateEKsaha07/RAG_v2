@@ -176,14 +176,17 @@ class UpdateNoteRequest(BaseModel):
     content: str
     tags: List[str]
     urls: List[Any] = []
+
+# supabase endpoints for notes upgrade
 @app.put("/notes/{filename}")
-def update_note_endpoint(filename: str, request: UpdateNoteRequest):
-    return update_note(
+async def update_note_endpoint(filename: str, request: UpdateNoteRequest, user=Depends(get_current_user)):
+    return await update_note(
         filename=filename,
         title=request.title,
         content=request.content,
         tags=request.tags,
-        urls=request.urls
+        urls=request.urls,
+        user_id=user.id
     )
 
 @app.delete("/notes/{filename}")
@@ -211,10 +214,17 @@ async def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_curr
     )
     return result
 
+# supabase upgrade: get notes for specific user, with optional subject and tags filter
 @app.get("/notes")
-def get_notes_endpoint(subject: str = None, tags: str = None):
+async def get_notes_endpoint(subject: str = None, tags: str = None,user=Depends(get_current_user)):
+    print("Fetching notes for:", user)
     tag_list = tags.split(",") if tags else None
-    return {"notes": get_all_notes(subject, tag_list)}
+    notes = await get_all_notes(
+        subject, 
+        tag_list,
+        user_id=user.id
+        )
+    return {"notes": notes}
 
 @app.get("/subjects")
 def get_subjects_endpoint():

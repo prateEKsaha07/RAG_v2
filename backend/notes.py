@@ -84,20 +84,36 @@ referenced_urls: {', '.join(urls)}
     
     return {"success": True, "filename": filename}
 
+#  supabase endpoints for notes upgrade
+async def get_all_notes(subject=None, tags=None, user_id=None):
+    from supabase_client import supabase
 
-def get_all_notes(subject=None, tags=None):
-    metadata = load_metadata()
-    print(f"Total notes: {len(metadata)}")
-    print(f"Filtering by subject: {subject}")
-    if metadata:
-        print(f"First note: {metadata[0]}")
+    query = supabase.table("notes").select("*").eq("user_id", user_id)
     if subject:
-        metadata = [n for n in metadata 
-                   if n["subject"].lower() == subject.lower()]
+        query = query.eq("subject", subject)
+    result = query.execute()
+    notes = result.data
     if tags:
-        metadata = [n for n in metadata 
-                   if any(tag in n["tags"] for tag in tags)]
-    return metadata
+        notes = [
+            note for note in notes
+            if any(tag in note["tags"] for tag in tags)
+        ]
+    return result.data
+
+
+    # metadata = load_metadata()
+    # print(f"Total notes: {len(metadata)}")
+    # print(f"Filtering by subject: {subject}")
+    # if metadata:
+    #     print(f"First note: {metadata[0]}")
+    # if subject:
+    #     metadata = [n for n in metadata 
+    #                if n["subject"].lower() == subject.lower()]
+    # if tags:
+    #     metadata = [n for n in metadata 
+    #                if any(tag in n["tags"] for tag in tags)]
+    # return metadata
+
 
 def get_note_content(filename):
     filepath = os.path.join(NOTES_DIR, filename)
@@ -107,47 +123,93 @@ def get_note_content(filename):
     
     with open(filepath, "r", encoding="utf-8") as f:
         return {"content": f.read()}
-    
-def update_note(filename, title, content, tags, urls=[]):
+
+
+#  supabase endpoints for notes upgrade  
+async def update_note(filename, title, content, tags, urls=[], user_id=None):
+    from supabase_client import supabase
+    now = datetime.now()
+    file_time = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+    if urls is None:
+        urls = []
+
     word_count = len(content.split())
     if word_count > 500:
         raise ValueError("Content exceeds 500 words limit.")
     
-    metadata = load_metadata()
-    note_meta = next((n for n in metadata if n["filename"] == filename), None)
-    if not note_meta:
-        return {"error": "Note metadata not found"}
+    # get the note from supabase
+    results = supabase.table("notes").select("*").eq("user_id", user_id).eq("filename", filename).execute()
 
-    subject = note_meta["subject"]
+    if not results.data:
+        return {"error": "Note not found"}
+    
+    note = results.data[0]
+    subject = note["subject"]
 
-    if not os.path.exists(os.path.join(NOTES_DIR, filename)):
-        return {"error": "File not found"} 
-
-    now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    filepath = os.path.join(NOTES_DIR, filename)
+    if not os.path.exists(filepath):
+        return {"error": "File not found"}
+    
     frontmatter = f"""
 ---
 title: {title}
 subject: {subject}
 tags: {json.dumps(tags)}
-updates_at: {now}
-referenced_urls: {', '.join(urls)}
+updated_at: {file_time}
+referenced_urls: {', '.join(map(str,urls))}
 ---
 """
-    with open(os.path.join(NOTES_DIR, filename), "w", encoding="utf-8") as f:
+    with open (filepath, "w", encoding="utf-8") as f:
         f.write(frontmatter + content)
     
-    for note in metadata:
-        if note["filename"] == filename:
-            note["title"] = title
-            note["tags"] = tags
-            note["urls"] = urls
-            note["last_edited"] = now
-            note["ingested"] = False
-            break
+    # update the note in supabase
+    supabase.table("notes").update({
+        "title": title,
+        "tags": tags,
+        "urls": urls,
+        "last_edited": now.isoformat(),
+        "word_count": word_count,
+        "ingested": False
+    }).eq("user_id", user_id).eq("filename", filename).execute()
     
-    save_metadata(metadata)
-
     return {"success": True}
+
+    
+#     metadata = load_metadata()
+#     note_meta = next((n for n in metadata if n["filename"] == filename), None)
+#     if not note_meta:
+#         return {"error": "Note metadata not found"}
+
+#     subject = note_meta["subject"]
+
+#     if not os.path.exists(os.path.join(NOTES_DIR, filename)):
+#         return {"error": "File not found"} 
+
+#     now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+#     frontmatter = f"""
+# ---
+# title: {title}
+# subject: {subject}
+# tags: {json.dumps(tags)}
+# updates_at: {now}
+# referenced_urls: {', '.join(urls)}
+# ---
+# """
+#     with open(os.path.join(NOTES_DIR, filename), "w", encoding="utf-8") as f:
+#         f.write(frontmatter + content)
+    
+#     for note in metadata:
+#         if note["filename"] == filename:
+#             note["title"] = title
+#             note["tags"] = tags
+#             note["urls"] = urls
+#             note["last_edited"] = now
+#             note["ingested"] = False
+#             break
+    
+#     save_metadata(metadata)
+
 
 def delete_note(filename):
     filepath = os.path.join(NOTES_DIR, filename)

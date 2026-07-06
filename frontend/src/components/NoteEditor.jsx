@@ -148,6 +148,7 @@ function NoteEditor({ filename, onBack }) {
     setUrls(urls.filter((_, i) => i !== index))
   }
 
+  
   const handleSave = async () => {
     if (!title || !subject || !content) {
       setMessage("Title, subject and content are required!")
@@ -163,32 +164,68 @@ function NoteEditor({ filename, onBack }) {
     }
 
     setLoading(true)
-    const token = localStorage.getItem("access_token");
-    console.log("TOKEN:", token);
-    try {
-      if (isEditing) {
-        await axios.put(
-          import.meta.env.VITE_API_URL + `/notes/${filename}`,
-          { title, content, tags, urls }
-        )
-      } else {
-        await axios.post(
-          import.meta.env.VITE_API_URL + "/notes",
-          { title, subject, content, tags, urls },{
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        )
+const token = localStorage.getItem("access_token");
+console.log("TOKEN:", token);
+
+try {
+  if (isEditing) {
+    await axios.put(
+      import.meta.env.VITE_API_URL + `/notes/${filename}`,
+      { title, content, tags, urls },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }
-      setMessage("✅ Note saved successfully!")
-      setTimeout(() => onBack(), 1000)
-    } catch (error) {
-      setMessage("❌ Failed to save note")
-    } finally {
-      setLoading(false)
-    }
+    )
+  } else {
+    await axios.post(
+      import.meta.env.VITE_API_URL + "/notes",
+      { title, subject, content, tags, urls },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
   }
+
+  setMessage("✅ Note saved successfully!")
+  setTimeout(() => onBack(), 1000)
+
+} catch (error) {
+  console.error(error);
+  setMessage("❌ Failed to save note")
+} finally {
+  setLoading(false)
+}
+}
+    // setLoading(true)
+    // const token = localStorage.getItem("access_token");
+    // console.log("TOKEN:", token);
+    // try {
+    //   if (isEditing) {
+    //     await axios.put(
+    //       import.meta.env.VITE_API_URL + `/notes/${filename}`,
+    //       { title, content, tags, urls }
+    //     )
+    //   } else {
+    //     await axios.post(
+    //       import.meta.env.VITE_API_URL + "/notes",
+    //       { title, subject, content, tags, urls },{
+    //         headers: {
+    //           Authorization: `Bearer ${token}`
+    //         }
+    //       }
+    //     )
+    //   }
+    //   setMessage("✅ Note saved successfully!")
+    //   setTimeout(() => onBack(), 1000)
+    // } catch (error) {
+    //   setMessage("❌ Failed to save note")
+    // } finally {
+    //   setLoading(false)
+    // }
 
   const wordLimitColor = wordCount > 500 
     ? "text-red-500" 

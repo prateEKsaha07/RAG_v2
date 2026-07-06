@@ -19,14 +19,30 @@ function NotesScreen({ onBack, onCreateNote, onEditNote, onViewNote }) {
     setSubjects(response.data.subjects)
   }
 
+// Fetch notes with optional subject filter with supabase authentication
   const fetchNotes = async (subject = "") => {
     setLoading(true)
+    const token = localStorage.getItem("access_token")
     const url = subject
       ? import.meta.env.VITE_API_URL + `/notes?subject=${subject}`
       : import.meta.env.VITE_API_URL + "/notes"
-    const response = await axios.get(url)
+    
+      console.log("TOKEN:", token)
+    const response = await axios.get(url,{
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
     setNotes(response.data.notes)
     setLoading(false)
+
+
+    // const url = subject
+    //   ? import.meta.env.VITE_API_URL + `/notes?subject=${subject}`
+    //   : import.meta.env.VITE_API_URL + "/notes"
+    // const response = await axios.get(url)
+    // setNotes(response.data.notes)
+    // setLoading(false)
   }
 
   const handleSubjectFilter = (subject) => {
