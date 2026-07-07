@@ -13,10 +13,16 @@ function RoadmapScreen({ subject, onBack }) {
     fetchRoadmap()
   }, [])
 
+  // supabase auth added
   const fetchRoadmap = async () => {
+    const token = localStorage.getItem("access_token")
     try {
       const response = await axios.get(
-        import.meta.env.VITE_API_URL + `/roadmap/${subject}`
+        import.meta.env.VITE_API_URL + `/roadmap/${subject}`,{
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       )
       setRoadmap(response.data)
     } catch {
@@ -26,11 +32,17 @@ function RoadmapScreen({ subject, onBack }) {
     }
   }
 
+  // supabase auth added
   const handleCompleteTopic = async (week, topicName) => {
+    const token = localStorage.getItem("access_token")
     try {
       await axios.put(
         import.meta.env.VITE_API_URL + `/roadmap/${subject}/complete-topic`,
-        { week, topic_name: topicName }
+        { week, topic_name: topicName },{
+          headers:{
+            Authorization: `Bearer ${token}`
+          }
+        }
       )
       fetchRoadmap()
       setMessage(`✅ "${topicName}" marked complete!`)
@@ -40,12 +52,18 @@ function RoadmapScreen({ subject, onBack }) {
     }
   }
 
+  // supabase auth added
   const handleExtendDate = async () => {
+    const token = localStorage.getItem("access_token")
     if (!newTargetDate) return
     try {
       await axios.put(
         import.meta.env.VITE_API_URL + `/roadmap/${subject}/extend`,
-        { new_target_date: newTargetDate }
+        { new_target_date: newTargetDate },{
+          headers:{
+            Authorization:`Bearer ${token}`
+          }
+        }
       )
       setExtending(false)
       fetchRoadmap()
@@ -71,7 +89,7 @@ function RoadmapScreen({ subject, onBack }) {
     const daysLeft = Math.ceil((target - today) / (1000 * 60 * 60 * 24))
 
     // Pace
-    const created = new Date(roadmap.created)
+    const created = new Date(roadmap.created_at)
     const daysElapsed = Math.ceil((today - created) / (1000 * 60 * 60 * 24)) || 1
     const expectedProgress = Math.round((daysElapsed / 
       Math.ceil((target - created) / (1000 * 60 * 60 * 24))) * 100)

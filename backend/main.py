@@ -134,7 +134,6 @@ def ask_endpoint(request: AskRequest):
 
 # Notes endpoints
 
-
 # specific first
 class GenerateTagsRequest(BaseModel):
     note_content: str
@@ -193,12 +192,10 @@ async def update_note_endpoint(filename: str, request: UpdateNoteRequest, user=D
         user_id=user.id
     )
 
-
 # supabase endpoints for notes upgrade
 @app.delete("/notes/{filename}")
 async def delete_note_endpoint(filename: str, user=Depends(get_current_user)):
     return await delete_note(filename, user_id=user.id)
-
 
 class CreateNoteRequest(BaseModel):
     subject: str
@@ -254,7 +251,7 @@ class RoadmapRequest(BaseModel):
     hours_per_day: int
     target_date: str
     scope: str
-    unit_number: int = None
+    unit_number: int | None = None
 
 class ExtendDateRequest(BaseModel):
     new_target_date: str
@@ -263,75 +260,130 @@ class CompleteTopicRequest(BaseModel):
     week: int
     topic_name: str
 
-
+# supabase upgrade: check if active roadmap exists for user and subject
 @app.post("/roadmap")
-def generate_roadmap_endpoint(request: RoadmapRequest):
+def generate_roadmap_endpoint(request: RoadmapRequest, user=Depends(get_current_user)):
     # Check if active roadmap exists
-    if check_existing_roadmap(request.subject):
+    if check_existing_roadmap(request.subject,user_id=user.id):
         return {"error": "Active roadmap exists. Complete or delete it first."}
-    
     result = generate_roadmap(
         subject=request.subject,
         hours_per_day=request.hours_per_day,
         target_date=request.target_date,
         scope=request.scope,
         unit_number=request.unit_number,
-        llm=llm
-    )
+        llm=llm,
+        user_id=user.id
+    ) 
     return result
 
+
+
+# supabase upgrade: check if active roadmap exists for user and subject update: there is some problem
 @app.get("/roadmap/{subject}")
-def get_roadmap_endpoint(subject: str):
-    roadmap = load_roadmap(subject)
+def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
+    print("get roadmap")
+    print("subject",subject)
+    print("user",user.id)
+
+    roadmap = load_roadmap(subject,user_id=user.id)
+    # print("Roadmap:", roadmap)
+
     if not roadmap:
         return {"error": "No roadmap found"}
     return roadmap
 
+
+# supabase updated version
 @app.delete("/roadmap/{subject}")
-def delete_roadmap_endpoint(subject: str):
+# gemini version
+@app.delete("/roadmap/{subject}")
+def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
+    from supabase_client import supabase
+    import os
+
+    # FIX: Added the "s" to "roadmaps" to match your actual table name
+    supabase.table("roadmaps").delete().eq("user_id", user.id).eq("subject", subject).execute()
+
     filepath = f"analytics/roadmaps/roadmap_{subject}.json"
-    if not os.path.exists(filepath):
-        return {"error": "No roadmap found"}
-    os.remove(filepath)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        print(f"Local file {filepath} deleted successfully.")
+    else:
+        print(f"Note: Local file {filepath} wasn't found, skipping file deletion.")
+
     return {"success": True, "message": f"Roadmap for {subject} deleted"}
 
-@app.put("/roadmap/{subject}/extend")
-def extend_roadmap_endpoint(subject: str, request: ExtendDateRequest):
-    roadmap = load_roadmap(subject)
-    if not roadmap:
-        return {"error": "No roadmap found"}
-    
-    roadmap["target_date"] = request.new_target_date
-    
-    from roadmap import save_roadmap
-    save_roadmap(subject, roadmap)
-    return {"success": True, "new_target_date": request.new_target_date}
+# def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
+#     from supabase_client import supabase
 
+#     supabase.table("roadmap").delete().eq("user_id",user.id).eq("subject",subject).execute()
+
+#     filepath = f"analytics/roadmaps/roadmap_{subject}.json"
+#     if not os.path.exists(filepath):
+#         return {"error": "No roadmap found"}
+#     os.remove(filepath)
+#     return {"success": True, "message": f"Roadmap for {subject} deleted"}
+
+@app.put("/roadmap/{subject}/extend")
+def extend_roadmap_endpoint(
+    subject: str,
+    request: ExtendDateRequest,
+    user=Depends(get_current_user)
+):
+    from supabase_client import supabase
+
+    roadmap = load_roadmap(subject, user_id=user.id)
+    if not roadmap:
+        return {"error": "No roadmap found"}
+
+    roadmap["target_date"] = request.new_target_date
+
+    supabase.table("roadmaps").update({
+        "target_date": request.new_target_date
+    }).eq("subject", subject).eq("user_id", user.id).execute()
+
+    return {
+        "success": True,
+        "new_target_date": request.new_target_date
+    }
+
+# supabase upgraded
 @app.put("/roadmap/{subject}/complete-topic")
-def complete_topic_endpoint(subject: str, request: CompleteTopicRequest):
-    roadmap = load_roadmap(subject)
+def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=Depends(get_current_user)):
+    from supabase_client import supabase
+    roadmap = load_roadmap(subject,user_id = user.id)
     if not roadmap:
         return {"error": "No roadmap found"}
     
-    # Find and update topic status
+    # Update topic
+    found = False
+
     for week in roadmap["weeks"]:
         if week["week"] == request.week:
             for item in week["topics"]:
                 if item["topic"]["name"] == request.topic_name:
                     item["topic"]["status"] = "completed"
                     item["topic"]["completed_date"] = datetime.now().strftime("%Y-%m-%d")
+                    found = True
                     break
-    
-    from roadmap import save_roadmap
-    save_roadmap(subject, roadmap)
+
+    if not found:
+        return {"error": "Topic not found"}
+
+    # Save updated weeks back to Supabase
+    supabase.table("roadmaps").update({
+        "weeks": roadmap["weeks"]
+    }).eq("subject", subject).eq("user_id", user.id).execute()
+
     return {"success": True}
 
-# analytics endpoints
+# analytics endpoints supabase upgraded
 @app.get("/analytics/{subject}")
-def get_analytics(subject: str, user=Depends(get_current_user)):
+async def get_analytics(subject: str, user=Depends(get_current_user)):
     
     # Load from Supabase instead of JSON file
-    response = supabase.table("quiz_history")\
+    response = await supabase.table("quiz_history")\
         .select("*")\
         .eq("user_id", user.id)\
         .eq("subject", subject.lower())\

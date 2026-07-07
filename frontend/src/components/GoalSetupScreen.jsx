@@ -22,43 +22,66 @@ function GoalSetupScreen({ onBack, onViewRoadmap }) {
   }, [])
 
   const fetchSubjects = async () => {
+    const token = localStorage.getItem("access_token")
     const response = await axios.get(
       import.meta.env.VITE_API_URL + "/subjects"
     )
     setSubjects(response.data.subjects)
   }
 
+
+
   const handleSubjectChange = async (subject) => {
+    const token = localStorage.getItem("access_token")
     setSelectedSubject(subject)
     setExistingRoadmap(null)
     setError("")
 
-    if (!subject) return
+    if (!subject) {
+    return; 
+    }
+      setChecking(true);
 
-    setChecking(true)
     try {
       const response = await axios.get(
-        import.meta.env.VITE_API_URL + `/roadmap/${subject}`
+        import.meta.env.VITE_API_URL + `/roadmap/${subject}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       )
+      console.log("GET roadmap:", response.data);
       if (!response.data.error) {
-        setExistingRoadmap(response.data)
+        setExistingRoadmap(response.data);
       }
-    } catch {
-      setExistingRoadmap(null)
-    } finally {
-      setChecking(false)
+      console.log(response.data);
+      console.log(Array.isArray(response.data));
+    } catch (error) {
+      console.log(JSON.stringify(error.response?.data, null, 2));
+      setExistingRoadmap(null);
+      } finally {
+        setChecking(false);
     }
   }
 
+
   const handleDelete = async () => {
+    const token = localStorage.getItem("access_token")
     if (!confirm("Delete this roadmap?")) return
     await axios.delete(
-      import.meta.env.VITE_API_URL + `/roadmap/${selectedSubject}`
+      import.meta.env.VITE_API_URL + `/roadmap/${selectedSubject}`,{
+        headers:{
+          Authorization: `Bearer ${token}`
+        }
+      }
     )
     setExistingRoadmap(null)
   }
 
   const handleGenerate = async () => {
+    const token = localStorage.getItem("access_token")
+    console.log("TOKEN:", token);
     if (!selectedSubject || !targetDate) {
       setError("Please select subject and target date!")
       return
@@ -76,6 +99,10 @@ function GoalSetupScreen({ onBack, onViewRoadmap }) {
           target_date: targetDate,
           scope: scope,
           unit_number: scope === "unit" ? unitNumber : null
+        },{
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
       )
 
@@ -84,10 +111,13 @@ function GoalSetupScreen({ onBack, onViewRoadmap }) {
         return
       }
 
+      const targetSubject = selectedSubject;
       setExistingRoadmap(response.data)
-      onViewRoadmap(selectedSubject)
+      setError("")
+      onViewRoadmap(targetSubject)
 
-    } catch {
+    } catch (error) {
+      console.log(JSON.stringify(error.response?.data, null, 2));
       setError("Failed to generate roadmap")
     } finally {
       setLoading(false)
@@ -146,7 +176,18 @@ function GoalSetupScreen({ onBack, onViewRoadmap }) {
               <p>Subject: <span className="font-medium">{existingRoadmap.subject}</span></p>
               <p>Scope: <span className="font-medium">{existingRoadmap.scope}</span></p>
               <p>Target: <span className="font-medium">{existingRoadmap.target_date}</span></p>
-              <p>Created: <span className="font-medium">{existingRoadmap.created}</span></p>
+              <p>
+  Created:{" "}
+  <span className="font-medium">
+    {new Date(existingRoadmap.created_at).toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })}
+  </span>
+</p>
               <p>Weeks: <span className="font-medium">{existingRoadmap.weeks?.length}</span></p>
             </div>
             <div className="flex gap-3">

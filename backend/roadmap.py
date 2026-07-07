@@ -137,8 +137,10 @@ def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
     
     return weeks
 
-def generate_roadmap(subject, hours_per_day, target_date, scope, unit_number=None, llm=None):
-    
+
+# supabase integration for roadmap generation
+def generate_roadmap(subject, hours_per_day, target_date, scope, unit_number=None, llm=None, user_id=None):
+    from supabase_client import supabase
     # load units
     units = load_subject_units(subject)
     if "error" in units:
@@ -160,23 +162,21 @@ def generate_roadmap(subject, hours_per_day, target_date, scope, unit_number=Non
     start_date = datetime.now().strftime("%Y-%m-%d")
     weeks = build_weekly_schedule(roadmap_structure, hours_per_day, start_date)
     
-    # final roadmap
-    roadmap = {
-        "id": f"roadmap_{subject}_{datetime.now().strftime('%Y%m%d%H%M')}",
+    roadmap = supabase.table("roadmaps").insert({
         "subject": subject,
         "scope": scope,
         "unit_number": unit_number,
         "hours_per_day": hours_per_day,
         "target_date": target_date,
-        "created": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "created_at": datetime.now().isoformat(),
         "status": "active",
         "weeks": weeks,
-        "weak_topics": weak_topics
-    }
-    
-    #save roadmap
-    save_roadmap(subject, roadmap)
-    return roadmap
+        "weak_topics": weak_topics,
+        "user_id": user_id
+        })
+
+    roadmap_response = roadmap.execute()
+    return roadmap_response.data[0] if roadmap_response.data else {"error": "Failed to create roadmap"}
 
 def save_roadmap(subject, roadmap):
     # One roadmap per subject
@@ -185,17 +185,46 @@ def save_roadmap(subject, roadmap):
     with open(filepath, "w") as f:
         json.dump(roadmap, f, indent=2)
 
-def load_roadmap(subject):
-    filepath = os.path.join(ROADMAPS_DIR, f"roadmap_{subject}.json")
-    
-    if not os.path.exists(filepath):
+
+
+
+def load_roadmap(subject, user_id=None):
+    from supabase_client import supabase
+
+    print("Searching:", subject, user_id)
+
+    results = (
+        supabase.table("roadmaps")
+        .select("*")
+        .eq("subject", subject)
+        .eq("user_id", user_id)
+        .eq("status", "active")
+        .execute()
+    )
+
+    print("Supabase returned:", results.data)
+
+    if not results.data:
         return None
+
+    return results.data[0]
     
-    with open(filepath, "r") as f:
-        return json.load(f)
-    
-def check_existing_roadmap(subject):
-    roadmap = load_roadmap(subject)
-    if roadmap and roadmap["status"] == "active":
-        return True
-    return False
+
+
+
+# supabase check for existing roadmap 
+def check_existing_roadmap(subject, user_id=None):
+    from supabase_client import supabase
+
+    results = (
+        supabase.table("roadmaps")
+        .select("*")
+        .eq("subject", subject)
+        .eq("user_id", user_id)
+        .eq("status", "active")
+        .execute()
+    )
+
+    print(results.data)
+
+    return len(results.data) > 0
