@@ -114,7 +114,7 @@ async def get_all_notes(subject=None, tags=None, user_id=None):
     #                if any(tag in n["tags"] for tag in tags)]
     # return metadata
 
-
+# supabase endpoints for notes upgrade
 async def get_note_content(filename, user_id=None):
     from supabase_client import supabase
 
@@ -215,7 +215,7 @@ referenced_urls: {', '.join(map(str,urls))}
     
 #     save_metadata(metadata)
 
-
+# supabase endpoints for notes upgrade
 async def delete_note(filename, user_id=None):
     from supabase_client import supabase
 
@@ -288,24 +288,48 @@ def fetch_url_title(url):
         return url
     
 # ingest
-def ingest_notes(embeddings):
+async def ingest_notes(embeddings, user_id=None):
     from langchain_community.document_loaders import DirectoryLoader, TextLoader
     from langchain_text_splitters import MarkdownHeaderTextSplitter
     from langchain_community.vectorstores import FAISS
+    from supabase_client import supabase
     
     # Check if notes folder has any files
-    notes = os.listdir(NOTES_DIR)
-    if not notes:
+
+    # notes = os.listdir(NOTES_DIR)
+    # if not notes:
+    #     return {"error": "No notes to ingest"}
+
+    results = supabase.table("notes").select("*").eq("user_id", user_id).execute()
+    if not results.data:
         return {"error": "No notes to ingest"}
     
-    # Load all notes
-    loader = DirectoryLoader(
-        NOTES_DIR,
-        glob="**/*.md",
-        loader_cls=TextLoader,
-        loader_kwargs={"encoding": "utf-8"}
-    )
-    documents = loader.load()
+    notes = results.data
+
+
+    
+    # Load all 
+    documents = []
+
+    for note in notes:
+        filename = note["filename"]
+        filepath = os.path.join(NOTES_DIR, filename)
+        if not os.path.exists(filepath):
+            continue
+
+        loader = TextLoader(filepath, encoding="utf-8")
+        documents.extend(loader.load())
+
+    if not documents:
+        return {"error": "No documents to ingest"}
+
+    # loader = DirectoryLoader(
+    #     NOTES_DIR,
+    #     glob="**/*.md",
+    #     loader_cls=TextLoader,
+    #     loader_kwargs={"encoding": "utf-8"}
+    # )
+    # documents = loader.load()
     
     # Split by headers
     headers_to_split_on = [
@@ -329,10 +353,13 @@ def ingest_notes(embeddings):
     vectorstore.save_local("notes_faiss_index")
     
     # Mark all notes as ingested
-    metadata = load_metadata()
-    for note in metadata:
-        note["ingested"] = True
-    save_metadata(metadata)
+    for note in notes:
+        result = supabase.table("notes").update({"ingested": True}).eq("id", note["id"])
+        result.execute()
+    # metadata = load_metadata()
+    # for note in metadata:
+    #     note["ingested"] = True
+    # save_metadata(metadata)
     
     return {
         "success": True,

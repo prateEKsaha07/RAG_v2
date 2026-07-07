@@ -139,6 +139,7 @@ def ask_endpoint(request: AskRequest):
 class GenerateTagsRequest(BaseModel):
     note_content: str
     subject: str
+
 @app.post("/notes/generate-tags")
 def generate_tags_endpoint(request: GenerateTagsRequest):
     tags = generate_tags(request.note_content, request.subject, llm)
@@ -146,14 +147,18 @@ def generate_tags_endpoint(request: GenerateTagsRequest):
 
 class FetchURLRequest(BaseModel):
     url: str
+
 @app.post("/notes/fetch-url")
 def fetch_url_endpoint(request: FetchURLRequest):
     return {"title": fetch_url_title(request.url)}
 
+
+# supabase endpoints for notes upgrade
 @app.post("/notes/ingest")
-def ingest_notes_endpoint():
+async def ingest_notes_endpoint(user=Depends(get_current_user)):
     from notes import ingest_notes
-    result = ingest_notes(embeddings)
+
+    result = await ingest_notes(embeddings, user_id=user.id)
     
     # Reload notes FAISS after ingestion
     global notes_db
@@ -164,9 +169,7 @@ def ingest_notes_endpoint():
     return result
 
 
-
-# then general
-
+# general routes for notes
 # supabase endpoints for notes upgrade
 @app.get("/notes/{filename}")
 async def get_note_content_endpoint(filename: str, user=Depends(get_current_user)):

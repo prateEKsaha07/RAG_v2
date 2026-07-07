@@ -75,11 +75,24 @@ const handleDelete = async (filename) => {
 }
 
   const handleIngest = async () => {
-    await axios.post(
-      import.meta.env.VITE_API_URL + "/notes/ingest"
+    const token = localStorage.getItem("access_token")
+
+    try {
+      await axios.post(
+      import.meta.env.VITE_API_URL + "/notes/ingest",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
     )
     alert("Notes ingested successfully!")
     fetchNotes(selectedSubject)
+    }catch(error) {
+      console.error(error)
+      alert("Failed to ingest notes")
+    }
   }
 
   return (
