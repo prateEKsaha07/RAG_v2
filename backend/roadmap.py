@@ -83,9 +83,6 @@ Return format:
     from quiz import parse_json_response
     return parse_json_response(response.content)
 
-import math
-from datetime import datetime, timedelta
-
 def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
     weeks = []
     current_week = 1
@@ -137,7 +134,6 @@ def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
     
     return weeks
 
-
 # supabase integration for roadmap generation
 def generate_roadmap(subject, hours_per_day, target_date, scope, unit_number=None, llm=None, user_id=None):
     from supabase_client import supabase
@@ -178,6 +174,7 @@ def generate_roadmap(subject, hours_per_day, target_date, scope, unit_number=Non
     roadmap_response = roadmap.execute()
     return roadmap_response.data[0] if roadmap_response.data else {"error": "Failed to create roadmap"}
 
+# older one
 def save_roadmap(subject, roadmap):
     # One roadmap per subject
     filepath = os.path.join(ROADMAPS_DIR, f"roadmap_{subject}.json")
@@ -185,9 +182,7 @@ def save_roadmap(subject, roadmap):
     with open(filepath, "w") as f:
         json.dump(roadmap, f, indent=2)
 
-
-
-
+# supabase updated
 def load_roadmap(subject, user_id=None):
     from supabase_client import supabase
 
@@ -209,9 +204,6 @@ def load_roadmap(subject, user_id=None):
 
     return results.data[0]
     
-
-
-
 # supabase check for existing roadmap 
 def check_existing_roadmap(subject, user_id=None):
     from supabase_client import supabase

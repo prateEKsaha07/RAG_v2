@@ -29,8 +29,6 @@ function GoalSetupScreen({ onBack, onViewRoadmap }) {
     setSubjects(response.data.subjects)
   }
 
-
-
   const handleSubjectChange = async (subject) => {
     const token = localStorage.getItem("access_token")
     setSelectedSubject(subject)
@@ -64,7 +62,6 @@ function GoalSetupScreen({ onBack, onViewRoadmap }) {
         setChecking(false);
     }
   }
-
 
   const handleDelete = async () => {
     const token = localStorage.getItem("access_token")

@@ -105,7 +105,6 @@ def get_quiz_history(subject: str = None):
     
     return {"history": history}
 
-
 @app.post("/ingest")
 def ingestion(file: UploadFile = File(...)):
     file_path = f"data/uploads/{file.filename}"
@@ -151,7 +150,6 @@ class FetchURLRequest(BaseModel):
 def fetch_url_endpoint(request: FetchURLRequest):
     return {"title": fetch_url_title(request.url)}
 
-
 # supabase endpoints for notes upgrade
 @app.post("/notes/ingest")
 async def ingest_notes_endpoint(user=Depends(get_current_user)):
@@ -166,7 +164,6 @@ async def ingest_notes_endpoint(user=Depends(get_current_user)):
         allow_dangerous_deserialization=True
     )
     return result
-
 
 # general routes for notes
 # supabase endpoints for notes upgrade
@@ -244,7 +241,6 @@ def get_upload_content(subject: str):
     with open(files[0], "r", encoding="utf-8") as f:
         return {"content": f.read()}
 
-
 # roadmap endpoints
 class RoadmapRequest(BaseModel):
     subject: str
@@ -277,8 +273,6 @@ def generate_roadmap_endpoint(request: RoadmapRequest, user=Depends(get_current_
     ) 
     return result
 
-
-
 # supabase upgrade: check if active roadmap exists for user and subject update: there is some problem
 @app.get("/roadmap/{subject}")
 def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
@@ -292,7 +286,6 @@ def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
     if not roadmap:
         return {"error": "No roadmap found"}
     return roadmap
-
 
 # supabase updated version
 @app.delete("/roadmap/{subject}")
@@ -314,6 +307,7 @@ def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
 
     return {"success": True, "message": f"Roadmap for {subject} deleted"}
 
+# my version
 # def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
 #     from supabase_client import supabase
 
@@ -325,6 +319,7 @@ def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
 #     os.remove(filepath)
 #     return {"success": True, "message": f"Roadmap for {subject} deleted"}
 
+# supabase updated
 @app.put("/roadmap/{subject}/extend")
 def extend_roadmap_endpoint(
     subject: str,
@@ -462,4 +457,4 @@ async def get_analytics(subject: str, user=Depends(get_current_user)):
         ]
     }
 
-# print(supabase.table("notes").select("*").execute())
+# print(supabase.table("notes").select("*").execute()) - sample
