@@ -168,8 +168,8 @@ async def ingest_notes_endpoint(user=Depends(get_current_user)):
 # general routes for notes
 # supabase endpoints for notes upgrade
 @app.get("/notes/{filename}")
-async def get_note_content_endpoint(filename: str, user=Depends(get_current_user)):
-    return await get_note_content(filename,user_id=user.id)
+def get_note_content_endpoint(filename: str, user=Depends(get_current_user)):
+    return get_note_content(filename,user_id=user.id)
 
 class UpdateNoteRequest(BaseModel):
     title: str
@@ -179,8 +179,8 @@ class UpdateNoteRequest(BaseModel):
 
 # supabase endpoints for notes upgrade
 @app.put("/notes/{filename}")
-async def update_note_endpoint(filename: str, request: UpdateNoteRequest, user=Depends(get_current_user)):
-    return await update_note(
+def update_note_endpoint(filename: str, request: UpdateNoteRequest, user=Depends(get_current_user)):
+    return update_note(
         filename=filename,
         title=request.title,
         content=request.content,
@@ -191,8 +191,8 @@ async def update_note_endpoint(filename: str, request: UpdateNoteRequest, user=D
 
 # supabase endpoints for notes upgrade
 @app.delete("/notes/{filename}")
-async def delete_note_endpoint(filename: str, user=Depends(get_current_user)):
-    return await delete_note(filename, user_id=user.id)
+def delete_note_endpoint(filename: str, user=Depends(get_current_user)):
+    return delete_note(filename, user_id=user.id)
 
 class CreateNoteRequest(BaseModel):
     subject: str
@@ -203,8 +203,8 @@ class CreateNoteRequest(BaseModel):
 
 # supabase endpoints for notes upgrade
 @app.post("/notes")
-async def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_user)):
-    result = await create_note(
+def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_user)):
+    result = create_note(
         subject=request.subject,
         title=request.title,
         content=request.content,
@@ -216,10 +216,10 @@ async def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_curr
 
 # supabase upgrade: get notes for specific user, with optional subject and tags filter
 @app.get("/notes")
-async def get_notes_endpoint(subject: str = None, tags: str = None,user=Depends(get_current_user)):
+def get_notes_endpoint(subject: str = None, tags: str = None,user=Depends(get_current_user)):
     print("Fetching notes for:", user)
     tag_list = tags.split(",") if tags else None
-    notes = await get_all_notes(
+    notes = get_all_notes(
         subject, 
         tag_list,
         user_id=user.id

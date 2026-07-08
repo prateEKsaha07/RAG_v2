@@ -45,7 +45,7 @@ def load_tags(subject):
             return json.load(f)["tags"]
         
 # supabase endpoints for notes upgrade
-async def create_note(subject,title,content,tags,urls=[],user_id=None):
+def create_note(subject,title,content,tags,urls=[],user_id=None):
     if urls is None:
         urls = []
 
@@ -53,8 +53,7 @@ async def create_note(subject,title,content,tags,urls=[],user_id=None):
     if word_count > 500:
         raise ValueError("Content exceeds 500 words limit.")
 
-    filename = generate_filename(subject)
-    filepath = os.path.join(NOTES_DIR, filename)
+    filename = generate_filename(subject)  
     now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     frontmatter = f"""
 ---
@@ -65,8 +64,26 @@ created_at: {now}
 referenced_urls: {', '.join(urls)}
 ---
 """
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(frontmatter + content)
+    # filepath = os.path.join(NOTES_DIR, filename)
+    # with open(filepath, "w", encoding="utf-8") as f:
+    #     f.write(frontmatter + content)
+
+    markdown_content = frontmatter + content
+    from supabase_client import supabase
+
+    upload = supabase.storage.from_("notes").upload(
+        path = f"{user_id}/{filename}",
+        file = markdown_content.encode("utf-8"),
+        file_options={
+            "content-type":"text/markdown",
+            "upsert": "false"
+        } 
+    )
+
+    print(upload)
+
+    if not upload:
+        return {"error":"upload nahi hua "}
 
     if user_id:
         from supabase_client import supabase
@@ -85,10 +102,13 @@ referenced_urls: {', '.join(urls)}
     return {"success": True, "filename": filename}
 
 #  supabase endpoints for notes upgrade
-async def get_all_notes(subject=None, tags=None, user_id=None):
+def get_all_notes(subject=None, tags=None, user_id=None):
     from supabase_client import supabase
-
-    query = supabase.table("notes").select("*").eq("user_id", user_id)
+    query = (
+        supabase.table("notes")
+        .select("*")
+        .eq("user_id", user_id)
+    )
     if subject:
         query = query.eq("subject", subject)
     result = query.execute()
@@ -98,7 +118,7 @@ async def get_all_notes(subject=None, tags=None, user_id=None):
             note for note in notes
             if any(tag in note["tags"] for tag in tags)
         ]
-    return result.data
+    return notes
 
 
     # metadata = load_metadata()
@@ -115,7 +135,7 @@ async def get_all_notes(subject=None, tags=None, user_id=None):
     # return metadata
 
 # supabase endpoints for notes upgrade
-async def get_note_content(filename, user_id=None):
+def get_note_content(filename, user_id=None):
     from supabase_client import supabase
 
     # verify the note belongs to the user
@@ -123,15 +143,27 @@ async def get_note_content(filename, user_id=None):
     if not results.data:
         return {"error": "Note not found"}
     
-    filepath = os.path.join(NOTES_DIR, filename)
-    if not os.path.exists(filepath):
-        return {"error": "File not found"}
+    try:
+        file_data = supabase.storage.from_("notes").download(f"{user_id}/{filename}")
+
+        return{
+            "content":file_data.decode("utf-8")
+        }
+
+    except Exception as e:
+        print("storage download error:",e)
+        return{"error":"file not found"}
+
     
-    with open(filepath, "r", encoding="utf-8") as f:
-        return {"content": f.read()}
+    # filepath = os.path.join(NOTES_DIR, filename)
+    # if not os.path.exists(filepath):
+    #     return {"error": "File not found"}
+    
+    # with open(filepath, "r", encoding="utf-8") as f:
+    #     return {"content": f.read()}
 
 #  supabase endpoints for notes upgrade  
-async def update_note(filename, title, content, tags, urls=[], user_id=None):
+def update_note(filename, title, content, tags, urls=[], user_id=None):
     from supabase_client import supabase
     now = datetime.now()
     file_time = now.strftime("%Y-%m-%d-%H-%M-%S")
@@ -152,10 +184,6 @@ async def update_note(filename, title, content, tags, urls=[], user_id=None):
     note = results.data[0]
     subject = note["subject"]
 
-    filepath = os.path.join(NOTES_DIR, filename)
-    if not os.path.exists(filepath):
-        return {"error": "File not found"}
-    
     frontmatter = f"""
 ---
 title: {title}
@@ -165,8 +193,27 @@ updated_at: {file_time}
 referenced_urls: {', '.join(map(str,urls))}
 ---
 """
-    with open (filepath, "w", encoding="utf-8") as f:
-        f.write(frontmatter + content)
+    
+    # filepath = os.path.join(NOTES_DIR, filename)
+    # if not os.path.exists(filepath):
+    #     return {"error": "File not found"}
+    # with open (filepath, "w", encoding="utf-8") as f:
+    #     f.write(frontmatter + content)
+
+    markdown_content = frontmatter + content
+
+    supabase.storage.from_("notes").remove(
+        [f"{user_id}/{filename}"]
+    )
+
+    supabase.storage.from_("notes").upload(
+        path=f"{user_id}/{filename}",
+        file=markdown_content.encode("utf-8"),
+        file_options={
+            "content-type":"text/markdown",
+            "upsert":False
+        }
+    )
     
     # update the note in supabase
     supabase.table("notes").update({
@@ -216,17 +263,21 @@ referenced_urls: {', '.join(map(str,urls))}
 #     save_metadata(metadata)
 
 # supabase endpoints for notes upgrade
-async def delete_note(filename, user_id=None):
+def delete_note(filename, user_id=None):
     from supabase_client import supabase
 
     results = supabase.table("notes").select("*").eq("filename", filename).eq("user_id", user_id).execute()
     if not results.data:
         return {"error": "Note not found"}
     
-    filepath = os.path.join(NOTES_DIR, filename)
-    if not os.path.exists(filepath):
-        return {"error": "File not found"}
-    os.remove(filepath)
+    # filepath = os.path.join(NOTES_DIR, filename)
+    # if not os.path.exists(filepath):
+    #     return {"error": "File not found"}
+    # os.remove(filepath)
+
+    supabase.storage.from_("notes").remove([
+        f"{user_id}/{filename}"
+    ])
 
     # delete the note from supabase
     supabase.table("notes").delete().eq("filename", filename).eq("user_id", user_id).execute()
