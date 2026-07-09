@@ -31,6 +31,7 @@ from roadmap import (
     load_roadmap,
     check_existing_roadmap
 )
+from notes import get_notes_faiss_path
 
 load_dotenv()
 app = FastAPI()
@@ -155,14 +156,18 @@ def fetch_url_endpoint(request: FetchURLRequest):
 async def ingest_notes_endpoint(user=Depends(get_current_user)):
     from notes import ingest_notes
 
-    result = await ingest_notes(embeddings, user_id=user.id)
-    
-    # Reload notes FAISS after ingestion
+    result = await ingest_notes(embeddings, user.id)
+
+    if "error" in result:
+        return result
+
     global notes_db
     notes_db = FAISS.load_local(
-        "notes_faiss_index", embeddings,
+        get_notes_faiss_path(user.id),
+        embeddings,
         allow_dangerous_deserialization=True
     )
+
     return result
 
 # general routes for notes
@@ -375,10 +380,10 @@ def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=De
 
 # analytics endpoints supabase upgraded
 @app.get("/analytics/{subject}")
-async def get_analytics(subject: str, user=Depends(get_current_user)):
+def get_analytics(subject: str, user=Depends(get_current_user)):
     
     # Load from Supabase instead of JSON file
-    response = await supabase.table("quiz_history")\
+    response = supabase.table("quiz_history")\
         .select("*")\
         .eq("user_id", user.id)\
         .eq("subject", subject.lower())\

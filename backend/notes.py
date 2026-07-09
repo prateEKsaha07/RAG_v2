@@ -12,6 +12,10 @@ METADATA_FILE = "notes_metadata.json"
 
 
 
+# helper function
+def get_notes_faiss_path(user_id):
+    return os.path.join("notes_faiss_index",str(user_id))
+
 def generate_filename(subject):
     now = datetime.now()
     now = now.strftime("%Y-%m-%d-%H-%M-%S")
@@ -340,78 +344,90 @@ def fetch_url_title(url):
     
 # ingest
 async def ingest_notes(embeddings, user_id=None):
-    from langchain_community.document_loaders import DirectoryLoader, TextLoader
+    from langchain_core.documents import Document
     from langchain_text_splitters import MarkdownHeaderTextSplitter
     from langchain_community.vectorstores import FAISS
     from supabase_client import supabase
-    
-    # Check if notes folder has any files
+    import os
 
-    # notes = os.listdir(NOTES_DIR)
-    # if not notes:
-    #     return {"error": "No notes to ingest"}
+    # Get all notes for this user
+    results = (
+        supabase.table("notes")
+        .select("*")
+        .eq("user_id", user_id)
+        .execute()
+    )
 
-    results = supabase.table("notes").select("*").eq("user_id", user_id).execute()
     if not results.data:
         return {"error": "No notes to ingest"}
-    
+
     notes = results.data
-
-
-    
-    # Load all 
     documents = []
 
+    # Download each note from Supabase Storage
     for note in notes:
         filename = note["filename"]
-        filepath = os.path.join(NOTES_DIR, filename)
-        if not os.path.exists(filepath):
-            continue
 
-        loader = TextLoader(filepath, encoding="utf-8")
-        documents.extend(loader.load())
+        try:
+            file_bytes = supabase.storage.from_("notes").download(
+                f"{user_id}/{filename}"
+            )
+
+            text = file_bytes.decode("utf-8")
+
+            documents.append(
+                Document(
+                    page_content=text,
+                    metadata={"source": filename}
+                )
+            )
+
+        except Exception as e:
+            print(f"Failed to load {filename}: {e}")
+            continue
 
     if not documents:
         return {"error": "No documents to ingest"}
 
-    # loader = DirectoryLoader(
-    #     NOTES_DIR,
-    #     glob="**/*.md",
-    #     loader_cls=TextLoader,
-    #     loader_kwargs={"encoding": "utf-8"}
-    # )
-    # documents = loader.load()
-    
-    # Split by headers
+    # Split markdown by headers
     headers_to_split_on = [
         ("#", "Header 1"),
         ("##", "Header 2"),
         ("###", "Header 3"),
     ]
+
     splitter = MarkdownHeaderTextSplitter(
         headers_to_split_on=headers_to_split_on
     )
-    
+
     all_chunks = []
+
     for doc in documents:
         chunks = splitter.split_text(doc.page_content)
+
         for chunk in chunks:
             chunk.metadata["source"] = doc.metadata["source"]
+
         all_chunks.extend(chunks)
-    
-    # Save to notes FAISS index
+
+    if not all_chunks:
+        return {"error": "No chunks created"}
+
+    # Create user-specific FAISS directory
+    faiss_path = get_notes_faiss_path(user_id)
+    os.makedirs(faiss_path, exist_ok=True)
+
     vectorstore = FAISS.from_documents(all_chunks, embeddings)
-    vectorstore.save_local("notes_faiss_index")
-    
-    # Mark all notes as ingested
-    for note in notes:
-        result = supabase.table("notes").update({"ingested": True}).eq("id", note["id"])
-        result.execute()
-    # metadata = load_metadata()
-    # for note in metadata:
-    #     note["ingested"] = True
-    # save_metadata(metadata)
-    
+    vectorstore.save_local(faiss_path)
+
+    # Mark notes as ingested
+    (
+        supabase.table("notes")
+        .update({"ingested": True})
+        .eq("user_id", user_id)
+        .execute()
+    )
+
     return {
         "success": True,
         "chunks_created": len(all_chunks)
