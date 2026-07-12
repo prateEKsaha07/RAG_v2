@@ -32,6 +32,8 @@ from roadmap import (
     check_existing_roadmap
 )
 from notes import get_notes_faiss_path
+from pathlib import Path
+
 
 load_dotenv()
 app = FastAPI()
@@ -462,4 +464,13 @@ def get_analytics(subject: str, user=Depends(get_current_user)):
         ]
     }
 
-# print(supabase.table("notes").select("*").execute()) - sample
+# print(supabase.table("notes").select("*").execute()) - 
+
+@app.get("/uploads")
+def get_uploaded_subjects():
+    files = []
+
+    for file in Path("data/uploads").glob("*.md"):
+        files.append(file.stem)
+
+    return sorted(files)
