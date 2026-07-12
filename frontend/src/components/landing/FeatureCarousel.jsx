@@ -15,12 +15,12 @@ function FeatureCarousel() {
     {
       title: "Performance Analytics",
       desc: "Track weak topics and improve your learning efficiency with AI insights.",
-      img: "https://images.unsplash.com/photo-1556741533-f6acd647d2fb",
+      img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71"
     },
     {
       title: "Upload & Index Notes",
       desc: "Upload markdown notes and let AI structure and index them instantly.",
-      img: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40",
+      img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71",
     },
   ];
 
