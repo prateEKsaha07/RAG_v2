@@ -41,6 +41,7 @@ function NoticePopup() {
           <p className="mt-5 text-gray-300 leading-8">
             This project is still <span className="font-semibold text-white">actively under development</span>.
             New features, UI improvements, and plenty of questionable late-night ideas are being added regularly.
+            Im currently working on data migration and changing projects folder structure bcuz its getting way too large to manage for me.
           </p>
 
           <p className="mt-4 text-gray-400 leading-8">

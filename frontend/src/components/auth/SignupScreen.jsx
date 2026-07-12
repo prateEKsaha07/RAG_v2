@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
-import Navbar from "./Navbar";
+import { supabase } from "../../supabaseClient";
+import Navbar from "../common/Navbar";
 import WordReveal from "./WordReveal";
 
 function SignupScreen({ onSignup, onLogin }) {

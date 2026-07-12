@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../../supabaseClient";
 import LeftVisual from "./LeftVisual";
-import Navbar from "./Navbar";
+import Navbar from "../common/Navbar";
 import WordReveal from "./WordReveal";
 
 function LoginScreen({ onLogin, onSignup }) {

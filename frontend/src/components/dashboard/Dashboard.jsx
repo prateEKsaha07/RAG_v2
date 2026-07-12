@@ -1,5 +1,5 @@
-import Footer from "./Footer"
-import Navbar from "./Navbar"
+import Footer from "../common/Footer"
+import Navbar from "../common/Navbar"
 function Dashboard({ subject, onQuiz, onQA, onUpload, onNotes, onRoadmap, onHome, onAnalytics, onLogout, user }) {
   return (
     <div className="min-h-screen bg-gray-100 ">

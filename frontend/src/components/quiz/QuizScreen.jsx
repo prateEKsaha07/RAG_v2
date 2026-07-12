@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { generateQuiz, evaluateAnswers } from "../api"
+import { generateQuiz, evaluateAnswers } from "../../api"
 
 function QuizScreen({ subject, onSubmit }) {
   const [quiz, setQuiz] = useState([])

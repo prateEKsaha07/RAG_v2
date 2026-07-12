@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
-import Navbar from "./Navbar"
-import Footer from "./Footer"
+import Navbar from "../common/Navbar"
+import Footer from "../common/Footer"
 
 function GoalSetupScreen({ onBack, onViewRoadmap }) {
   const [subjects, setSubjects] = useState([])
