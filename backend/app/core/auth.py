@@ -1,4 +1,4 @@
-from supabase_client import supabase
+from app.core.supabase_client import supabase
 from fastapi import HTTPException, Header
 from typing import Optional
 

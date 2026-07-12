@@ -73,7 +73,7 @@ referenced_urls: {', '.join(urls)}
     #     f.write(frontmatter + content)
 
     markdown_content = frontmatter + content
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
 
     upload = supabase.storage.from_("notes").upload(
         path = f"{user_id}/{filename}",
@@ -90,7 +90,7 @@ referenced_urls: {', '.join(urls)}
         return {"error":"upload nahi hua "}
 
     if user_id:
-        from supabase_client import supabase
+        from app.core.supabase_client import supabase
 
         result = supabase.table("notes").insert({
             "user_id": user_id,
@@ -107,7 +107,7 @@ referenced_urls: {', '.join(urls)}
 
 #  supabase endpoints for notes upgrade
 def get_all_notes(subject=None, tags=None, user_id=None):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
     query = (
         supabase.table("notes")
         .select("*")
@@ -140,7 +140,7 @@ def get_all_notes(subject=None, tags=None, user_id=None):
 
 # supabase endpoints for notes upgrade
 def get_note_content(filename, user_id=None):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
 
     # verify the note belongs to the user
     results = supabase.table("notes").select("*").eq("user_id", user_id).eq("filename", filename).execute()
@@ -168,7 +168,7 @@ def get_note_content(filename, user_id=None):
 
 #  supabase endpoints for notes upgrade  
 def update_note(filename, title, content, tags, urls=[], user_id=None):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
     now = datetime.now()
     file_time = now.strftime("%Y-%m-%d-%H-%M-%S")
 
@@ -268,7 +268,7 @@ referenced_urls: {', '.join(map(str,urls))}
 
 # supabase endpoints for notes upgrade
 def delete_note(filename, user_id=None):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
 
     results = supabase.table("notes").select("*").eq("filename", filename).eq("user_id", user_id).execute()
     if not results.data:
@@ -317,7 +317,7 @@ Return format: ["tag1", "tag2", "tag3"]"""
     response = llm.invoke(prompt)
     
     try:
-        from quiz import parse_json_response
+        from app.modules.Quiz.quiz import parse_json_response
         tags = parse_json_response(response.content)
 
         valid_tags = [tag for tag in tags if tag in subject_tags]
@@ -347,7 +347,7 @@ async def ingest_notes(embeddings, user_id=None):
     from langchain_core.documents import Document
     from langchain_text_splitters import MarkdownHeaderTextSplitter
     from langchain_community.vectorstores import FAISS
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
     import os
 
     # Get all notes for this user

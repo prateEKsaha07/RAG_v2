@@ -81,35 +81,16 @@ def evaluate_answers(quiz, student_answers, subject, user_id=None):
     return results, weak_topics
 
 def save_quiz_history(subject, results, weak_topics, user_id=None):
-    # Save to Supabase if user_id provided
-    if user_id:
-        from supabase_client import supabase
-        supabase.table("quiz_history").insert({
-            "user_id": user_id,
-            "subject": subject,
-            "score": sum(1 for r in results if r["is_correct"]),
-            "total": len(results),
-            "weak_topics": [t["topic"] for t in weak_topics]
-        }).execute()
-    
-    # Also keep local file as backup
-    history_file = "analytics/quiz_history.json"
-    if os.path.exists(history_file):
-        with open(history_file, "r") as f:
-            history = json.load(f)
-    else:
-        history = []
-    
-    history.append({
+    if not user_id:
+        return
+    from app.core.supabase_client import supabase
+    supabase.table("quiz_history").insert({
+        "user_id": user_id,
         "subject": subject,
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "score": sum(1 for r in results if r["is_correct"]),
         "total": len(results),
         "weak_topics": [t["topic"] for t in weak_topics]
-    })
-    
-    with open(history_file, "w") as f:
-        json.dump(history, f, indent=2)
+    }).execute()
 
 def get_recommendations(weak_topics, vectorStoreDB):
     recommendations = []

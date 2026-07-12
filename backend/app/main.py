@@ -3,16 +3,16 @@ import json
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File
-from quiz import generate_quiz, evaluate_answers, get_recommendations
+from app.modules.Quiz.quiz import generate_quiz, evaluate_answers, get_recommendations
 from pydantic import BaseModel
-from ingestion import run_ingestion
+from app.modules.Ingestion.ingestion import run_ingestion
 from fastapi.middleware.cors import CORSMiddleware
 import shutil
 from typing import List, Dict, Any
 from langchain_cohere import CohereEmbeddings, ChatCohere
 from langchain_community.vectorstores import FAISS
-from query import get_answer
-from notes import (
+from app.modules.Qa.query import get_answer
+from app.modules.Notes.notes import (
     create_note,
     get_all_notes,
     get_note_content,
@@ -22,16 +22,16 @@ from notes import (
     generate_tags,
     fetch_url_title
 )
-from supabase_client import supabase
-from auth import get_current_user
+from app.core.supabase_client import supabase
+from app.core.auth import get_current_user
 from fastapi import Depends
 
-from roadmap import (
+from app.modules.Roadmap.roadmap import (
     generate_roadmap,
     load_roadmap,
     check_existing_roadmap
 )
-from notes import get_notes_faiss_path
+from app.modules.Notes.notes import get_notes_faiss_path
 from pathlib import Path
 
 
@@ -156,7 +156,7 @@ def fetch_url_endpoint(request: FetchURLRequest):
 # supabase endpoints for notes upgrade
 @app.post("/notes/ingest")
 async def ingest_notes_endpoint(user=Depends(get_current_user)):
-    from notes import ingest_notes
+    from app.modules.Notes.notes import ingest_notes
 
     result = await ingest_notes(embeddings, user.id)
 
@@ -299,7 +299,7 @@ def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
 # gemini version
 @app.delete("/roadmap/{subject}")
 def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
     import os
 
     # FIX: Added the "s" to "roadmaps" to match your actual table name
@@ -333,7 +333,7 @@ def extend_roadmap_endpoint(
     request: ExtendDateRequest,
     user=Depends(get_current_user)
 ):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
 
     roadmap = load_roadmap(subject, user_id=user.id)
     if not roadmap:
@@ -353,7 +353,7 @@ def extend_roadmap_endpoint(
 # supabase upgraded
 @app.put("/roadmap/{subject}/complete-topic")
 def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=Depends(get_current_user)):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
     roadmap = load_roadmap(subject,user_id = user.id)
     if not roadmap:
         return {"error": "No roadmap found"}

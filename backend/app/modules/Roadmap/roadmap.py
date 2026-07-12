@@ -80,7 +80,7 @@ Return format:
 ]"""
 
     response = llm.invoke(prompt)
-    from quiz import parse_json_response
+    from app.modules.Quiz.quiz import parse_json_response
     return parse_json_response(response.content)
 
 def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
@@ -136,7 +136,7 @@ def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
 
 # supabase integration for roadmap generation
 def generate_roadmap(subject, hours_per_day, target_date, scope, unit_number=None, llm=None, user_id=None):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
     # load units
     units = load_subject_units(subject)
     if "error" in units:
@@ -184,7 +184,7 @@ def save_roadmap(subject, roadmap):
 
 # supabase updated
 def load_roadmap(subject, user_id=None):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
 
     print("Searching:", subject, user_id)
 
@@ -206,7 +206,7 @@ def load_roadmap(subject, user_id=None):
     
 # supabase check for existing roadmap 
 def check_existing_roadmap(subject, user_id=None):
-    from supabase_client import supabase
+    from app.core.supabase_client import supabase
 
     results = (
         supabase.table("roadmaps")
