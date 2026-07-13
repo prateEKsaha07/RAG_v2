@@ -10,8 +10,6 @@ NOTES_DIR = "data/notes/"
 TAGS_DIR = "tags/"
 METADATA_FILE = "notes_metadata.json"
 
-
-
 # helper function
 def get_notes_faiss_path(user_id):
     return os.path.join("notes_faiss_index",str(user_id))

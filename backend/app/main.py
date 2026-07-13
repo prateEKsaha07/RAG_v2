@@ -130,8 +130,14 @@ class AskRequest(BaseModel):
     question: str
 
 @app.post("/ask")
-def ask_endpoint(request: AskRequest):
-    response = get_answer(request.question, llm, vectorStoreDB)
+def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
+    response = get_answer(
+        question=request.question, 
+        llm=llm, 
+        uploads_db=vectorStoreDB,
+        user_id=user.id,
+        embeddings=embeddings 
+    )
     return response
 
 # Notes endpoints

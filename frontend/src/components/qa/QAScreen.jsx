@@ -10,6 +10,8 @@ function QAScreen({ subject, onBack }) {
   const [history, setHistory] = useState([])
 
   const handleAsk = async () => {
+    const token = localStorage.getItem("access_token")
+    
     if (!question.trim()) return
 
     setLoading(true)
@@ -18,7 +20,11 @@ function QAScreen({ subject, onBack }) {
     try {
       const response = await axios.post(
         import.meta.env.VITE_API_URL + "/ask",
-        { question }
+        { question },{
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
       )
 
       // Add to history

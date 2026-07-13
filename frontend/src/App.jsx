@@ -14,7 +14,8 @@ import AnalyticsScreen from "./components/analytics/AnalyticsScreen"
 import LoginScreen from "./components/auth/LoginScreen"
 import SignupScreen from "./components/auth/SignupScreen"
 import { supabase } from "./supabaseClient"
-
+import DashboardNav from "./components/dashboard/DashboardNav"
+import StudyScreen from "./components/study/StudyScreen";
 
 function App() {
   const [user, setUser] = useState(null)
@@ -75,13 +76,19 @@ function App() {
         <UploadScreen onSuccess={handleUploadSuccess}
         onBack={() => setScreen("landing")} />
       )}
+      {screen === "study" && (
+        <StudyScreen
+        user={user}
+        onBack={() => setScreen("dashboard")}
+        />
+      )}
 
-      {screen === "dashboard" && (
-        
+      {screen === "dashboard" && ( 
         <Dashboard
           subject={subject}
           onQuiz={() => setScreen("quiz")}
           onQA={() => setScreen("qa")}
+          onStudy={() => setScreen("study")}
           onUpload={() => setScreen("upload")}
           onNotes={() => setScreen("notes")}
           onRoadmap={() => setScreen("goal-setup")}
