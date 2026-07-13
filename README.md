@@ -1,6 +1,8 @@
 Note: for tests use Java or Ai in subject name and use them as existing data to test as they are already ingested
 another thing I'm currently working on data migration and multi user system so vercel might not work as intended right now.but let's hope it's ok hehe!
 
+Note: $ folder structure is different now but core functions are still same 
+
 # RAG_v2
 RAG-based student assistant project, featuring syllabus roadmap analysis, quiz-based weak topic detection, personalized recommendations, and enhanced academic support, with additional AI-powered learning features planned for future developmen
 
