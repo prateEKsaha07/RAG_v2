@@ -480,3 +480,9 @@ def get_uploaded_subjects():
         files.append(file.stem)
 
     return sorted(files)
+
+# im shifting to modular approch from now on
+# book module
+
+from app.modules.books.router import router as books_router
+app.include_router(books_router)

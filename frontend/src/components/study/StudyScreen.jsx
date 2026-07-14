@@ -1,248 +1,254 @@
-import { Search, Upload, BookOpen, Trash2 } from "lucide-react";
+import { useState } from "react";
+import {
+  Upload,
+  Search,
+  BookOpen,
+  Trash2,
+  ArrowRight,
+} from "lucide-react";
 
-function StudyScreen({ user, onBack }) {
+function StudyScreen() {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Temporary dummy data
   const books = [
     {
       id: 1,
-      title: "Database Management System",
+      title: "Operating Systems.pdf",
       pages: 320,
-      size: "2.4 MB",
-      lastOpened: "Yesterday",
+      current_page: 52,
     },
     {
       id: 2,
-      title: "Operating System",
-      pages: 412,
-      size: "4.8 MB",
-      lastOpened: "2 days ago",
-    },
-    {
-      id: 3,
-      title: "Java Programming",
-      pages: 286,
-      size: "3.1 MB",
-      lastOpened: "Last week",
-    },
-    {
-      id: 4,
-      title: "Computer Networks",
-      pages: 250,
-      size: "2.2 MB",
-      lastOpened: "Today",
-    },
-    {
-      id: 5,
-      title: "Artificial Intelligence",
-      pages: 530,
-      size: "6.3 MB",
-      lastOpened: "Yesterday",
+      title: "Java Programming.pdf",
+      pages: 470,
+      current_page: 108,
     },
   ];
 
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      alert("Please select a PDF first.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        alert("You are not logged in.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/books/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("Status:", response.status);
+      console.log("Response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Upload failed.");
+      }
+
+      alert("Book uploaded successfully!");
+
+      setSelectedFile(null);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto px-8 py-10">
 
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
+
           <div>
-            <button
-              onClick={onBack}
-              className="text-blue-600 text-sm mb-2 hover:underline"
-            >
-              ← Dashboard
-            </button>
-
-            <h1 className="text-3xl font-bold text-gray-800">
-              📚 Study Library
+            <h1 className="text-4xl font-bold text-slate-800">
+              Study Library
             </h1>
 
-            <p className="text-gray-500 mt-1">
-              Organize and read all your study material.
+            <p className="text-slate-500 mt-2">
+              Read and manage your uploaded books.
             </p>
           </div>
 
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl flex items-center gap-2">
-            <Upload size={18} />
-            Upload Book
-          </button>
-        </div>
-      </div>
+          <div className="flex gap-3 mt-5 md:mt-0">
 
-      <main className="max-w-7xl mx-auto px-8 py-8 space-y-10">
+            <label className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl flex items-center gap-2">
+
+              <Upload size={18} />
+
+              Choose Book
+
+              <input
+                hidden
+                type="file"
+                accept=".pdf"
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+              />
+
+            </label>
+
+            <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className={`px-5 rounded-xl text-white transition
+                ${
+                  uploading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+            >
+              {uploading ? "Uploading..." : "Upload"}
+            </button>
+
+          </div>
+
+        </div>
+
+        {/* Selected File */}
+
+        {selectedFile && (
+          <div className="mb-8 rounded-xl border border-green-200 bg-green-50 p-5">
+
+            <h3 className="font-semibold text-green-700">
+              Selected Book
+            </h3>
+
+            <p className="mt-2 text-gray-700">
+              {selectedFile.name}
+            </p>
+
+            <p className="text-sm text-gray-500">
+              {(selectedFile.size / 1024).toFixed(2)} KB
+            </p>
+
+          </div>
+        )}
+
+        {/* Search */}
+
+        <div className="relative mb-10">
+
+          <Search
+            className="absolute left-4 top-3 text-slate-400"
+            size={18}
+          />
+
+          <input
+            placeholder="Search books..."
+            className="w-full pl-11 pr-4 py-3 rounded-xl border bg-white"
+          />
+
+        </div>
 
         {/* Continue Reading */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 text-white shadow-lg">
-          <p className="text-sm opacity-90">
-            Welcome back {user?.email?.split("@")[0]} 👋
-          </p>
 
-          <h2 className="text-3xl font-bold mt-2">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-8 mb-10">
+
+          <h2 className="text-2xl font-bold mb-2">
             Continue Reading
           </h2>
 
-          <div className="mt-6 bg-white/15 rounded-2xl p-5 backdrop-blur">
-            <div className="flex justify-between items-center">
+          <p className="opacity-80 mb-6">
+            Operating Systems.pdf
+          </p>
 
-              <div>
-                <p className="text-xl font-semibold">
-                  📘 Database Management System
-                </p>
+          <div className="w-full bg-blue-300 rounded-full h-3 mb-4">
 
-                <p className="text-sm opacity-90 mt-1">
-                  Page 185 of 320
-                </p>
-
-                <div className="w-72 bg-white/20 rounded-full h-2 mt-4">
-                  <div className="bg-white h-2 rounded-full w-3/5"></div>
-                </div>
-
-                <p className="text-xs mt-2 opacity-80">
-                  58% Completed
-                </p>
-              </div>
-
-              <button className="bg-white text-blue-700 px-5 py-3 rounded-xl font-semibold hover:bg-gray-100">
-                Continue →
-              </button>
-
-            </div>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="flex flex-col md:flex-row gap-4 justify-between">
-
-          <div className="relative w-full md:w-96">
-
-            <Search
-              size={18}
-              className="absolute left-4 top-3.5 text-gray-400"
+            <div
+              className="bg-white h-3 rounded-full"
+              style={{ width: "18%" }}
             />
 
-            <input
-              type="text"
-              placeholder="Search books..."
-              className="w-full pl-11 pr-4 py-3 rounded-xl border bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
           </div>
 
-          <div className="text-gray-500 text-sm flex items-center">
-            {books.length} Books
-          </div>
+          <button className="bg-white text-blue-700 px-5 py-2 rounded-xl font-semibold flex items-center gap-2">
+
+            Continue
+
+            <ArrowRight size={18} />
+
+          </button>
 
         </div>
 
         {/* Library */}
-        <div>
 
-          <h2 className="text-2xl font-bold mb-6">
-            My Library
-          </h2>
+        <h2 className="text-2xl font-bold mb-6">
+          My Books
+        </h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-            {books.map((book) => (
-              <div
-                key={book.id}
-                className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition"
-              >
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center">
-                    <BookOpen className="text-blue-600" />
-                  </div>
+          {books.map((book) => (
 
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
-                      {book.title}
-                    </h3>
+            <div
+              key={book.id}
+              className="bg-white rounded-2xl p-6 shadow-sm border"
+            >
 
-                    <p className="text-sm text-gray-500">
-                      PDF Document
-                    </p>
-                  </div>
-                </div>
+              <BookOpen
+                className="text-blue-600 mb-4"
+                size={42}
+              />
 
-                <div className="text-sm text-gray-500 space-y-2">
+              <h3 className="font-bold text-lg">
+                {book.title}
+              </h3>
 
-                  <div className="flex justify-between">
-                    <span>Pages</span>
-                    <span>{book.pages}</span>
-                  </div>
+              <p className="text-slate-500 mt-2">
+                {book.current_page} / {book.pages} pages
+              </p>
 
-                  <div className="flex justify-between">
-                    <span>Size</span>
-                    <span>{book.size}</span>
-                  </div>
+              <div className="flex gap-3 mt-6">
 
-                  <div className="flex justify-between">
-                    <span>Last Opened</span>
-                    <span>{book.lastOpened}</span>
-                  </div>
+                <button
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+                >
+                  Read
+                </button>
 
-                </div>
-
-                <div className="flex gap-3 mt-6">
-
-                  <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl">
-                    Open
-                  </button>
-
-                  <button className="w-12 bg-red-50 hover:bg-red-100 rounded-xl flex justify-center items-center">
-                    <Trash2
-                      size={18}
-                      className="text-red-500"
-                    />
-                  </button>
-
-                </div>
+                <button
+                  className="bg-red-100 hover:bg-red-200 p-2 rounded-lg"
+                >
+                  <Trash2
+                    size={18}
+                    className="text-red-600"
+                  />
+                </button>
 
               </div>
-            ))}
 
-          </div>
+            </div>
+
+          ))}
 
         </div>
 
-        {/* Storage Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-
-          <h2 className="text-xl font-bold mb-5">
-            Storage Summary
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-
-            <div>
-              <p className="text-gray-500">Books</p>
-              <p className="text-3xl font-bold mt-1">
-                5
-              </p>
-            </div>
-
-            <div>
-              <p className="text-gray-500">Storage Used</p>
-              <p className="text-3xl font-bold mt-1">
-                18 MB
-              </p>
-            </div>
-
-            <div>
-              <p className="text-gray-500">Recently Added</p>
-              <p className="font-semibold mt-1">
-                Operating System.pdf
-              </p>
-              <p className="text-sm text-gray-400">
-                Yesterday
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-
-      </main>
-
+      </div>
     </div>
   );
 }
