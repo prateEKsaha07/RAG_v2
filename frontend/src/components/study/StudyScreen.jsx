@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Upload,
   Search,
@@ -11,21 +11,41 @@ function StudyScreen() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // Temporary dummy data
-  const books = [
-    {
-      id: 1,
-      title: "Operating Systems.pdf",
-      pages: 320,
-      current_page: 52,
-    },
-    {
-      id: 2,
-      title: "Java Programming.pdf",
-      pages: 470,
-      current_page: 108,
-    },
-  ];
+  // 
+  const [books, setBooks] = useState([]);
+  const [loadingBooks,setLoadingBooks] = useState([]);
+
+
+  const fetchBooks = async () => {
+  try {
+    setLoadingBooks(true);
+
+    const token = localStorage.getItem("access_token");
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/books/`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("Books:", data);
+
+    if (response.ok) {
+      setBooks(data.books || []);
+    } else {
+      console.error(data);
+    }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoadingBooks(false);
+  }
+};
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -67,7 +87,7 @@ function StudyScreen() {
       }
 
       alert("Book uploaded successfully!");
-
+      await fetchBooks();
       setSelectedFile(null);
     } catch (err) {
       console.error(err);
@@ -76,6 +96,36 @@ function StudyScreen() {
       setUploading(false);
     }
   };
+
+
+const deleteBook = async (bookId) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/books/${bookId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail);
+    }
+    await fetchBooks();
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
+};
+
+
+
+  useEffect(() => {
+    fetchBooks();
+  },[]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -203,9 +253,21 @@ function StudyScreen() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          {books.map((book) => (
 
-            <div
+
+          {loadingBooks ? (
+  <div className="text-center py-10 text-gray-500">
+    Loading books...
+  </div>
+) : books.length === 0 ? (
+  <div className="text-center py-10 text-gray-500">
+    No books uploaded yet.
+  </div>
+) : (
+  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {books.map((book) => (
+      // existing card
+      <div
               key={book.id}
               className="bg-white rounded-2xl p-6 shadow-sm border"
             >
@@ -220,7 +282,7 @@ function StudyScreen() {
               </h3>
 
               <p className="text-slate-500 mt-2">
-                {book.current_page} / {book.pages} pages
+                {book.current_page} / {book.total_pages} pages
               </p>
 
               <div className="flex gap-3 mt-6">
@@ -232,6 +294,7 @@ function StudyScreen() {
                 </button>
 
                 <button
+                  onClick={()=>deleteBook(book.id)}
                   className="bg-red-100 hover:bg-red-200 p-2 rounded-lg"
                 >
                   <Trash2
@@ -243,8 +306,9 @@ function StudyScreen() {
               </div>
 
             </div>
-
-          ))}
+    ))}
+  </div>
+)}
 
         </div>
 

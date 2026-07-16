@@ -33,10 +33,6 @@ async def public():
     return {"message": "Books router is working"}
 
 
-# -----------------------------------
-# Upload Book
-# POST /books
-# -----------------------------------
 @router.post("/")
 async def create_book(
     file: UploadFile = File(...),
@@ -45,10 +41,6 @@ async def create_book(
     return await upload_book(file, user.id)
 
 
-# -----------------------------------
-# Get All Books
-# GET /books
-# -----------------------------------
 @router.get("/")
 async def fetch_books(
     user=Depends(get_current_user),
@@ -56,10 +48,7 @@ async def fetch_books(
     return await get_books(user.id)
 
 
-# -----------------------------------
-# Get Single Book
-# GET /books/{book_id}
-# -----------------------------------
+
 @router.get("/{book_id}")
 async def fetch_book(
     book_id: str,
@@ -67,11 +56,6 @@ async def fetch_book(
 ):
     return await get_book(book_id, user.id)
 
-
-# -----------------------------------
-# Delete Book
-# DELETE /books/{book_id}
-# -----------------------------------
 @router.delete("/{book_id}")
 async def remove_book(
     book_id: str,
@@ -80,10 +64,6 @@ async def remove_book(
     return await delete_book(book_id, user.id)
 
 
-# -----------------------------------
-# Update Reading Progress
-# PATCH /books/{book_id}/progress
-# -----------------------------------
 @router.patch("/{book_id}/progress")
 async def update_book_progress(
     book_id: str,
@@ -96,11 +76,6 @@ async def update_book_progress(
         user.id,
     )
 
-
-# -----------------------------------
-# Update Last Opened
-# PATCH /books/{book_id}/open
-# -----------------------------------
 @router.patch("/{book_id}/open")
 async def open_book(
     book_id: str,

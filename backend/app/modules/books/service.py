@@ -46,7 +46,6 @@ async def upload_book(file: UploadFile, user_id: str):
             }
         )
     )
-
     # Insert metadata
     data = {
         "user_id": user_id,
@@ -76,10 +75,18 @@ async def upload_book(file: UploadFile, user_id: str):
 
 
 async def get_books(user_id: str):
-    """
-    Return all books for the logged-in user.
-    """
-    pass
+    try:
+        response  = (
+            supabase.table("books").select("*").eq("user_id",user_id).order("last_opened",desc = True).execute()
+        )
+        return {
+            "books":response.data
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 
 async def get_book(book_id: str, user_id: str):
@@ -90,10 +97,35 @@ async def get_book(book_id: str, user_id: str):
 
 
 async def delete_book(book_id: str, user_id: str):
-    """
-    Delete storage file and database record.
-    """
-    pass
+    try:
+        # find the book
+        response = (
+            supabase.table("books").select("*").eq("user_id",user_id).eq("id",book_id).single().execute()
+        )
+        if not response.data:
+            raise HTTPException(
+                status_code=400,
+                detail="book not found"
+            )
+        book = response.data
+    
+        #the pdf
+        supabase.storage.from_("_books").remove(
+            [book["storage_path"]]
+        )
+        # the record
+        (
+            supabase.table("books").delete().eq("id",book_id).execute()
+        )
+        return{
+            "message": "book deleted successfully"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+        
 
 
 async def update_progress(book_id: str, current_page: int, user_id: str):
