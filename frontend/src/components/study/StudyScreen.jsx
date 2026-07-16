@@ -121,6 +121,32 @@ const deleteBook = async (bookId) => {
   }
 };
 
+//  for now it opens the pdf in a local pdf reader 
+const openBook = async(book_id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/books/${book_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const book = await response.json();
+
+    console.log(book);
+
+    // here need to change this 
+    window.open(book.signed_url, "_blank");
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
 
   useEffect(() => {
@@ -288,6 +314,7 @@ const deleteBook = async (bookId) => {
               <div className="flex gap-3 mt-6">
 
                 <button
+                  onClick={()=>openBook(book.id)}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
                 >
                   Read

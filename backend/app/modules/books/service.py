@@ -90,10 +90,27 @@ async def get_books(user_id: str):
 
 
 async def get_book(book_id: str, user_id: str):
-    """
-    Return a single book.
-    """
-    pass
+    try:
+        response = (
+            supabase.table("books").select("*").eq("user_id",user_id).eq("id",book_id).single().execute()
+        )
+        if not response.data:
+            raise HTTPException(
+                status_code="404",
+                detail="book not found!"
+            )
+        book = response.data
+        signed = (
+            supabase.storage.from_("books").create_signed_url(book["storage_path"],3600)
+        )
+        book["signed_url"] = signed["signedURL"]
+        return book
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 
 async def delete_book(book_id: str, user_id: str):
