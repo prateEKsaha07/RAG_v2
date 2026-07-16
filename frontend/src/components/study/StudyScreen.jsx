@@ -7,14 +7,21 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-function StudyScreen() {
+function StudyScreen({user,onBack,setScreen,setSelectedBook,}) {
+  
+  console.log({
+    user,
+    onBack,
+    setScreen,
+    setSelectedBook,
+});
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   // 
   const [books, setBooks] = useState([]);
   const [loadingBooks,setLoadingBooks] = useState([]);
-
 
   const fetchBooks = async () => {
   try {
@@ -97,7 +104,6 @@ function StudyScreen() {
     }
   };
 
-
 const deleteBook = async (bookId) => {
   try {
     const token = localStorage.getItem("access_token");
@@ -135,19 +141,22 @@ const openBook = async(book_id) => {
       }
     );
 
+    if (!response.ok){
+      throw new Error("Failed to load book");
+    }
+    
     const book = await response.json();
-
     console.log(book);
+    return book;
 
     // here need to change this 
-    window.open(book.signed_url, "_blank");
+    // window.open(book.signed_url, "_blank");
 
   } catch (err) {
     console.error(err);
+    return null;
   }
 };
-
-
 
   useEffect(() => {
     fetchBooks();
@@ -314,11 +323,18 @@ const openBook = async(book_id) => {
               <div className="flex gap-3 mt-6">
 
                 <button
-                  onClick={()=>openBook(book.id)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
-                >
-                  Read
-                </button>
+  onClick={async () => {
+    const bookData = await openBook(book.id);
+
+    if (!bookData) return;
+
+    setSelectedBook(bookData);
+    setScreen("study-reader");
+  }}
+  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+>
+  Read
+</button>
 
                 <button
                   onClick={()=>deleteBook(book.id)}

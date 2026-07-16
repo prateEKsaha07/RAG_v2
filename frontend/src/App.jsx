@@ -16,6 +16,7 @@ import SignupScreen from "./components/auth/SignupScreen"
 import { supabase } from "./supabaseClient"
 import DashboardNav from "./components/dashboard/DashboardNav"
 import StudyScreen from "./components/study/StudyScreen";
+import BookReader from "./components/study/BookReader";
 
 function App() {
   const [user, setUser] = useState(null)
@@ -26,6 +27,9 @@ function App() {
   const [results, setResults] = useState(null)
   const [editingNote, setEditingNote] = useState(null)
   const [roadmapSubject, setRoadmapSubject] = useState("")
+  const [selectedBook, setSelectedBook] = useState(null);
+
+
   const handleGetStarted = () => setScreen("upload")
 
   useEffect(() => {
@@ -76,12 +80,21 @@ function App() {
         <UploadScreen onSuccess={handleUploadSuccess}
         onBack={() => setScreen("landing")} />
       )}
-      {screen === "study" && (
-        <StudyScreen
-        user={user}
-        onBack={() => setScreen("dashboard")}
-        />
-      )}
+     {screen === "study" && (
+  <StudyScreen
+    user={user}
+    onBack={() => setScreen("dashboard")}
+    setScreen={setScreen}
+    setSelectedBook={setSelectedBook}
+  />
+)}
+
+{screen === "study-reader" && selectedBook && (
+  <BookReader
+    book={selectedBook}
+    onBack={() => setScreen("study")}
+  />
+)}
 
       {screen === "dashboard" && ( 
         <Dashboard
@@ -98,6 +111,7 @@ function App() {
           onLogout={handleLogout}
         />
       )}
+
       {screen === "quiz" && (
         <QuizScreen
           subject={subject}
