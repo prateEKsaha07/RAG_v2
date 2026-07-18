@@ -21,6 +21,7 @@ function Dashboard({
   onAnalytics,
   onLogout,
   user,
+  onAnalyticsV2,
   onStudy
 }) {
   return (
@@ -35,6 +36,7 @@ function Dashboard({
         onQuiz={onQuiz}
         onRoadmap={onRoadmap}
         onAnalytics={onAnalytics}
+        onAnalyticsV2={onAnalyticsV2}
         onLogout={onLogout}
       />
 

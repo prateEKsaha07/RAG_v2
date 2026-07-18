@@ -17,6 +17,7 @@ import { supabase } from "./supabaseClient"
 import DashboardNav from "./components/dashboard/DashboardNav"
 import StudyScreen from "./components/study/StudyScreen";
 import BookReader from "./components/study/BookReader";
+import AnalyticsDashboard from "./components/analytics/AnalyticsDashboard";
 
 function App() {
   const [user, setUser] = useState(null)
@@ -88,7 +89,6 @@ function App() {
     setSelectedBook={setSelectedBook}
   />
 )}
-
 {screen === "study-reader" && selectedBook && (
   <BookReader
     book={selectedBook}
@@ -96,21 +96,28 @@ function App() {
   />
 )}
 
-      {screen === "dashboard" && ( 
-        <Dashboard
-          subject={subject}
-          onQuiz={() => setScreen("quiz")}
-          onQA={() => setScreen("qa")}
-          onStudy={() => setScreen("study")}
-          onUpload={() => setScreen("upload")}
-          onNotes={() => setScreen("notes")}
-          onRoadmap={() => setScreen("goal-setup")}
-          onHome={() => setScreen("landing")}
-          onAnalytics={() => setScreen("analytics")}
-          user = {user}
-          onLogout={handleLogout}
-        />
-      )}
+  {screen === "dashboard" && (
+  <Dashboard
+    subject={subject}
+    user={user}
+
+    onStudy={() => setScreen("study")}
+    onUpload={() => setScreen("upload")}
+    onNotes={() => setScreen("notes")}
+    onQuiz={() => setScreen("quiz")}
+    onRoadmap={() => setScreen("goal-setup")}
+    onQA={() => setScreen("qa")}
+    onHome={() => setScreen("landing")}
+
+    // Keep old analytics temporarily
+    onAnalytics={() => setScreen("analytics")}
+
+    // New Analytics Dashboard
+    onAnalyticsV2={() => setScreen("analytics-v2")}
+
+    onLogout={handleLogout}
+  />
+)}
 
       {screen === "quiz" && (
         <QuizScreen
@@ -193,6 +200,11 @@ function App() {
       setScreen("upload")
     }}
     onSignup={() => setScreen("signup")}
+  />
+)}
+{screen === "analytics-v2" && (
+  <AnalyticsDashboard
+    onBack={() => setScreen("dashboard")}
   />
 )}
 

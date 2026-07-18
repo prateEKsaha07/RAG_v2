@@ -22,6 +22,7 @@ function DashboardNav({
   onQuiz,
   onRoadmap,
   onAnalytics,
+  onAnalyticsV2,
   onLogout,
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -62,6 +63,12 @@ function DashboardNav({
       label: "Roadmap",
       icon: Map,
       action: onRoadmap,
+    },
+    {
+      id: "analytics-v2",
+      label: "Analytics V2",
+      icon: BarChart3,
+      action: onAnalyticsV2,
     },
     {
       id: "analytics",
