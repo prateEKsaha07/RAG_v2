@@ -7,6 +7,13 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+import {
+  getBooks,
+  uploadBook,
+  deleteBook,
+  getBook,
+} from "../../api/bookApi";
+
 function StudyScreen({user,onBack,setScreen,setSelectedBook,}) {
   
   console.log({
@@ -16,36 +23,25 @@ function StudyScreen({user,onBack,setScreen,setSelectedBook,}) {
     setSelectedBook,
 });
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
+const [selectedFile, setSelectedFile] = useState(null);
+const [uploading, setUploading] = useState(false);
+const [continueBook, setContinueBook] = useState(null);
 
-  // 
-  const [books, setBooks] = useState([]);
-  const [loadingBooks,setLoadingBooks] = useState([]);
+const [books, setBooks] = useState([]);
+const [loadingBooks, setLoadingBooks] = useState(false);
 
-  const fetchBooks = async () => {
+const fetchBooks = async () => {
   try {
     setLoadingBooks(true);
-
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/books/`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    const fetchedBooks = await getBooks();
+    setBooks(fetchedBooks);
+    
+    const sorted = [...fetchedBooks].sort(
+      (a, b) => new Date(b.last_opened) - new Date(a.last_opened)
     );
-
-    const data = await response.json();
-
-    console.log("Books:", data);
-
-    if (response.ok) {
-      setBooks(data.books || []);
-    } else {
-      console.error(data);
+    
+    if (sorted.length) {
+      setContinueBook(sorted[0]);
     }
   } catch (err) {
     console.error(err);
@@ -54,104 +50,39 @@ function StudyScreen({user,onBack,setScreen,setSelectedBook,}) {
   }
 };
 
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      alert("Please select a PDF first.");
-      return;
-    }
+const handleUpload = async () => {
+  if (!selectedFile) return;
 
+  try {
     setUploading(true);
 
-    try {
-      const token = localStorage.getItem("access_token");
+    await uploadBook(selectedFile);
 
-      if (!token) {
-        alert("You are not logged in.");
-        return;
-      }
+    await fetchBooks();
 
-      const formData = new FormData();
-      formData.append("file", selectedFile);
+    setSelectedFile(null);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/books/`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+    alert("Book uploaded successfully!");
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    setUploading(false);
+  }
+};
 
-      const data = await response.json();
-
-      console.log("Status:", response.status);
-      console.log("Response:", data);
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Upload failed.");
-      }
-
-      alert("Book uploaded successfully!");
-      await fetchBooks();
-      setSelectedFile(null);
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-const deleteBook = async (bookId) => {
+const removeBook = async (id) => {
   try {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/books/${bookId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.detail);
-    }
+    await deleteBook(id);
     await fetchBooks();
   } catch (err) {
-    console.error(err);
     alert(err.message);
   }
 };
 
 //  for now it opens the pdf in a local pdf reader 
-const openBook = async(book_id) => {
+const openBook = async (id) => {
   try {
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/books/${book_id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok){
-      throw new Error("Failed to load book");
-    }
-    
-    const book = await response.json();
-    console.log(book);
-    return book;
-
-    // here need to change this 
-    // window.open(book.signed_url, "_blank");
-
+    return await getBook(id);
   } catch (err) {
     console.error(err);
     return null;
@@ -258,25 +189,41 @@ const openBook = async(book_id) => {
           </h2>
 
           <p className="opacity-80 mb-6">
-            Operating Systems.pdf
-          </p>
+  {continueBook?.title || "No recent book"}
+</p>
+        {continueBook?.title || "No recent book"}
 
           <div className="w-full bg-blue-300 rounded-full h-3 mb-4">
 
+            {/* progress bar */}
+
             <div
-              className="bg-white h-3 rounded-full"
-              style={{ width: "18%" }}
-            />
+  className="bg-white h-3 rounded-full"
+  style={{
+    width: continueBook
+      ? `${(continueBook.current_page / continueBook.total_pages) * 100}%`
+      : "0%",
+  }}
+/>
 
           </div>
 
-          <button className="bg-white text-blue-700 px-5 py-2 rounded-xl font-semibold flex items-center gap-2">
+          <button
+  onClick={async () => {
+    if (!continueBook) return;
 
-            Continue
+    const bookData = await openBook(continueBook.id);
 
-            <ArrowRight size={18} />
+    if (!bookData) return;
 
-          </button>
+    setSelectedBook(bookData);
+    setScreen("study-reader");
+  }}
+  className="bg-white text-blue-700 px-5 py-2 rounded-xl font-semibold flex items-center gap-2"
+>
+  Continue Reading
+  <ArrowRight size={18} />
+</button>
 
         </div>
 

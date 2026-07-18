@@ -146,10 +146,37 @@ async def delete_book(book_id: str, user_id: str):
 
 
 async def update_progress(book_id: str, current_page: int, user_id: str):
-    """
-    Update reading progress.
-    """
-    pass
+    print("======== UPDATE_PROGRESS ========")
+    print("Book ID:", book_id)
+    print("Current Page:", current_page)
+    print("User ID:", user_id)
+
+    try:
+        response = (
+            supabase.table("books")
+            .update({
+                "current_page": current_page
+            })
+            .eq("id", book_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        print(response.data)
+
+        if not response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Book not found."
+            )
+
+        return response.data
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 
 async def update_last_opened(book_id: str, user_id: str):
