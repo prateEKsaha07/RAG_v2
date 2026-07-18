@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import Footer from "../common/Footer"
+import {
+    getRoadmap,
+    completeTopic,
+    extendRoadmap,
+} from "../../api/roadmapApi";
+import { getRoadmapStats } from "../../utils/roadmapStats";
 
 function RoadmapScreen({ subject, onBack }) {
   const [roadmap, setRoadmap] = useState(null)
@@ -14,94 +20,54 @@ function RoadmapScreen({ subject, onBack }) {
   }, [])
 
   // supabase auth added
-  const fetchRoadmap = async () => {
-    const token = localStorage.getItem("access_token")
-    try {
-      const response = await axios.get(
-        import.meta.env.VITE_API_URL + `/roadmap/${subject}`,{
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      )
-      setRoadmap(response.data)
-    } catch {
-      setMessage("Failed to load roadmap")
-    } finally {
-      setLoading(false)
-    }
+const fetchRoadmap = async () => {
+  try {
+    setLoading(true);
+    const data = await getRoadmap(subject);
+    setRoadmap(data);
+  } catch (err) {
+    console.error(err);
+    setMessage("Failed to load roadmap");
+  } finally {
+    setLoading(false);
   }
+}; 
+  // supabase auth added
+const handleCompleteTopic = async (week, topicName) => {
+  try {
+    await completeTopic(
+  subject,
+  week,
+  topicName
+);
+await fetchRoadmap();
+setMessage(`✅ "${topicName}" marked complete!`);
+setTimeout(() => setMessage(""), 3000);
+  } catch {
+    setMessage("Failed to update topic");
+  }
+};
 
   // supabase auth added
-  const handleCompleteTopic = async (week, topicName) => {
-    const token = localStorage.getItem("access_token")
-    try {
-      await axios.put(
-        import.meta.env.VITE_API_URL + `/roadmap/${subject}/complete-topic`,
-        { week, topic_name: topicName },{
-          headers:{
-            Authorization: `Bearer ${token}`
-          }
-        }
-      )
-      fetchRoadmap()
-      setMessage(`✅ "${topicName}" marked complete!`)
-      setTimeout(() => setMessage(""), 3000)
-    } catch {
-      setMessage("Failed to update topic")
-    }
-  }
-
-  // supabase auth added
-  const handleExtendDate = async () => {
+const handleExtendDate = async () => {
     const token = localStorage.getItem("access_token")
     if (!newTargetDate) return
     try {
-      await axios.put(
-        import.meta.env.VITE_API_URL + `/roadmap/${subject}/extend`,
-        { new_target_date: newTargetDate },{
-          headers:{
-            Authorization:`Bearer ${token}`
-          }
-        }
-      )
-      setExtending(false)
-      fetchRoadmap()
-      setMessage("✅ Target date extended!")
-      setTimeout(() => setMessage(""), 3000)
+      await extendRoadmap(
+        subject,
+        newTargetDate
+        );
+      setExtending(false);
+      await fetchRoadmap();
+      setMessage("✅ Target date extended!");
+      setTimeout(() => setMessage(""), 3000);
     } catch {
       setMessage("Failed to extend date")
     }
   }
 
   // Calculate stats
-  const getStats = () => {
-    if (!roadmap) return {}
-
-    const allTopics = roadmap.weeks.flatMap(w => w.topics)
-    const completed = allTopics.filter(t => t.topic.status === "completed").length
-    const total = allTopics.length
-    const progress = Math.round((completed / total) * 100)
-
-    // Countdown
-    const today = new Date()
-    const target = new Date(roadmap.target_date)
-    const daysLeft = Math.ceil((target - today) / (1000 * 60 * 60 * 24))
-
-    // Pace
-    const created = new Date(roadmap.created_at)
-    const daysElapsed = Math.ceil((today - created) / (1000 * 60 * 60 * 24)) || 1
-    const expectedProgress = Math.round((daysElapsed / 
-      Math.ceil((target - created) / (1000 * 60 * 60 * 24))) * 100)
-    
-    let pace = "on_track"
-    if (progress > expectedProgress + 10) pace = "ahead"
-    else if (progress < expectedProgress - 10) pace = "behind"
-
-    return { completed, total, progress, daysLeft, pace }
-  }
-
-  const stats = getStats()
+  const stats = getRoadmapStats(roadmap);
 
   const paceConfig = {
     ahead: { label: "🚀 Ahead of schedule!", color: "text-green-600" },
