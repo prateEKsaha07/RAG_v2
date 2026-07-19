@@ -21,7 +21,7 @@ function DashboardNav({
   onNotes,
   onQuiz,
   onRoadmap,
-  onAnalytics,
+  // onAnalytics,
   onAnalyticsV2,
   onLogout,
 }) {
@@ -70,12 +70,12 @@ function DashboardNav({
       icon: BarChart3,
       action: onAnalyticsV2,
     },
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      action: onAnalytics,
-    },
+    // {
+    //   id: "analytics",
+    //   label: "Analytics",
+    //   icon: BarChart3,
+    //   action: onAnalytics,
+    // },
   ];
 
   return (

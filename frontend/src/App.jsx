@@ -10,7 +10,7 @@ import NoteEditor from "./components/notes/NoteEditor"
 import NoteView from "./components/notes/NoteView"
 import GoalSetupScreen from "./components/roadmap/GoalSetupScreen"
 import RoadmapScreen from "./components/roadmap/RoadmapScreen"
-import AnalyticsScreen from "./components/analytics/AnalyticsScreen"
+// import AnalyticsScreen from "./components/analytics/AnalyticsScreen"
 import LoginScreen from "./components/auth/LoginScreen"
 import SignupScreen from "./components/auth/SignupScreen"
 import { supabase } from "./supabaseClient"
@@ -110,7 +110,7 @@ function App() {
     onHome={() => setScreen("landing")}
 
     // Keep old analytics temporarily
-    onAnalytics={() => setScreen("analytics")}
+    // onAnalytics={() => setScreen("analytics")}
 
     // New Analytics Dashboard
     onAnalyticsV2={() => setScreen("analytics-v2")}
@@ -189,9 +189,10 @@ function App() {
   />
     )}
 
-    {screen === "analytics" && (
+    {/* {screen === "analytics" && (
       <AnalyticsScreen onBack={() => setScreen("dashboard")} />
-    )}
+    )} */}
+    
     {screen === "login" && (
   <LoginScreen
     onLogin={(user) => {
