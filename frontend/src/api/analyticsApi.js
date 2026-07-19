@@ -1,16 +1,14 @@
 import axios from "axios";
 const API = import.meta.env.VITE_API_URL;
 
-const authHeaders = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-  },
+const authHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem("access_token")}`
 });
 
 export const getSubjects = async () => {
   const response = await axios.get(
     `${API}/subjects`,
-    authHeaders()
+    authHeader()
   );
 
   return response.data.subjects;
@@ -19,8 +17,19 @@ export const getSubjects = async () => {
 export const getAnalytics = async (subject) => {
   const response = await axios.get(
     `${API}/analytics/${subject}`,
-    authHeaders()
+    authHeader()
   );
 
   return response.data;
 };
+
+export async function getDashboard() {
+    const response = await axios.get(
+        import.meta.env.VITE_API_URL + "/analytics/dashboard",
+        {
+            headers: authHeader(),
+        }
+    );
+
+    return response.data;
+}

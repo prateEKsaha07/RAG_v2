@@ -387,7 +387,7 @@ def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=De
     return {"success": True}
 
 # analytics endpoints supabase upgraded
-@app.get("/analytics/{subject}")
+@app.get("/analytics/subject/{subject}")
 def get_analytics(subject: str, user=Depends(get_current_user)):
     
     # Load from Supabase instead of JSON file
@@ -486,3 +486,6 @@ def get_uploaded_subjects():
 
 from app.modules.books.router import router as books_router
 app.include_router(books_router)
+
+from app.modules.Analytics.router import router as analytics_router
+app.include_router(analytics_router)

@@ -5,19 +5,26 @@ from fastapi import Request
 
 print("AUTH MODULE LOADED")
 
-async def get_current_user(request: Request,authorization: Optional[str] = Header(None)):
-    print("======== REQUEST HEADERS ========")
-    print(dict(request.headers))
-    print("Authorization Header:", authorization)
-    print("================================")
-    
+async def get_current_user(
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    print("Authorization:", authorization)
+
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     token = authorization.replace("Bearer ", "")
-    
+
+    print("TOKEN START:", token[:30])
+
     try:
-        user = supabase.auth.get_user(token)
-        return user.user
-    except:
+        response = supabase.auth.get_user(token)
+
+        print("SUPABASE RESPONSE:", response)
+
+        return response.user
+
+    except Exception as e:
+        print("AUTH ERROR:", repr(e))
         raise HTTPException(status_code=401, detail="Invalid token")
