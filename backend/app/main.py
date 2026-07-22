@@ -320,18 +320,6 @@ def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
 
     return {"success": True, "message": f"Roadmap for {subject} deleted"}
 
-# my version
-# def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
-#     from supabase_client import supabase
-
-#     supabase.table("roadmap").delete().eq("user_id",user.id).eq("subject",subject).execute()
-
-#     filepath = f"analytics/roadmaps/roadmap_{subject}.json"
-#     if not os.path.exists(filepath):
-#         return {"error": "No roadmap found"}
-#     os.remove(filepath)
-#     return {"success": True, "message": f"Roadmap for {subject} deleted"}
-
 # supabase updated
 @app.put("/roadmap/{subject}/extend")
 def extend_roadmap_endpoint(

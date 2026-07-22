@@ -1,461 +1,527 @@
-Note: for tests use Java or Ai in subject name and use them as existing data to test as they are already ingested
-another thing I'm currently working on data migration and multi user system so vercel might not work as intended right now.but let's hope it's ok hehe!
-
-Note: $ folder structure is different now took a modular approach they call it i think feature first approach and i think it's easy to track codes but core functions are still same 
-
 # RAG_v2
-RAG-based student assistant project, featuring syllabus roadmap analysis, quiz-based weak topic detection, personalized recommendations, and enhanced academic support, with additional AI-powered learning features planned for future developmen
 
-```
-            [ Student / Client Browser ]
-                           │
-                   Vite / React SPA
-                           │
-                 (RESTful API / JSON)
-                           │
-        ┌──────────────────┴──────────────────┐
-        ▼                                     ▼
- [ Ingestion Engine ]                [ Core API Gateway ]
-(FastAPI / PyPDF / Etc.)             (FastAPI App Routing)
-        │                                     │
-        ▼                                     ├──► [ Quiz Engine ] ──► quiz_history.json
-┌──────────────────┐                          ├──► [ Roadmap Maker ] ──► roadmaps/
-│  Document Split  │                          ├──► [ Notes CRUD ] ──► notes_metadata.json
-└────────┬─────────┘                          │
-         ▼                                    ▼
-[ Cohere Embed ]                     [ Cohere Command-R ]
-(embed-english-light)                (command-r7b-12-2024)
-        │                                     │
-        ▼                              (Augmented Prompt)
-┌───────────────────┐                         │
-│ Vector DB Routing │◄────────────────────────┘
-└─┬───────────────┬─┘
-  ▼               ▼
-[ FAISS Index ] [ Notes FAISS ]
-(Reference)     (User Notes)
-```
+RAG_v2 is a modular, AI-powered study assistant designed to help users learn more effectively from their own uploaded materials. The application combines a React-based frontend with a FastAPI backend to deliver an end-to-end experience for ingestion, semantic search, notes, quizzes, analytics, and adaptive roadmaps.
 
-### Core Architecture Highlights
-* **Dual-Vector DB Topology:** Isolates static domain references (uploaded lecture materials) from mutable, high-churn user data (personal notes) to optimize chunk matching precision and limit index cross-contamination.
-* **Contextual Token Alignment:** Employs precise text splitting strategies to generate mathematically cohesive embeddings, balancing token window constraints of the text representation models with the context density requirements of the generation layers.
-* **Asynchronous Execution Pathways:** Offloads intensive file processing, vector encoding, and model token streaming tasks through asynchronous constructs, maximizing API concurrent throughput under dense utilization loads.
+The project is currently in active development. The codebase already follows a modular structure for easier maintenance and future expansion, while ongoing work focuses on data migration and multi-user support.
 
 ---
 
-## 2. Comprehensive Technology Stack
+## 1. Project Overview
 
-The platform's technology selection balances lightweight operational profiles with elite semantic precision, providing seamless horizontal scalability options across serverless deployment environments.
+RAG_v2 is built around a retrieval-augmented generation workflow. Users can:
 
-| Tier | Component | Technology Selection | Core Operational Role |
-| :--- | :--- | :--- | :--- |
-| **Backend** | API Gateway | **FastAPI (Python 3.10+)** | High-performance asynchronous routing, Pydantic type validation, automated OpenAPI metadata compilation. |
-| **Frontend** | Application Engine | **React 18 + Vite** | Hot-module-swapping interface execution, efficient virtual DOM diffing, minimized bundled output asset weights. |
-| **Frontend** | Design Matrix | **Tailwind CSS** | Atomic-utility responsive design tokens, rapid layout layout uniformity, zero runtime CSS parsing overhead. |
-| **Vector DB** | Indexing Layer | **FAISS (Facebook AI Similarity Search)** | In-memory optimized L2 distance/cosine similarity vectors, low-latency nearest-neighbor computation. |
-| **LLM Tier** | Inference Engine | **Cohere Command-R (7B-12-2024)** | High-context generative logic, structured JSON production, targeted citation grounding, and evaluation. |
-| **Embeddings** | Representation | **Cohere embed-english-light-v3.0** | High-density 384-dimensional vector extraction tailored for rapid calculation within memory-constrained environments. |
-| **Hosting** | Cloud Layer | **Render** | Dockerized or native python build packs running continuous integration for the ASGI web worker layers. |
-| **Hosting** | Edge Network | **Vercel** | Global Content Delivery Network (CDN) static asset caching with low-latency edge caching for SPA artifacts. |
+- Upload study materials and ingest them into a searchable knowledge base
+- Ask questions and receive grounded answers based on the uploaded content
+- Create and manage personal notes
+- Generate quizzes from the indexed material
+- Track weak topics and learning progress
+- Follow a roadmap constructed around the subject structure
+
+The goal is to create a practical learning environment where AI assistance is grounded in user-specific content rather than generic responses.
 
 ---
 
-## 3. Directory Layout & Repository Topology
-```
-RAG_V2/
-├── backend/                             # ASGI Service & Machine Learning Logic
-│   ├── main.py                          # Application entry point, CORS middleware, and API router mappings
-│   ├── quiz.py                          # Automated assessment generation, question grading, and parsing
-│   ├── query.py                         # Context composition, index query routing, and RAG compilation
-│   ├── ingestion.py                     # Document parser pipelines, text segmentation, and FAISS updates
-│   ├── notes.py                         # Markdown text management, automated metadata stamping, and tags
-│   ├── roadmap.py                       # Curriculum parser, time-boxed schedule creation, and task status
-│   ├── tags/                            # Academic syllabus blueprints and structural knowledge domains
-│   │   └── {subject}.json               # Hierarchical unit/topic breakdown templates for progress tracking
-│   ├── data/                            # Persistent filesystem storage layers
-│   │   ├── uploads/                     # Canonical PDF/TXT source data files grouped by subject area
-│   │   └── notes/                       # Local storage folder for personal markdown note files
-│   ├── faiss_index/                     # Serialized binary storage for primary document vectors
-│   ├── notes_faiss_index/               # Serialized binary storage for personal notes vectors
-│   └── analytics/                       # Local state store tracking student historical metrics
-│       ├── quiz_history.json            # Array tracking subject attempts, performance ratios, and weaknesses
-│       └── roadmaps/                    # Active and serialized timeline progress matrices
-└── frontend/                            # Client-Side SPA User Interface
-└── src/
-├── App.jsx                      # Client router routing rules and application initialization
-├── main.jsx                     # Strict mode execution binding to the application DOM anchor
-└── components/                  # Encapsulated reusable layout view elements
-├── LandingPage.jsx          # Visual portal, onboarding interface, and platform entry
-├── UploadScreen.jsx         # Administrative document upload pane with file drop validation
-├── Dashboard.jsx            # Unified analytics dashboard displaying macro statistics
-├── QuizScreen.jsx           # Timed, distraction-free assessment delivery viewport
-├── ResultScreen.jsx         # Performance diagnostic view highlighting concept deficiencies
-├── QAScreen.jsx             # Conversational context interface with explicit source grounding
-├── NotesScreen.jsx          # Dual-column notes browser featuring full text search mechanics
-├── NoteEditor.jsx           # Real-time markdown workspace containing AI-assisted tags
-├── NoteView.jsx             # High-readability document render pipeline for synthesized notes
-├── GoalSetupScreen.jsx      # Configuration interface mapping timelines against syllabus scopes
-└── RoadmapScreen.jsx        # Interactive interactive schedule containing completion tracking
+## 2. Current Project Status
 
-```
----
+The project is currently in a transitional phase with the following priorities:
 
-## 4. Architectural Deep-Dives: Core Modules
+- Modularizing the backend and frontend for maintainability
+- Improving multi-user support and user-scoped data handling
+- Migrating part of the data model from local files to a more robust backend-driven flow
+- Preparing the app for smoother deployment and scaling
 
-### 4.1 The Advanced RAG Pipeline (`ingestion.py`, `query.py`)
-EduPulse AI implements a robust, multi-index RAG system built to bypass traditional single-source information deficits.
-```
-[ Incoming File ] ──► [ Text Extraction ] ──► [ Overlapping Chunking ]
-                                                        │
-                                                        ▼
-[ FAISS Binary Index ] ◄── [ Save Local ] ◄── [ Vector Generation ]
-```
-1. **Document Processing & Chunking Matrix:** Document ingestion uses sliding window text processing. Document nodes are split using precise character boundaries with a configurable token overlap (typically 512-character blocks with a 10% step-back overlap). This guarantees that edge-aligned semantic themes are preserved across adjoining text chunks.
-2. **Dual Embedding Encoding:** Tokens are transmitted to the `embed-english-light-v3.0` API endpoint, yielding uniform, dense float matrices. These matrices are instantly serialized into two separate run-time vector memories: `faiss_index` (source content indexes) and `notes_faiss_index` (individual content logs).
-3. **Multi-Route Query Vectorization & Merging:** When a question is submitted to `POST /ask`, the platform executes parallel searches. It issues concurrent queries across both database indices, gathers the top $K$ nearest-neighbor text blocks using vector distance matching, and scores them using relative relevance thresholds.
-4. **Context Synthesis & Controlled Generation:** The matching text blocks are integrated into a system instruction block passed to `command-r7b-12-2024`. This prompt specifies strict grounding guidelines, forcing the model to cite specific text segments and reject hallucinating answers if the input text lacks the necessary information.
+Important note:
+- For local testing, use subjects such as Java or AI, since sample data for those subjects is already included in the repository.
+- Deployment on Vercel may not behave exactly as expected while the migration and multi-user work is still in progress.
 
 ---
 
-### 4.2 Algorithmic Quiz Synthesis & Evaluation (`quiz.py`)
-Rather than relying on generic, ungrounded question prompt templates, the platform links quiz generation directly to document index segments that present high informational density.
+## 3. Core Architecture
 
-* **Targeted Information Extraction:** The engine samples random text clusters within the ingested document indices or targets areas previously marked as "weak topics" in user logs.
-* **Structured Generation Frameworks:** The model receives strict directives to construct multiple-choice questions (MCQs) mapped directly to specific data structures, enforcing a strict structural contract:
-  ```json
-  {
-    "question": "Clear, objective academic query text",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
-    "correct_answer": "Option A",
-    "rationale": "Context-grounded explanation explaining why option A is correct and why other options are incorrect."
-  }
-Performance Assessment & Weakness Detection: When answers are submitted via POST /evaluate, the response vectors are cross-checked against correct answer keys. If a student answers a question incorrectly, the underlying concept is cross-referenced with the subject syllabus file (tags/{subject}.json) and tagged into the weak_topics log within quiz_history.json. This provides targeted areas to prioritize during future search and review sessions.
+The system is split into two main layers:
 
-### 4.3 Semi-Automated Note Management (notes.py)
-The Notes System functions as a real-time knowledge creation space that automatically generates contextual metadata as users write.
-Asynchronous Web Scraping Integration: When users insert web references, POST /notes/fetch-url runs low-overhead HTTP requests to parse the destination page's HTML structure, extract its Open Graph meta tags or header details, and automatically fill in reference links inside the note.
-Semantic Tag Extraction: As notes are modified, the system processes text updates through the LLM to identify core concepts. It cross-references these concepts with the main syllabus taxonomy and automatically applies relevant tags, removing the need for manual user labeling.
-Immediate Vector Index Synchronization: Once saved, the updated notes are instantly vectorized and merged into notes_faiss_index. This ensures that any personal observations or custom summaries are immediately searchable and accessible within the main Q&A chat loop.
+- Frontend: React + Vite + Tailwind CSS for the user interface
+- Backend: FastAPI for API routing, authentication, ingestion, search, quiz logic, notes, and roadmap handling
 
-### 4.4 Syllabus-Grounded Adaptive Roadmaps (roadmap.py)
-Roadmaps in EduPulse AI are more than simple calendar alerts; they act as dynamic timelines built directly from official academic syllabus tracking templates.
+The backend uses a retrieval layer powered by FAISS and embeddings from Cohere, while responses are generated through an LLM workflow grounded in the indexed content.
+
+### High-level flow
+
+```bash
+User -> Frontend -> FastAPI Backend -> FAISS / Embeddings / LLM -> Response / Quiz / Roadmap / Notes
 ```
-[ Subject Syllabus JSON ] + [ Target End Date ] ──► [ LLM Time-Allocation Optimization ]
-                                                             │
-                                                             ▼
-[ Interactive Interactive UI ] ◄───────────────── [ Weekly Milestone Grid ]
-```
-Syllabus Topology Ingestion: The engine opens the designated subject file within tags/{subject}.json to extract its structured units, core concept lists, and milestone requirements.
-Context-Aware Schedule Distribution: Using the current calendar date and the student's target end date, the roadmap module calculates the available study weeks. The LLM then structures a milestone path, distributing complex topics evenly across the timeline while prioritizing areas previously identified as historical weaknesses.
-State Tracking Interaction: Students can check off completed items, extend target timelines, or request itemized updates via PUT /roadmap/{subject}/extend. This lets them dynamically update their study schedules as their real-world deadlines shift.
 
-## 5. Comprehensive API Documentation
-### 5.1 Core System Elements
+---
 
-GET /
-Functional Scope: Returns a basic payload indicating application health and validation status.
-Response Signature: 200 OK
+## 4. Technology Stack
+
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| Frontend | React + Vite | SPA user interface and app routing |
+| Styling | Tailwind CSS | Responsive UI and component styling |
+| Backend | FastAPI | API development, request handling, and business logic |
+| Validation | Pydantic | Request/response model validation |
+| Vector Search | FAISS | Efficient semantic similarity search over indexed content |
+| Embeddings | Cohere embed-english-light-v3.0 | Text-to-vector representation for retrieval |
+| LLM | Cohere Command-R | Context-aware response generation and quiz logic |
+| Auth & Data | Supabase | Authentication and data persistence support |
+| Package Management | npm / pip | Frontend and backend dependency management |
+
+---
+
+## 5. Project Structure
+
+```bash
+RAG_v2/
+├── backend/
+│   ├── app/
+│   │   ├── core/
+│   │   │   ├── auth.py
+│   │   │   ├── config.py
+│   │   │   └── supabase_client.py
+│   │   ├── modules/
+│   │   │   ├── Analytics/
+│   │   │   ├── books/
+│   │   │   ├── Ingestion/
+│   │   │   ├── Notes/
+│   │   │   ├── Qa/
+│   │   │   ├── Quiz/
+│   │   │   └── Roadmap/
+│   │   └── main.py
+│   ├── data/
+│   │   └── uploads/
+│   ├── faiss_index/
+│   ├── notes_faiss_index/
+│   ├── requirements.txt
+│   └── render.yaml
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── styles/
+│   │   ├── utils/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── supabaseClient.js
+│   ├── package.json
+│   ├── vite.config.js
+│   └── tailwind.config.js
+├── docs/
+├── LICENSE
+└── README.md
 ```
-JSON
+
+---
+
+## 6. Backend Modules
+
+The backend is organized into feature-oriented modules under the app/modules directory. Each module is designed to represent a specific responsibility in the learning workflow, keeping the application easier to maintain and scale as new features are added.
+
+### 6.1 Analytics Module
+
+The Analytics module is responsible for collecting, organizing, and exposing learning-related performance data.
+
+What it is expected to do:
+- Track quiz performance over time
+- Record weak topics based on past assessment results
+- Support progress visualization and insights for the dashboard
+- Provide structured data that can later be used for recommendations and reporting
+
+Typical responsibilities:
+- Reading quiz history and learning outcomes
+- Aggregating subject-based performance data
+- Preparing summaries for analytics views and reports
+
+Typical payload example:
+
+```json
 {
-  "status": "healthy",
-  "timestamp": "2026-06-16T10:20:00Z"
+  "subject": "AI",
+  "score": 4,
+  "total": 5,
+  "weak_topics": ["Neural Networks", "Transformers"],
+  "timestamp": "2026-07-22T10:30:00Z"
 }
 ```
-### 5.2 Document Processing & Ingestion Engine
 
-POST /ingest
-Functional Scope: Ingests a multi-page document file, runs text segmentation, generates embeddings, and saves the resulting vectors to the primary index.
-Payload Format: multipart/form-data containing an academic file document binary.
-Response Signature: 201 Created
-```
-JSON
+### 6.2 Books Module
+
+The Books module handles study materials that are represented as books or book-like resources within the application.
+
+What it is expected to do:
+- Retrieve available books and their metadata
+- Support linkages between a selected book and the current study flow
+- Provide content that can be displayed in the study reader experience
+
+Typical responsibilities:
+- Fetching book details by ID
+- Returning signed or accessible file references
+- Managing study-book context for the frontend
+
+Typical payload example:
+
+```json
 {
-  "status": "success",
-  "filename": "operating_systems_lecture3.pdf",
-  "chunks_processed": 142,
-  "vector_index": "faiss_index"
+  "id": "book_001",
+  "title": "Introduction to AI",
+  "subject": "AI",
+  "signed_url": "https://example.com/book.pdf"
 }
 ```
-### 5.3 Automated Assessment System
-POST /generate-quiz
-Functional Scope: Generates a set of contextually accurate multiple-choice questions pulled directly from reference indexes.
-Payload Format: application/json
-```
-JSON
-{
-  "subject": "Distributed Systems",
-  "question_count": 5,
-  "difficulty": "Intermediate"
-}
-Response Signature: 200 OK
 
-JSON
+### 6.3 Ingestion Module
+
+The Ingestion module is one of the most important parts of the system because it transforms uploaded content into searchable knowledge.
+
+What it is expected to do:
+- Read uploaded documents and files
+- Split content into manageable chunks
+- Generate embeddings for those chunks
+- Store them into the FAISS index so the app can retrieve them later
+
+Typical responsibilities:
+- Processing uploaded files from the frontend
+- Creating vector representations for search and Q&A
+- Updating the shared knowledge base after new uploads
+
+Typical payload example:
+
+```json
 {
-  "quiz_id": "qz_892341",
-  "questions": [
+  "message": "File ingested successfully",
+  "filename": "AI.md",
+  "chunks_created": 42
+}
+```
+
+### 6.4 Notes Module
+
+The Notes module provides a personal knowledge-management layer for users.
+
+What it is expected to do:
+- Create and update notes for a selected subject
+- Store note content in a structured, retrievable format
+- Generate tags automatically from note content
+- Index notes so they can participate in question answering
+
+Typical responsibilities:
+- Creating and editing markdown-based notes
+- Fetching notes by subject or tag
+- Generating semantic tags for better organization
+- Syncing note content into the notes FAISS index
+
+Typical payload example:
+
+```json
+{
+  "subject": "AI",
+  "title": "Transformer Basics",
+  "content": "Transformers use attention mechanisms to process input efficiently.",
+  "tags": ["transformers", "attention", "neural networks"]
+}
+```
+
+### 6.5 QA Module
+
+The QA module powers the conversational study assistant experience.
+
+What it is expected to do:
+- Receive a user question
+- Search relevant context from uploaded content and notes
+- Return a grounded answer using the indexed material
+- Provide source references where possible
+
+Typical responsibilities:
+- Routing user questions to the appropriate vector store
+- Combining material from shared uploads and personal notes
+- Returning a concise answer with supporting evidence
+
+Typical payload example:
+
+```json
+{
+  "question": "What is the role of attention in transformers?"
+}
+```
+
+Expected response shape:
+
+```json
+{
+  "answer": "Attention allows the model to focus on the most relevant parts of the input sequence.",
+  "sources": ["AI.md", "notes/transformer_basics.md"]
+}
+```
+
+### 6.6 Quiz Module
+
+The Quiz module is responsible for generating and evaluating assessments based on the ingested content.
+
+What it is expected to do:
+- Create multiple-choice questions from the active subject knowledge
+- Evaluate user answers against the expected solutions
+- Identify weak topics that need further study
+- Return results that can be used by the analytics and roadmap modules
+
+Typical responsibilities:
+- Generating quizzes dynamically from indexed content
+- Scoring student answers
+- Identifying weak areas based on incorrect responses
+
+Typical payload example:
+
+```json
+{
+  "subject": "AI",
+  "topics": ["Neural Networks"],
+  "question_count": 5
+}
+```
+
+Expected response shape:
+
+```json
+{
+  "quiz": [
     {
-      "id": 1,
-      "question": "Which consensus protocol requires a fixed membership list and operates via absolute majorities across successive voting rounds?",
-      "options": ["Raft", "Paxos", "NTP Synchronization", "Gossip Protocols"],
-      "rationale": "Paxos relies on strict quorums across phase transitions to maintain absolute state safety."
+      "question": "What is the purpose of a neural network?",
+      "options": ["A", "B", "C", "D"],
+      "correct_answer": "A"
     }
   ]
 }
 ```
-POST /evaluate
-Functional Scope: Validates submitted assessment responses, compiles immediate scores, updates performance analytics records, and identifies weak topic areas.
-Payload Format: application/json
-```
-JSON
-{
-  "quiz_id": "qz_892341",
-  "subject": "Distributed Systems",
-  "answers": [{ "question_id": 1, "selected_option": "Gossip Protocols" }]
-}
-Response Signature: 200 OK
 
-JSON
-{
-  "score": 0,
-  "total": 1,
-  "percentage": 0.0,
-  "correct_keys": [{ "question_id": 1, "correct": "Paxos" }],
-  "weak_topics_identified": ["Consensus Mechanisms", "Quorum Systems"]
-}
-```
-GET /quiz-history
-Functional Scope: Returns full historically serialized score trends and tracking arrays.
-Response Signature: 200 OK
+### 6.7 Roadmap Module
 
-### 5.4 Unified RAG Search Interface
-POST /ask
-Functional Scope: Executes semantic searches across both vector indices and uses the LLM to generate a single, unified answer based on the retrieved context.
-Payload Format: application/json
-```
-JSON
-{
-  "question": "What is the difference between sequential consistency and linearizability according to my class notes?",
-  "subject": "Distributed Systems"
-}
-Response Signature: 200 OK
+The Roadmap module manages the structured learning plan for each subject.
 
-JSON
+What it is expected to do:
+- Build a study roadmap from syllabus-like topic structures
+- Track topic statuses such as locked, available, in progress, waiting quiz, or completed
+- Support transitions between learning and evaluation stages
+- Help users progress through topics in a controlled sequence
+
+Typical responsibilities:
+- Generating weekly study plans
+- Updating the status of each topic as the user progresses
+- Starting and completing topics
+- Supporting roadmap extension and final assessment scheduling
+
+Typical payload example:
+
+```json
 {
-  "answer": "Based on your distributed systems lecture materials, linearizability requires operations to take effect at a discrete point in time between their invocation and response, enforcing global real-time ordering. Conversely, sequential consistency relaxes real-time constraints, requiring only that all processes observe an identical order of executions that preserves local program order.",
-  "sources_extracted": [
-    { "file": "distributed_notes_unit2.txt", "type": "note_index", "match_score": 0.89 },
-    { "file": "reading_assignment_1.pdf", "type": "upload_index", "match_score": 0.81 }
-  ]
+  "subject": "AI",
+  "week": 1,
+  "topic_name": "Introduction to AI"
 }
 ```
-### 5.5 Knowledge Base & Notes Control
-POST /notes
-Functional Scope: Commits a new raw text markdown block directly to disk.
 
-Payload Format: application/json
+Expected response shape:
 
-GET /notes
-Functional Scope: Fetches a clean list of all current note elements along with their automatically generated tag fields.
-
-Response Signature: 200 OK
-```
-JSON
-[
-  {
-    "filename": "raft_consensus_summary.md",
-    "subject": "Distributed Systems",
-    "title": "Raft Consensus Log Replication",
-    "tags": ["Fault Tolerance", "Log Appending", "Leader Election"],
-    "word_count": 420,
-    "ingested": true
-  }
-]
-```
-POST /notes/generate-tags
-Functional Scope: Evaluates text notes using context matching to generate optimized search tags.
-
-Payload Format: application/json
-
-POST /notes/ingest
-Functional Scope: Encodes and pushes specific personal note files into the dedicated notes vector storage space (notes_faiss_index).
-
-### 5.6 Curriculum & Pathway Planners
-POST /roadmap
-Functional Scope: Generates a time-allocated learning plan mapped directly to the syllabus file guidelines.
-
-Payload Format: application/json
-```
-JSON
+```json
 {
-  "subject": "Machine Learning",
-  "target_end_date": "2026-08-01"
+  "success": true,
+  "message": "Topic started"
 }
 ```
-Response Signature: 200 OK
 
-PUT /roadmap/{subject}/complete-topic
-Functional Scope: Marks a syllabus topic as completed and shifts upcoming milestone dates accordingly.
+---
 
-Payload Format: application/json
+## 7. Architecture Overview
+
+```bash
+User
+  └── Frontend (React + Vite)
+        └── FastAPI Backend
+              ├── Ingestion Module
+              ├── Notes Module
+              ├── QA Module
+              ├── Quiz Module
+              ├── Roadmap Module
+              └── Analytics Module
+                    └── FAISS / Embeddings / LLM
 ```
-JSON
-{ "unit_index": 0, "topic_name": "Backpropagation Calculus" }
+
+This architecture allows the application to separate concerns while still providing a unified learning experience.
+
+---
+
+## 8. Main API Endpoints
+
+The backend exposes several core endpoints to support the product experience:
+
+- POST /ingest — upload and index study material
+- POST /ask — ask a question and receive a grounded answer
+- POST /generate-quiz — create quiz questions from indexed content
+- POST /evaluate — submit quiz answers and receive scoring results
+- POST /notes — create or save notes
+- GET /notes — retrieve stored notes
+- POST /notes/generate-tags — generate tags for notes
+- POST /roadmap — create a roadmap for a subject
+- GET /roadmap/{subject} — fetch the roadmap for a subject
+- PUT /roadmap/{subject}/start-topic — start a topic
+- PUT /roadmap/{subject}/complete-topic — complete a topic
+
+---
+
+## 9. Example User Workflow
+
+A typical user journey looks like this:
+
+```bash
+1. Sign in to the app
+2. Upload learning material
+3. Ingest content into the knowledge base
+4. Ask questions using the QA assistant
+5. Generate a quiz from the uploaded content
+6. Review weak topics and progress
+7. Follow the roadmap to study in a structured way
 ```
-Response Signature: 200 OK
 
-## 6. Functional Architecture & Core User Workflows
+This flow demonstrates how the system connects ingestion, learning, assessment, and planning into one experience.
+
+---
+
+## 10. Environment Variables
+
+The app expects certain environment values to be configured for full functionality.
+
+Example variables:
+
+```bash
+COHERE_API_KEY=your_cohere_key
+VITE_API_URL=http://localhost:8000
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
-  [ Landing Page Portal ]
-            │
-            ▼
-  [ Upload Workspace ] ──► System updates FAISS index using source materials
-            │
-            ▼
-  [ Learning Dashboard ]
-            ├──► [ Automated Quizzes ] ──► Analyzes weak topics and updates score logs
-            ├──► [ Conversational RAG ] ──► Runs search queries across primary & personal indices
-            ├──► [ Knowledge Management ] ──► Generates semantic tags and links online references
-            └──► [ Adaptive Roadmaps ] ──► Syncs study timeline goals with syllabus templates
-```
-### 6.1 System Entry & Context Onboarding
-The entry workflow begins at the LandingPage component, which routes users to either the administrative data pipeline or the main telemetry dashboard. Users drop documents directly into the UploadScreen interface. The upload handler fires an asynchronous stream to the /ingest API endpoint, splitting files apart and populating the primary index (faiss_index) within seconds.
 
-### 6.2 Collaborative Knowledge Synthesis & Study Loop
-Once reference documents are indexed, the student uses the integrated learning workspace:
+These values are required for authentication, AI features, and backend communication.
 
-Interactive Self-Assessment: Students launch the QuizScreen to test their understanding under simulated test conditions. The server generates challenging multiple-choice questions directly from specific text passages, requiring deep recall instead of surface recognition.
-Dynamic Review & Clarification: When the ResultScreen identifies areas that need improvement, the student switches directly to the QAScreen. They can ask deep clarifying questions, and the engine searches across textbook files and personal notes to resolve confusion.
-Continuous Knowledge Retention: Students use the NoteEditor to write summaries of what they learn. The platform automatically scans their text, pulls in online reference details via the URL parser, assigns relevant tags, and syncs the content with the secondary index (notes_faiss_index). This updates the system's memory, ensuring those reflections are available during the next chat session.
-Milestone Goal Management: The student configures a study timeline on the GoalSetupScreen to match their real-world exam dates. The platform builds a dynamic weekly schedule, laying out a guided path through the semester's material and adjusting milestones on the fly as topics are completed.
+---
 
-## 7. Data Storage Formats & Schema Blueprints
-### 7.1 Historical Analytics Log (analytics/quiz_history.json)
-Maintains an accurate record of student quiz attempts to track changes in comprehension over time.
-```
-JSON
-[
-  {
-    "subject": "Database Management Systems",
-    "date": "2026-06-15T14:35:10Z",
-    "score": 4,
-    "total": 5,
-    "weak_topics": ["Two-Phase Locking (2PL)", "Cascading Aborts"]
-  }
-]
-```
-### 7.2 Structured Learning Pathway Schema (analytics/roadmaps/roadmap_{subject}.json)
-Defines the current state of a student's active learning timeline and milestone allocations.
-```
-JSON
-{
-  "id": "rm_7182937",
-  "subject": "Database Management Systems",
-  "scope": "Full Semester Standard Syllabus",
-  "weeks": [
-    {
-      "week_number": 1,
-      "focus": "Relational Algebra & Tuple Calculus",
-      "topics": [
-        { "name": "Selection and Projection Operations", "status": "completed" },
-        { "name": "Lossless-Join Decompositions", "status": "pending" }
-      ]
-    }
-  ],
-  "weak_topics": ["Lossless-Join Decompositions"],
-  "status": "active"
-}
-```
-### 7.3 Reference Taxonomy Schema (tags/{subject}.json)
-The structural skeleton used to align generated questions and notes with an official academic curriculum.
-```
-JSON
-{
-  "subject": "Database Management Systems",
-  "units": [
-    {
-      "unit": "Unit I",
-      "name": "Relational Architecture & Storage Models",
-      "topics": [
-        "Selection and Projection Operations",
-        "Lossless-Join Decompositions",
-        "B+ Tree Indexing Structures"
-      ]
-    }
-  ]
-]
-```
-## 8. Development Roadmap & Core Code Tasks
-To transition this proof-of-concept codebase into a scalable, multi-tenant enterprise system, the following operational changes are planned:
+## 11. Current Features vs Planned Features
 
-### 8.1 Interface Cleanup & User Flows
+### Current Features
+- Upload and ingest study material
+- Semantic question answering
+- Notes creation and indexing
+- Quiz generation and evaluation
+- Roadmap-based guided learning
+- Basic analytics and progress tracking
 
-- Navigation Component Polish: Standardize header actions, clean up footer links, and insert defensive "Back" button routing blocks to prevent unsaved state loss in the NoteEditor and QuizScreen interfaces.
+### Planned Features
+- Full multi-user support
+- Stronger data migration and persistence flow
+- Improved roadmap and quiz integration
+- More advanced analytics dashboards
+- Better deployment readiness for production environments
 
-- Micro-Interaction Polish: Add subtle, low-overhead CSS transitions and loading skeletons within the dashboard view to mask network latency during intense LLM retrieval calls.
+---
 
-### 8.2 Production Telemetry & Analytics Dashboard
-- Visual Progress Graphs: Replace raw text tables in Dashboard.jsx with responsive, data-driven charts tracking score trends, subject mastery ratios, and timeline velocity.
+## 12. Frontend Experience
 
--  Concept Map Visualization: Build a structural concept tree interface that highlights areas needing review in red and mastered sections in green based on quiz histories.
+The frontend provides a polished learning experience through separate screens and workflows:
 
-### 8.3 Infrastructure Upgrades & Multi-Tenant Isolation
-- Cloud Identity Integration (Supabase): Move away from open, local access profiles by integrating Supabase Auth to handle secure user logins, registration steps, and active session validation.
+- Landing and authentication screens
+- Upload workflow for study materials
+- Dashboard for navigation and progress overview
+- Study reader experience
+- Quiz flow for assessment
+- Notes editor and viewer
+- QA interface for conversational learning support
+- Roadmap visualization and topic progression
 
--  Strict Row-Level Partitioning: Update the file ingestion and database query paths to segregate index access. This ensures that user documents and notes are stored securely within isolated individual directories (/data/{user_id}/uploads), preventing cross-user data leaks.
+The frontend is currently being refined to align more closely with the modular backend architecture and the upcoming multi-user experience.
 
--  Persistent Cloud Index Storage: Move localized in-memory binary vector indexes off transient servers and migrate them to a fully managed cloud database instance, ensuring persistent data reliability.
+---
 
-## 9. Environment Setup & Execution Guide
-### 9.1 Required Prerequisites
+## 13. Main Features
 
-- Python 3.10 or higher installed locally.
-- Node.js LTS (v18 or higher) runtime environment.
-- A valid Cohere API Authentication Token.
+### 13.1 Material Ingestion
+Users can upload study files and have the system ingest them into a vector store for later retrieval.
 
-### 9.2 Initial Backend Installation Steps
-Navigate into the service folder path:
-```
-Bash
+### 13.2 Semantic Question Answering
+The system can answer questions using the uploaded material and user notes as context.
+
+### 13.3 Notes Management
+Users can create structured notes, tag them, and search them later.
+
+### 13.4 Quiz Generation and Evaluation
+The app can generate quiz questions from the indexed content and evaluate the results.
+
+### 13.5 Adaptive Roadmap
+The roadmap module organizes study content into milestones and topic progress states.
+
+### 13.6 Analytics Tracking
+The system records quiz history and learning-related insights to support follow-up study strategies.
+
+---
+
+## 14. Local Development Setup
+
+### Backend
+
+```bash
 cd backend
-```
-Build an isolated local virtual environment:
-```
-Bash
 python -m venv venv
-source venv/bin/activate  # On Windows execution environments: venv\\Scripts\\activate
+source venv/bin/activate   # Linux / macOS
+venv\Scripts\activate      # Windows PowerShell
+pip install -r requirements.txt
+uvicorn app.main:app --reload
 ```
-Install required application packages:
-```
-Bash
-pip install fastapi uvicorn cohere faiss-cpu pydantic pydantic-settings python-multipart
-```
-Configure your private environment variables:
-```
-Bash
-export COHERE_API_KEY="your_secure_api_token_here"
-```
-Launch the local development server:
-```
-Bash
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
-```
-### 9.3 Frontend Workspace Setup Steps
-Navigate into the client folder path:
-```
-Bash
-cd ../frontend
-```
-Pull down required Node packages:
-```
-Bash
-npm install
-```
-Start the local client development server:
-```
-Bash
-npm run dev
-Open your browser and navigate to http://localhost:5173 to interact with the running ecosystem.
-```
-## License
 
-This project is licensed under the Apache License 2.0. See the `LICENSE` file for details.
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Notes for testing
+
+Use subjects such as:
+
+```bash
+Java
+AI
+```
+
+These subjects already have sample content available in the repository for easier testing.
+
+---
+
+## 15. Environment and Deployment Notes
+
+The project currently relies on environment configuration for API keys and backend integration. The app is being actively improved for multi-user handling and better data consistency.
+
+Because of the ongoing migration work:
+
+- Local development is the recommended path for now
+- Vercel deployment may not be fully reliable until the migration work is completed
+- Production readiness will improve as the data model and user-scoping logic are finalized
+
+---
+
+## 16. Development Roadmap
+
+Planned improvements include:
+
+- Completing the multi-user architecture
+- Strengthening data migration and persistence flow
+- Improving roadmap and quiz integration
+- Refining frontend state management and user experience
+- Enhancing analytics and progress reporting
+- Improving deployment readiness for production environments
+
+---
+
+## 17. Summary
+
+RAG_v2 is a practical AI study assistant that combines retrieval-augmented generation, notes, quizzes, roadmaps, and analytics into one unified learning platform. It is already functional in its current form, and the project is now focused on making it more scalable, modular, and suitable for broader multi-user use.
