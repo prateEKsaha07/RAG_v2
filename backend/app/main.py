@@ -300,8 +300,6 @@ def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
         return {"error": "No roadmap found"}
     return roadmap
 
-# supabase updated version
-@app.delete("/roadmap/{subject}")
 # gemini version
 @app.delete("/roadmap/{subject}")
 def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
@@ -373,92 +371,6 @@ def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=De
     }).eq("subject", subject).eq("user_id", user.id).execute()
 
     return {"success": True}
-
-# analytics endpoints supabase upgraded
-# @app.get("/analytics/subject/{subject}")
-# def get_analytics(subject: str, user=Depends(get_current_user)):
-    
-#     # Load from Supabase instead of JSON file
-#     response = supabase.table("quiz_history")\
-#         .select("*")\
-#         .eq("user_id", user.id)\
-#         .eq("subject", subject.lower())\
-#         .order("created_at")\
-#         .execute()
-    
-#     subject_history = response.data
-    
-#     if not subject_history:
-#         return {"error": f"No history found for {subject}"}
-    
-#     # Rest of your calculations stay the same
-#     score_progression = [
-#         {
-#             "date": h["created_at"][:16],
-#             "percentage": round((h["score"] / h["total"]) * 100)
-#         }
-#         for h in subject_history
-#     ]
-    
-#     topic_count = {}
-#     for h in subject_history:
-#         for topic in h["weak_topics"]:
-#             topic_count[topic] = topic_count.get(topic, 0) + 1
-    
-#     passes = sum(1 for h in subject_history if h["score"] >= 3)
-#     fails = len(subject_history) - passes
-    
-#     distribution = {"0-1": 0, "2-3": 0, "4-5": 0}
-#     for h in subject_history:
-#         if h["score"] <= 1:
-#             distribution["0-1"] += 1
-#         elif h["score"] <= 3:
-#             distribution["2-3"] += 1
-#         else:
-#             distribution["4-5"] += 1
-    
-#     avg_score = round(sum(h["score"] for h in subject_history) / len(subject_history), 1)
-#     best_score = max(h["score"] for h in subject_history)
-#     latest_score = subject_history[-1]["score"]
-#     most_weak_topic = max(topic_count, key=topic_count.get) if topic_count else "None"
-    
-#     return {
-#         "subject": subject,
-#         "summary": {
-#             "total_attempts": len(subject_history),
-#             "average_score": avg_score,
-#             "best_score": best_score,
-#             "latest_score": latest_score,
-#             "total": subject_history[0]["total"],
-#             "most_weak_topic": most_weak_topic
-#         },
-#         "score_progression": score_progression,
-#         "weak_topics_chart": [
-#             {"topic": t, "count": c}
-#             for t, c in sorted(topic_count.items(), 
-#                               key=lambda x: x[1], reverse=True)
-#         ],
-#         "pass_fail": [
-#             {"name": "Pass", "value": passes},
-#             {"name": "Fail", "value": fails}
-#         ],
-#         "score_distribution": [
-#             {"range": k, "count": v}
-#             for k, v in distribution.items()
-#         ],
-#         "attempts_table": [
-#             {
-#                 "subject": h["subject"],
-#                 "date": h["created_at"][:16],
-#                 "score": h["score"],
-#                 "total": h["total"],
-#                 "weak_topics": h["weak_topics"]
-#             }
-#             for h in subject_history
-#         ]
-#     }
-
-# print(supabase.table("notes").select("*").execute()) - 
 
 @app.get("/uploads")
 def get_uploaded_subjects():

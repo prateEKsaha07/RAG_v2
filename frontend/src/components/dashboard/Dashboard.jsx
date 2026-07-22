@@ -50,33 +50,33 @@ function Dashboard({
         />
 
         {/* Current study session (dummy for now) */}
-        <StudyWorkspace
+        {/* <StudyWorkspace
           subject={subject}
           onQA={onQA}
-        />
+        /> */}
 
         {/* Overall statistics */}
-        <ProgressOverview />
+        {/* <ProgressOverview /> */}
 
         {/* Active roadmap */}
-        <RoadmapWidget
+        {/* <RoadmapWidget
           onRoadmap={onRoadmap}
-        />
+        /> */}
 
         {/* AI study assistant (dummy) */}
-        <CoachWidget />
+        {/* <CoachWidget /> */}
 
         {/* Upcoming study events */}
-        <UpcomingSchedule />
+        {/* <UpcomingSchedule /> */}
 
         {/* Weekly analytics */}
-        <WeeklyProgress />
+        {/* <WeeklyProgress /> */}
 
         {/* Daily consistency */}
-        <StudyStreak />
+        {/* <StudyStreak /> */}
 
         {/* User achievements */}
-        <Achievements />
+        {/* <Achievements /> */}
 
         {/* Navigation shortcuts */}
         <QuickActions
