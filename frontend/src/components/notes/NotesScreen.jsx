@@ -17,7 +17,7 @@ import {
   Database,
   Clock
 } from "lucide-react"
-import DashboardNav from "../Dashboard/DashboardNav"
+// import DashboardNav from "../Dashboard/DashboardNav"
 import ModuleNav from "../common/moduleNav"
 
 function NotesScreen({ onBack, onCreateNote, onEditNote, onViewNote, onLogout, user }) {
@@ -135,7 +135,7 @@ function NotesScreen({ onBack, onCreateNote, onEditNote, onViewNote, onLogout, u
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-100/10 rounded-full blur-3xl -z-10" />
 
      <ModuleNav
-  active="notes" // or "study", "upload", "roadmap", "analytics-v2"
+  active="notes" // or "study", "upload", "roadmap", 
   onDashboard={onBack}
   onStudy={() => {}}
   onUpload={() => {}}

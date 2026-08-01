@@ -14,7 +14,7 @@ import {
   Sparkles,
   GraduationCap
 } from "lucide-react";
-import DashboardNav from "../Dashboard/DashboardNav";
+// import DashboardNav from "../Dashboard/DashboardNav";
 import Footer from "../common/Footer";
 import ModuleNav from "../common/moduleNav";
 
@@ -113,20 +113,8 @@ function StudyScreen({ user, onBack, setScreen, setSelectedBook, onLogout }) {
       <div className="fixed bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl -z-10" />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-100/10 rounded-full blur-3xl -z-10" />
 
-      {/* <DashboardNav
-        active="study"
-        onDashboard={onBack}
-        onUpload={() => {}}
-        onNotes={() => {}}
-        onQuiz={() => {}}
-        onRoadmap={() => {}}
-        onAnalytics={() => {}}
-        onAnalyticsV2={() => {}}
-        onLogout={onLogout}
-        onStudy={() => {}}
-      /> */}
       <ModuleNav
-  active="notes" // or "study", "upload", "roadmap", "analytics-v2"
+  active="study" // or "study", "upload", "roadmap", "analytics-v2"
   onDashboard={onBack}
   onStudy={() => {}}
   onUpload={() => {}}
