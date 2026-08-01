@@ -7,7 +7,7 @@ import {
     extendRoadmap,
 } from "../../api/roadmapApi";
 import { getRoadmapStats } from "../../utils/roadmapStats";
-import DashboardNav from "../Dashboard/DashboardNav";
+import DashboardNav from "../dashboard/DashboardNav";
 import {
     Map,
     Calendar,

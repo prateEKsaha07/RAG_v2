@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import DashboardNav from "../dashboard/DashboardNav"
 import Footer from "../common/Footer"
-import ModuleNav from "../common/moduleNav"
+import ModuleNav from "../common/ModuleNav"
 
 function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
   const [subjects, setSubjects] = useState([])
