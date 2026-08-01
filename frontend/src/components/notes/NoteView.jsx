@@ -13,7 +13,7 @@ import {
   User
 } from "lucide-react"
 
-import DashboardNav from "../Dashboard/DashboardNav"
+import DashboardNav from "../dashboard/DashboardNav"
 
 function NoteView({ filename, onBack, onEdit, onLogout, user }) {
   const [note, setNote] = useState(null)

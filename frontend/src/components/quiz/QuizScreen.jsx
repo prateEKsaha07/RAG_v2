@@ -15,7 +15,7 @@ import {
   BookOpen,
   Zap
 } from "lucide-react"
-import DashboardNav from "../Dashboard/DashboardNav"
+import DashboardNav from "../dashboard/DashboardNav"
 function QuizScreen({ subject, onSubmit, onBack, onLogout, user }) {
   const [quiz, setQuiz] = useState([])
   const [answers, setAnswers] = useState({})

@@ -18,7 +18,7 @@ import {
   TrendingUp,
   FileText
 } from "lucide-react"
-import DashboardNav from "../Dashboard/DashboardNav"
+import DashboardNav from "../dashboard/DashboardNav"
 import Footer from "../common/Footer"
 import ModuleNav from "../common/moduleNav"
 

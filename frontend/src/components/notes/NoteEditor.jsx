@@ -21,7 +21,7 @@ import {
   File,
   Download
 } from "lucide-react"
-import DashboardNav from "../Dashboard/DashboardNav"
+import DashboardNav from "../dashboard/DashboardNav"
 import ReactMarkdown from 'react-markdown'
 
 function NoteEditor({ filename, onBack, onLogout, user }) {

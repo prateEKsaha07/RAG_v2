@@ -13,7 +13,7 @@ import {
   GraduationCap,
   Zap
 } from "lucide-react"
-import DashboardNav from "../Dashboard/DashboardNav"
+import DashboardNav from "../dashboard/DashboardNav"
 function ResultScreen({ results, onRestart, onBack, onLogout, user, subject }) {
   if (!results) return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-orange-50/40 flex items-center justify-center">
