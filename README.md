@@ -525,3 +525,4 @@ Planned improvements include:
 ## 17. Summary
 
 RAG_v2 is a practical AI study assistant that combines retrieval-augmented generation, notes, quizzes, roadmaps, and analytics into one unified learning platform. It is already functional in its current form, and the project is now focused on making it more scalable, modular, and suitable for broader multi-user use.
+ 
