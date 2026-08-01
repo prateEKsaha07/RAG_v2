@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Menu, X, Sparkles, LogOut, ChevronRight } from "lucide-react";
 
 function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -7,7 +8,7 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
 
   const navItems = [
     { label: "Home", id: "home" },
-    { label: "Products", id: "features" },
+    { label: "Features", id: "features" },
     { label: "About", id: "about" },
     { label: "Contact", id: "contact" },
   ];
@@ -17,9 +18,7 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
     const el = document.getElementById(id);
     if (!el) return;
 
-    const target =
-      el.getBoundingClientRect().top + window.pageYOffset;
-
+    const target = el.getBoundingClientRect().top + window.pageYOffset;
     const start = window.pageYOffset;
     const distance = target - start;
     const duration = 900;
@@ -83,43 +82,46 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
   return (
     <nav className="fixed top-0 left-0 w-full z-50">
 
-      {/* glass background */}
+      {/* glass background - warm colors */}
       <div
         className={`
           absolute inset-0 transition-all duration-500
           ${
             scrolled
-              ? "bg-[#050816]/80 backdrop-blur-2xl border-b border-white/10"
-              : "bg-[#050816]/40 backdrop-blur-md"
+              ? "bg-white/80 backdrop-blur-2xl border-b border-rose-200/30 shadow-sm"
+              : "bg-white/40 backdrop-blur-md"
           }
         `}
       />
 
-      <div className="relative max-w-7xl mx-auto px-6 md:px-10 py-4 flex justify-between items-center">
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10 py-3 flex justify-between items-center">
 
         {/* LOGO */}
         <button
           onClick={onHome}
-          className="text-xl font-bold hover:scale-105 transition"
+          className="flex items-center gap-2 hover:scale-105 transition duration-300"
         >
-          <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-200/50">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
             RAG_V2
           </span>
         </button>
 
         {/* DESKTOP NAV */}
-        <ul className="hidden md:flex items-center gap-10 text-sm">
+        <ul className="hidden md:flex items-center gap-8 text-sm">
 
           {navItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => smoothScrollTo(item.id)}
                 className={`
-                  relative transition-all duration-300
+                  relative transition-all duration-300 font-medium
                   ${
                     activeSection === item.id
-                      ? "text-white"
-                      : "text-gray-400 hover:text-white"
+                      ? "text-rose-600"
+                      : "text-gray-500 hover:text-rose-600"
                   }
                 `}
               >
@@ -128,8 +130,8 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
                 {/* active underline */}
                 <span
                   className={`
-                    absolute left-0 -bottom-1 h-[2px] w-full
-                    bg-gradient-to-r from-blue-400 to-purple-400
+                    absolute left-0 -bottom-1 h-[2px] rounded-full
+                    bg-gradient-to-r from-rose-500 to-amber-500
                     transition-transform duration-300 origin-left
                     ${
                       activeSection === item.id
@@ -152,11 +154,18 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
               onClick={onGetStarted}
               className="
                 px-5 py-2 rounded-xl text-sm font-medium
-                bg-white text-black
-                hover:scale-105 transition
+                bg-gradient-to-r from-rose-500 to-amber-500
+                hover:from-rose-600 hover:to-amber-600
+                text-white
+                shadow-lg shadow-rose-200/50
+                hover:shadow-xl hover:shadow-rose-300/50
+                transition-all duration-300
+                hover:scale-[1.02]
+                flex items-center gap-1.5
               "
             >
               Get Started
+              <ChevronRight className="w-4 h-4" />
             </button>
           )}
 
@@ -164,12 +173,14 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
             <button
               onClick={onLogout}
               className="
-                px-5 py-2 rounded-xl text-sm font-medium
-                bg-white/5 text-gray-300 border border-white/10
-                hover:bg-red-500/20 hover:text-white
-                transition
+                px-4 py-2 rounded-xl text-sm font-medium
+                bg-white/80 text-gray-600 border border-rose-200/30
+                hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200
+                transition-all duration-200
+                flex items-center gap-1.5
               "
             >
+              <LogOut className="w-4 h-4" />
               Logout
             </button>
           )}
@@ -179,15 +190,19 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
         {/* MOBILE BUTTON */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden text-white"
+          className="md:hidden p-2 rounded-xl hover:bg-white/50 transition-colors duration-200"
         >
-          ☰
+          {menuOpen ? (
+            <X className="w-5 h-5 text-gray-600" />
+          ) : (
+            <Menu className="w-5 h-5 text-gray-600" />
+          )}
         </button>
       </div>
 
       {/* MOBILE MENU */}
       {menuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-[#050816]/95 backdrop-blur-xl border-t border-white/10 py-6 flex flex-col items-center gap-5">
+        <div className="md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-xl border-t border-rose-200/30 shadow-lg py-6 flex flex-col items-center gap-4">
 
           {navItems.map((item) => (
             <button
@@ -197,17 +212,54 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
                 setMenuOpen(false);
               }}
               className={`
-                text-sm transition
+                text-sm font-medium transition-colors duration-200
                 ${
                   activeSection === item.id
-                    ? "text-white"
-                    : "text-gray-400"
+                    ? "text-rose-600"
+                    : "text-gray-500 hover:text-rose-600"
                 }
               `}
             >
               {item.label}
             </button>
           ))}
+
+          {showGetStarted && (
+            <button
+              onClick={() => {
+                onGetStarted();
+                setMenuOpen(false);
+              }}
+              className="
+                mt-2 px-6 py-2 rounded-xl text-sm font-medium
+                bg-gradient-to-r from-rose-500 to-amber-500
+                text-white
+                shadow-lg shadow-rose-200/50
+                transition-all duration-300
+                hover:scale-[1.02]
+              "
+            >
+              Get Started
+            </button>
+          )}
+
+          {onLogout && (
+            <button
+              onClick={() => {
+                onLogout();
+                setMenuOpen(false);
+              }}
+              className="
+                px-6 py-2 rounded-xl text-sm font-medium
+                text-gray-600 hover:text-rose-600
+                transition-colors duration-200
+                flex items-center gap-1.5
+              "
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          )}
 
         </div>
       )}

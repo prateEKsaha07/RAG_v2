@@ -10,11 +10,9 @@ import NoteEditor from "./components/notes/NoteEditor"
 import NoteView from "./components/notes/NoteView"
 import GoalSetupScreen from "./components/roadmap/GoalSetupScreen"
 import RoadmapScreen from "./components/roadmap/RoadmapScreen"
-// import AnalyticsScreen from "./components/analytics/AnalyticsScreen"
 import LoginScreen from "./components/auth/LoginScreen"
 import SignupScreen from "./components/auth/SignupScreen"
 import { supabase } from "./supabaseClient"
-import DashboardNav from "./components/dashboard/DashboardNav"
 import StudyScreen from "./components/study/StudyScreen";
 import BookReader from "./components/study/BookReader";
 import AnalyticsDashboard from "./components/analytics/AnalyticsDashboard";
@@ -30,40 +28,41 @@ function App() {
   const [roadmapSubject, setRoadmapSubject] = useState("")
   const [selectedBook, setSelectedBook] = useState(null);
 
-
   const handleGetStarted = () => setScreen("upload")
 
   useEffect(() => {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    setUser(session?.user ?? null)
-    if (session?.user) setScreen("dashboard")
-    setAuthLoading(false)
-  })
-
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (_event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (!session?.user) setScreen("landing")
-    }
-  )
-  return () => subscription.unsubscribe()
-}, [])
+      if (session?.user) setScreen("dashboard")
+      setAuthLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null)
+        if (!session?.user) setScreen("landing")
+      }
+    )
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleLogout = async () => {
-  await supabase.auth.signOut()
-  setScreen("landing")
-  setUser(null)
-}
+    await supabase.auth.signOut()
+    setScreen("landing")
+    setUser(null)
+  }
 
-    const handleUploadSuccess = (subjectName) => {
+  const handleUploadSuccess = (subjectName) => {
     setSubject(subjectName)
     setScreen("dashboard")
   }
-    const handleQuizSubmit = (quizData, resultData) => {
+
+  const handleQuizSubmit = (quizData, resultData) => {
     setQuiz(quizData)
     setResults(resultData)
     setScreen("results")
   }
+
   const handleRestart = () => {
     setQuiz(null)
     setResults(null)
@@ -73,51 +72,50 @@ function App() {
   return (
     <div>
       {screen === "landing" && (
-        <LandingPage onGetStarted={() => setScreen("login")}
-         onHome={() => setScreen("landing")} />
+        <LandingPage 
+          onGetStarted={() => setScreen("login")}
+          onHome={() => setScreen("landing")} 
+        />
       )}
 
       {screen === "upload" && (
-        <UploadScreen onSuccess={handleUploadSuccess}
-        onBack={() => setScreen("landing")} />
+        <UploadScreen 
+          onSuccess={handleUploadSuccess}
+          onBack={() => setScreen("landing")} 
+        />
       )}
-     {screen === "study" && (
-  <StudyScreen
-    user={user}
-    onBack={() => setScreen("dashboard")}
-    setScreen={setScreen}
-    setSelectedBook={setSelectedBook}
-  />
-)}
-{screen === "study-reader" && selectedBook && (
-  <BookReader
-    book={selectedBook}
-    onBack={() => setScreen("study")}
-  />
-)}
 
-  {screen === "dashboard" && (
-  <Dashboard
-    subject={subject}
-    user={user}
+      {screen === "study" && (
+        <StudyScreen
+          user={user}
+          onBack={() => setScreen("dashboard")}
+          setScreen={setScreen}
+          setSelectedBook={setSelectedBook}
+        />
+      )}
 
-    onStudy={() => setScreen("study")}
-    onUpload={() => setScreen("upload")}
-    onNotes={() => setScreen("notes")}
-    onQuiz={() => setScreen("quiz")}
-    onRoadmap={() => setScreen("goal-setup")}
-    onQA={() => setScreen("qa")}
-    onHome={() => setScreen("landing")}
+      {screen === "study-reader" && selectedBook && (
+        <BookReader
+          book={selectedBook}
+          onBack={() => setScreen("study")}
+        />
+      )}
 
-    // Keep old analytics temporarily
-    // onAnalytics={() => setScreen("analytics")}
-
-    // New Analytics Dashboard
-    onAnalyticsV2={() => setScreen("analytics-v2")}
-
-    onLogout={handleLogout}
-  />
-)}
+      {screen === "dashboard" && (
+        <Dashboard
+          subject={subject}
+          user={user}
+          onStudy={() => setScreen("study")}
+          onUpload={() => setScreen("upload")}
+          onNotes={() => setScreen("notes")}
+          onQuiz={() => setScreen("quiz")}
+          onRoadmap={() => setScreen("goal-setup")}
+          onQA={() => setScreen("qa")}
+          onHome={() => setScreen("landing")}
+          onAnalyticsV2={() => setScreen("analytics-v2")}
+          onLogout={handleLogout}
+        />
+      )}
 
       {screen === "quiz" && (
         <QuizScreen
@@ -139,82 +137,89 @@ function App() {
           onBack={() => setScreen("dashboard")}
         />
       )}
+
       {screen === "notes" && (
-  <NotesScreen
-    onBack={() => setScreen("dashboard")}
-    onCreateNote={() => {
-      setEditingNote(null)
-      setScreen("note-editor")
-    }}
-    onEditNote={(filename) => {
-      setEditingNote(filename)
-      setScreen("note-editor")
-    }}
-    onViewNote={(filename) => {
-      setEditingNote(filename)
-      setScreen("note-view")
-    }}
-  />
-)}
+        <NotesScreen
+          onBack={() => setScreen("dashboard")}
+          onCreateNote={() => {
+            setEditingNote(null)
+            setScreen("note-editor")
+          }}
+          onEditNote={(filename) => {
+            setEditingNote(filename)
+            setScreen("note-editor")
+          }}
+          onViewNote={(filename) => {
+            setEditingNote(filename)
+            setScreen("note-view")
+          }}
+        />
+      )}
 
       {screen === "note-editor" && (
         <NoteEditor
           filename={editingNote}
           onBack={() => {
-          setEditingNote(null)
-          setScreen("notes")
+            setEditingNote(null)
+            setScreen("notes")
           }}
         />
       )}
-    {screen === "note-view" && (
-      <NoteView
-      filename={editingNote}
-      onBack={() => setScreen("notes")}
-      onEdit={() => setScreen("note-editor")}
-      />
-    )}
-    {screen === "goal-setup" && (
-       <GoalSetupScreen
-    onBack={() => setScreen("dashboard")}
-    onViewRoadmap={(subject) => {
-      setRoadmapSubject(subject)
-      setScreen("roadmap")
-    }}/>
-    )}
-    
-    {screen === "roadmap" && (
+
+      {screen === "note-view" && (
+        <NoteView
+          filename={editingNote}
+          onBack={() => setScreen("notes")}
+          onEdit={() => setScreen("note-editor")}
+        />
+      )}
+
+      {screen === "goal-setup" && (
+        <GoalSetupScreen
+          onBack={() => setScreen("dashboard")}
+          onViewRoadmap={(subject) => {
+            setRoadmapSubject(subject)
+            setScreen("roadmap")
+          }}
+        />
+      )}
+
+      {screen === "roadmap" && (
         <RoadmapScreen
-    subject={roadmapSubject}
-    onBack={() => setScreen("goal-setup")}
-  />
-    )}
+          subject={roadmapSubject}
+          onBack={() => setScreen("goal-setup")}
+        />
+      )}
 
-    {/* {screen === "analytics" && (
-      <AnalyticsScreen onBack={() => setScreen("dashboard")} />
-    )} */}
-    
-    {screen === "login" && (
-  <LoginScreen
-    onLogin={(user) => {
-      setUser(user)
-      setSubject("")
-      setScreen("upload")
-    }}
-    onSignup={() => setScreen("signup")}
-  />
-)}
-{screen === "analytics-v2" && (
-  <AnalyticsDashboard
-    onBack={() => setScreen("dashboard")}
-  />
-)}
+      {screen === "analytics-v2" && (
+        <AnalyticsDashboard
+          onBack={() => setScreen("dashboard")}
+        />
+      )}
 
-{screen === "signup" && (
-  <SignupScreen
-    onSignup={() => setScreen("login")}
-    onLogin={() => setScreen("login")}
-  />
-)}
+      {/* LOGIN - Goes straight to dashboard */}
+      {screen === "login" && (
+        <LoginScreen
+          onLogin={(user) => {
+            setUser(user)
+            setSubject("")
+            setScreen("dashboard")  // ← Changed from "upload" to "dashboard"
+          }}
+          onSignup={() => setScreen("signup")}
+          onBack={() => setScreen("landing")}
+        />
+      )}
+
+      {/* SIGNUP - Goes straight to dashboard after signup */}
+      {screen === "signup" && (
+        <SignupScreen
+          onSignup={() => {
+            setScreen("dashboard")  // ← Changed from "login" to "dashboard"
+          }}
+          onLogin={() => setScreen("login")}
+          onBack={() => setScreen("landing")}
+        />
+      )}
 
     </div>
   )

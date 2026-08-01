@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sparkles, X, Rocket, AlertCircle, Smile, ThumbsUp } from "lucide-react";
 
 function NoticePopup() {
   const [open, setOpen] = useState(false);
@@ -14,69 +15,98 @@ function NoticePopup() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-sm px-4 animate-fadeUp">
       <div
         className="
           relative w-full max-w-xl
           rounded-3xl
-          bg-[#0d111f]/90
-          border border-white/10
-          shadow-2xl
+          bg-white/95
+          backdrop-blur-xl
+          border border-rose-200/30
+          shadow-2xl shadow-rose-200/20
           p-8
-          animate-[fadeIn_.35s_ease]
         "
       >
-        {/* Glow */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-cyan-500/10 blur-3xl pointer-events-none" />
+        {/* Glow - warm colors */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-rose-100/20 via-amber-100/20 to-orange-100/20 blur-3xl pointer-events-none" />
+
+        {/* Close button */}
+        <button
+          onClick={() => setOpen(false)}
+          className="absolute top-4 right-4 p-2 rounded-xl hover:bg-rose-50 transition-colors duration-200 text-gray-400 hover:text-rose-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
 
         <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 px-4 py-1 text-yellow-300 text-sm">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-100/80 to-amber-100/80 border border-rose-200/30 px-4 py-1.5 text-rose-700 text-sm font-medium">
+            <Rocket className="w-4 h-4" />
             🚧 Development Notice
           </div>
 
-          <h2 className="mt-5 text-3xl font-bold text-white">
+          <h2 className="mt-5 text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <Sparkles className="w-7 h-7 text-amber-500" />
             Welcome!
           </h2>
 
-          <p className="mt-5 text-gray-300 leading-8">
-            This project is still <span className="font-semibold text-white">actively under development</span>.
+          <p className="mt-4 text-gray-600 leading-8">
+            This project is still <span className="font-semibold text-rose-600">actively under development</span>.
             New features, UI improvements, and plenty of questionable late-night ideas are being added regularly.
-            Im currently working on data migration and changing projects folder structure bcuz its getting way too large to manage for me.
+            I'm currently working on data migration and changing projects folder structure because it's getting way too large to manage for me.
           </p>
 
-          <p className="mt-4 text-gray-400 leading-8">
-            Also... yes, it's still called <span className="text-blue-300 font-semibold">RAG_V2</span>.
-            Naming things is apparently harder than building AI. 😅
-          </p>
+          <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-amber-50/50 to-orange-50/50 border border-amber-200/30">
+            <p className="text-gray-600 leading-7">
+              Also... yes, it's still called <span className="text-amber-600 font-semibold">RAG_V2</span>.
+              Naming things is apparently harder than building AI. 😅
+            </p>
+            <p className="text-gray-500 text-sm mt-2 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-500" />
+              A better name is definitely on the roadmap.
+            </p>
+          </div>
 
-          <p className="mt-4 text-gray-400">
-            A better name is definitely on the roadmap.
-          </p>
-
-          <div className="mt-8 flex flex-col sm:flex-row gap-3">
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => setOpen(false)}
               className="
                 flex-1 py-3 rounded-xl
-                bg-blue-600 hover:bg-blue-700
-                transition
+                bg-gradient-to-r from-rose-500 to-amber-500
+                hover:from-rose-600 hover:to-amber-600
+                text-white font-medium
+                transition-all duration-300
+                shadow-lg shadow-rose-200/50
+                hover:shadow-xl hover:shadow-rose-300/50
+                hover:scale-[1.02]
+                flex items-center justify-center gap-2
+              "
+            >
+              <ThumbsUp className="w-4 h-4" />
+              Got it
+            </button>
+
+            <button
+              onClick={() => setOpen(false)}
+              className="
+                flex-1 py-3 rounded-xl
+                bg-white/80 border border-rose-200/30
+                hover:bg-rose-50 hover:border-rose-200
+                text-gray-600 hover:text-rose-600
+                transition-all duration-200
+                flex items-center justify-center gap-2
                 font-medium
               "
             >
-              Got it 👍
-            </button>
-
-            <button
-              onClick={() => setOpen(false)}
-              className="
-                flex-1 py-3 rounded-xl
-                bg-white/5 hover:bg-white/10
-                border border-white/10
-                transition
-              "
-            >
+              <Smile className="w-4 h-4" />
               Us Broo! 😭
             </button>
+          </div>
+
+          {/* Decorative dots */}
+          <div className="absolute bottom-6 right-6 flex gap-1.5 opacity-20">
+            <div className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
           </div>
         </div>
       </div>
