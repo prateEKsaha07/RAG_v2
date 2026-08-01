@@ -12,7 +12,7 @@ import {
   AlertCircle,
   Loader
 } from "lucide-react"
-import ModuleNav from "../common/moduleNav"
+import ModuleNav from "../common/ModuleNav"
 
 function QAScreen({ subject, onBack, onLogout, user }) {
   const [question, setQuestion] = useState("")

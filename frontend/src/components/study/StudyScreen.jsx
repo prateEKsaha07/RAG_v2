@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 // import DashboardNav from "../Dashboard/DashboardNav";
 import Footer from "../common/Footer";
-import ModuleNav from "../common/moduleNav";
+import ModuleNav from "../common/ModuleNav";
 
 import {
   getBooks,

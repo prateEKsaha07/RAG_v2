@@ -18,7 +18,7 @@ import {
   Clock
 } from "lucide-react"
 // import DashboardNav from "../Dashboard/DashboardNav"
-import ModuleNav from "../common/moduleNav"
+import ModuleNav from "../common/ModuleNav"
 
 function NotesScreen({ onBack, onCreateNote, onEditNote, onViewNote, onLogout, user }) {
   const [notes, setNotes] = useState([])
