@@ -1,3 +1,43 @@
+@"
+# ============ Environment ============
 .env
+.env.local
+.env.*.local
+
+# ============ Python ============
 __pycache__/
+*.py[cod]
+*`$py.class
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ============ Virtual Envs ============
 venv/
+.venv/
+env/
+ENV/
+
+# ============ IDE ============
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ============ OS ============
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============ Requirements variants ============
+# Only the real requirements.txt should be tracked.
+# Backups and dev-generated files stay local.
+requirements-*.txt
+!requirements.txt
+"@ | Set-Content .gitignore -Encoding utf8
