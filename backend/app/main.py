@@ -7,54 +7,39 @@ import shutil
 
 from dotenv import load_dotenv
 
-# ✅ LIGHT imports only — FastAPI core
+# FastAPI core only — no heavy imports at module load
 from fastapi import FastAPI, UploadFile, File, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# ✅ Lazy - only imported when needed (inside lifespan)
-# from app.modules.Quiz.quiz import generate_quiz, evaluate_answers, get_recommendations
-# from app.modules.Ingestion.ingestion import run_ingestion
-# from langchain_cohere import CohereEmbeddings, ChatCohere
-# from langchain_community.vectorstores import FAISS
-# from app.modules.Qa.query import get_answer
-# from app.core.supabase_client import supabase
-# from app.core.auth import get_current_user
-
-# ✅ Auth is used as a FastAPI dependency — keep import, it's lightweight enough
+# auth is used as a dependency on nearly every route, so it stays at top level
 from app.core.auth import get_current_user
-
 
 load_dotenv()
 
-# ============================================================
-#  LAZY-LOADED GLOBALS
-#  These start as None and get populated in lifespan()
-# ============================================================
+# Heavy objects start as None and get populated in lifespan() after the
+# server is already accepting connections. This keeps cold start fast.
 embeddings = None
 vectorStoreDB = None
 llm = None
 notes_db = None
 
-
-# ============================================================
-#  FASTAPI LIFESPAN — heavy init happens HERE, after server boots
-# ============================================================
 from contextlib import asynccontextmanager
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Runs AFTER uvicorn has accepted the socket.
-    Server can respond to /health immediately while this loads.
+    Runs after uvicorn has opened the socket. /health can respond immediately
+    while the RAG stack loads in the background.
     """
     global embeddings, vectorStoreDB, llm, notes_db
 
     print("Starting server...")
     print("API Key exists:", bool(os.getenv("COHERE_API_KEY")))
 
-    # 🔥 Heavy: Cohere embeddings + FAISS index + LLM
+    # LangChain and FAISS are slow to import, so they load here instead of
+    # at the top of the file.
     from langchain_cohere import CohereEmbeddings, ChatCohere
     from langchain_community.vectorstores import FAISS
 
@@ -76,18 +61,15 @@ async def lifespan(app: FastAPI):
 
     print("✅ RAG stack loaded")
 
-    yield  # server runs here
+    yield
 
-    # shutdown cleanup (optional)
     print("Shutting down...")
 
 
 app = FastAPI(lifespan=lifespan)
 
 
-# ============================================================
-#  Pydantic request models (unchanged)
-# ============================================================
+# Request models
 class QuizRequest(BaseModel):
     subject: str
 
@@ -134,9 +116,6 @@ class CompleteTopicRequest(BaseModel):
     topic_name: str
 
 
-# ============================================================
-#  CORS (unchanged)
-# ============================================================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -145,28 +124,25 @@ app.add_middleware(
 )
 
 
-# ============================================================
-#  ROUTES
-#  Each endpoint lazy-imports what it needs.
-#  Python caches imports, so the second call is instant.
-# ============================================================
+# Routes. Each endpoint imports its module on first call so the module isn't
+# loaded unless that route is actually hit. Python caches the import after
+# the first request, so subsequent calls are free.
 
 @app.get("/")
 def home():
     return {"message": "Server Online"}
 
 
-# ---------- Health check — instant response ----------
 @app.get("/health")
 def health():
-    """Fast endpoint — responds before heavy stack loads."""
+    """Responds instantly, even before the RAG stack finishes loading."""
     return {
         "status": "ok",
         "ready": vectorStoreDB is not None,
     }
 
 
-# ---------- Quiz ----------
+# Quiz
 @app.post("/generate-quiz")
 def generateQuiz(request: QuizRequest, user=Depends(get_current_user)):
     from app.modules.Quiz.quiz import generate_quiz
@@ -203,7 +179,7 @@ def get_quiz_history(subject: str = None):
     return {"history": history}
 
 
-# ---------- Ingestion ----------
+# Ingestion
 @app.post("/ingest")
 def ingestion(file: UploadFile = File(...)):
     from app.modules.Ingestion.ingestion import run_ingestion
@@ -215,6 +191,7 @@ def ingestion(file: UploadFile = File(...)):
 
     chunk_count = run_ingestion()
 
+    # reload the FAISS index so new chunks are searchable immediately
     global vectorStoreDB
     vectorStoreDB = FAISS.load_local(
         "faiss_index",
@@ -227,7 +204,7 @@ def ingestion(file: UploadFile = File(...)):
     }
 
 
-# ---------- Q&A ----------
+# Q&A
 @app.post("/ask")
 def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
     from app.modules.Qa.query import get_answer
@@ -241,7 +218,7 @@ def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
     return response
 
 
-# ---------- Notes ----------
+# Notes
 @app.post("/notes/generate-tags")
 def generate_tags_endpoint(request: GenerateTagsRequest):
     from app.modules.Notes.notes import generate_tags
@@ -337,7 +314,7 @@ def get_upload_content(subject: str):
         return {"content": f.read()}
 
 
-# ---------- Roadmap ----------
+# Roadmap
 @app.post("/roadmap")
 def generate_roadmap_endpoint(request: RoadmapRequest, user=Depends(get_current_user)):
     from app.modules.Roadmap.roadmap import generate_roadmap, check_existing_roadmap
@@ -437,9 +414,7 @@ def get_uploaded_subjects():
     return sorted(files)
 
 
-# ============================================================
-#  SUB-ROUTERS
-# ============================================================
+# Sub-routers
 from app.modules.books.router import router as books_router
 app.include_router(books_router)
 
