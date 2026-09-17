@@ -21,6 +21,7 @@ langchain-core
 langchain-community
 langchain-cohere
 langchain-text-splitters
+faiss-cpu
 
 # ---------- Document parsing ----------
 beautifulsoup4
