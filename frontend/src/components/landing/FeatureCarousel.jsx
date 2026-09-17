@@ -1,12 +1,22 @@
 import { useEffect, useState, useRef } from "react";
-import { Sparkles, ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import {
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Quote,
+  MessageSquare,
+  Brain,
+  BarChart3,
+  BookOpen,
+  ArrowUpDown,
+} from "lucide-react";
 
 function FeatureCarousel() {
   const slides = [
     {
       title: "AI Chat with Your Notes",
       desc: "Ask questions and get grounded answers directly from your study material using RAG-based retrieval.",
-      icon: "💬",
+      icon: MessageSquare,
       gradient: "from-rose-500 to-amber-500",
       bgGradient: "from-rose-50/50 to-amber-50/30",
       color: "text-rose-600"
@@ -14,7 +24,7 @@ function FeatureCarousel() {
     {
       title: "Smart Quiz Generator",
       desc: "Automatically generate MCQs from your notes and test your understanding instantly.",
-      icon: "🧠",
+      icon: Brain,
       gradient: "from-blue-500 to-cyan-500",
       bgGradient: "from-blue-50/50 to-cyan-50/30",
       color: "text-blue-600"
@@ -22,7 +32,7 @@ function FeatureCarousel() {
     {
       title: "Performance Analytics",
       desc: "Track weak topics and improve your learning efficiency with AI insights.",
-      icon: "📊",
+      icon: BarChart3,
       gradient: "from-purple-500 to-pink-500",
       bgGradient: "from-purple-50/50 to-pink-50/30",
       color: "text-purple-600"
@@ -30,7 +40,7 @@ function FeatureCarousel() {
     {
       title: "Upload & Index Notes",
       desc: "Upload markdown notes and let AI structure and index them instantly.",
-      icon: "📚",
+      icon: BookOpen,
       gradient: "from-emerald-500 to-teal-500",
       bgGradient: "from-emerald-50/50 to-teal-50/30",
       color: "text-emerald-600"
@@ -53,7 +63,7 @@ function FeatureCarousel() {
   // AUTO ROTATION
   useEffect(() => {
     if (paused) return;
-    
+
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % slides.length);
     }, 4500);
@@ -79,26 +89,21 @@ function FeatureCarousel() {
 
     const handleWheel = (e) => {
       e.preventDefault();
-      
-      // Clear any pending timeout
+
       if (wheelTimeoutRef.current) {
         clearTimeout(wheelTimeoutRef.current);
         wheelTimeoutRef.current = null;
       }
 
-      // Debounce: Only trigger after scrolling stops
       wheelTimeoutRef.current = setTimeout(() => {
-        // Detect scroll direction with threshold to avoid accidental triggers
         const threshold = 30;
         if (e.deltaY > threshold) {
-          // Scrolling down - next slide
           nextSlide();
         } else if (e.deltaY < -threshold) {
-          // Scrolling up - previous slide
           prevSlide();
         }
         wheelTimeoutRef.current = null;
-      }, 150); // 150ms delay for smooth experience
+      }, 150);
     };
 
     carousel.addEventListener("wheel", handleWheel, { passive: false });
@@ -158,14 +163,14 @@ function FeatureCarousel() {
       </div>
 
       {/* CAROUSEL */}
-      <div 
+      <div
         ref={carouselRef}
         className="relative w-full max-w-5xl mx-auto px-6 z-10"
       >
         {/* Scroll indicator hint */}
         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20">
           <p className="text-xs text-gray-400/70 flex items-center gap-1">
-            <span className="animate-bounce-slow">↕</span>
+            <ArrowUpDown className="w-3.5 h-3.5 animate-bounce-slow" />
             Scroll to navigate
           </p>
         </div>
@@ -213,59 +218,67 @@ function FeatureCarousel() {
               transform: `translateX(-${index * 100}%)`,
             }}
           >
-            {slides.map((item, i) => (
-              <div
-                key={i}
-                className="min-w-full flex flex-col md:flex-row items-stretch relative"
-              >
-                {/* LEFT CONTENT */}
-                <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center relative z-10">
-                  <div className={`inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br ${item.bgGradient} items-center justify-center text-3xl mb-4 shadow-sm border border-rose-200/20`}>
-                    {item.icon}
+            {slides.map((item, i) => {
+              const IconComponent = item.icon;
+              return (
+                <div
+                  key={i}
+                  className="min-w-full flex flex-col md:flex-row items-stretch relative"
+                >
+                  {/* LEFT CONTENT */}
+                  <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center relative z-10">
+                    <div className={`inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br ${item.bgGradient} items-center justify-center mb-4 shadow-sm border border-rose-200/20`}>
+                      <IconComponent className={`w-7 h-7 ${item.color}`} strokeWidth={2} />
+                    </div>
+
+                    <h3 className={`text-2xl md:text-3xl font-bold text-gray-800 mb-3`}>
+                      {item.title}
+                    </h3>
+
+                    <p className="text-gray-500 leading-relaxed">
+                      {item.desc}
+                    </p>
+
+                    <div className="flex items-center gap-2 mt-6">
+                      <Quote className={`w-4 h-4 ${item.color} opacity-50`} />
+                      <div className={`w-12 h-0.5 rounded-full bg-gradient-to-r ${item.gradient}`} />
+                      <span className={`text-xs ${item.color} font-medium`}>
+                        Feature #{i + 1}
+                      </span>
+                    </div>
                   </div>
-                  
-                  <h3 className={`text-2xl md:text-3xl font-bold text-gray-800 mb-3`}>
-                    {item.title}
-                  </h3>
 
-                  <p className="text-gray-500 leading-relaxed">
-                    {item.desc}
-                  </p>
-
-                  <div className="flex items-center gap-2 mt-6">
-                    <Quote className={`w-4 h-4 ${item.color} opacity-50`} />
-                    <div className={`w-12 h-0.5 rounded-full bg-gradient-to-r ${item.gradient}`} />
-                    <span className={`text-xs ${item.color} font-medium`}>
-                      Feature #{i + 1}
-                    </span>
+                  {/* RIGHT IMAGE - Decorative gradient card */}
+                  <div className="md:w-1/2 p-6 md:p-8 flex items-center justify-center">
+                    <div className={`w-full h-64 md:h-[340px] rounded-2xl bg-gradient-to-br ${item.bgGradient} border border-rose-200/20 flex items-center justify-center relative overflow-hidden shadow-inner`}>
+                      <div className="text-center">
+                        <div className="mb-4 flex justify-center">
+                          <IconComponent
+                            className={`w-24 h-24 ${item.color} animate-bounce-slow`}
+                            strokeWidth={1.5}
+                          />
+                        </div>
+                        <p className={`text-sm font-medium ${item.color}`}>
+                          {item.title.split(" ").slice(0, 3).join(" ")}
+                        </p>
+                        <div className={`w-12 h-0.5 mx-auto mt-3 rounded-full bg-gradient-to-r ${item.gradient}`} />
+                      </div>
+                      {/* Decorative dots */}
+                      <div className="absolute bottom-4 right-4 flex gap-1.5">
+                        <div className={`w-2 h-2 rounded-full ${item.color} opacity-20`} />
+                        <div className={`w-2 h-2 rounded-full ${item.color} opacity-40`} />
+                        <div className={`w-2 h-2 rounded-full ${item.color} opacity-60`} />
+                      </div>
+                      {/* Decorative circles */}
+                      <div className="absolute top-4 left-4 flex gap-1.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${item.color} opacity-30`} />
+                        <div className={`w-1.5 h-1.5 rounded-full ${item.color} opacity-50`} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* RIGHT IMAGE - Decorative gradient card */}
-                <div className="md:w-1/2 p-6 md:p-8 flex items-center justify-center">
-                  <div className={`w-full h-64 md:h-[340px] rounded-2xl bg-gradient-to-br ${item.bgGradient} border border-rose-200/20 flex items-center justify-center relative overflow-hidden shadow-inner`}>
-                    <div className="text-center">
-                      <div className="text-7xl mb-4 animate-bounce-slow">{item.icon}</div>
-                      <p className={`text-sm font-medium ${item.color}`}>
-                        {item.title.split(" ").slice(0, 3).join(" ")}
-                      </p>
-                      <div className={`w-12 h-0.5 mx-auto mt-3 rounded-full bg-gradient-to-r ${item.gradient}`} />
-                    </div>
-                    {/* Decorative dots */}
-                    <div className="absolute bottom-4 right-4 flex gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${item.color} opacity-20`} />
-                      <div className={`w-2 h-2 rounded-full ${item.color} opacity-40`} />
-                      <div className={`w-2 h-2 rounded-full ${item.color} opacity-60`} />
-                    </div>
-                    {/* Decorative circles */}
-                    <div className="absolute top-4 left-4 flex gap-1.5">
-                      <div className={`w-1.5 h-1.5 rounded-full ${item.color} opacity-30`} />
-                      <div className={`w-1.5 h-1.5 rounded-full ${item.color} opacity-50`} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
