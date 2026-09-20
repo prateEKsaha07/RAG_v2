@@ -81,7 +81,12 @@ function App() {
       {screen === "upload" && (
         <UploadScreen 
           onSuccess={handleUploadSuccess}
-          onBack={() => setScreen("landing")} 
+          onBack={() => setScreen("dashboard")}
+          onStudy={()=> setScreen("study")}
+          onAnalyticsV2={()=>setScreen("analytics-v2")}
+          onNotes={()=> setScreen("notes")}
+          onRoadmap={()=>setScreen("roadmap")}
+          on
         />
       )}
 
@@ -89,6 +94,11 @@ function App() {
         <StudyScreen
           user={user}
           onBack={() => setScreen("dashboard")}
+          onStudy={() => setScreen("study")}
+          onUpload={() => setScreen("upload")}
+          onNotes={() => setScreen("notes")}
+          onRoadmap={() => setScreen("roadmap")}
+          onAnalyticsV2={() => setScreen("analytics-v2")}
           setScreen={setScreen}
           setSelectedBook={setSelectedBook}
         />
@@ -125,11 +135,20 @@ function App() {
       )}
 
       {screen === "results" && (
-        <ResultScreen
-          results={results}
-          onRestart={handleRestart}
-        />
-      )}
+  <ResultScreen
+    results={results}
+    onRestart={handleRestart}
+    onBack={() => setScreen("dashboard")}
+    onLogout={handleLogout}
+    user={user}
+    subject={subject}
+    onStudy={() => setScreen("study")}
+    onUpload={() => setScreen("upload")}
+    onNotes={() => setScreen("notes")}
+    onRoadmap={() => setScreen("roadmap")}
+    onAnalyticsV2={() => setScreen("analytics-v2")}
+  />
+)}
 
       {screen === "qa" && (
         <QAScreen
@@ -139,22 +158,30 @@ function App() {
       )}
 
       {screen === "notes" && (
-        <NotesScreen
-          onBack={() => setScreen("dashboard")}
-          onCreateNote={() => {
-            setEditingNote(null)
-            setScreen("note-editor")
-          }}
-          onEditNote={(filename) => {
-            setEditingNote(filename)
-            setScreen("note-editor")
-          }}
-          onViewNote={(filename) => {
-            setEditingNote(filename)
-            setScreen("note-view")
-          }}
-        />
-      )}
+  <NotesScreen
+    user={user}
+    onBack={() => setScreen("dashboard")}
+    onCreateNote={() => {
+      setEditingNote(null)
+      setScreen("note-editor")
+    }}
+    onEditNote={(filename) => {
+      setEditingNote(filename)
+      setScreen("note-editor")
+    }}
+    onViewNote={(filename) => {
+      setEditingNote(filename)
+      setScreen("note-view")
+    }}
+    
+    onStudy={() => setScreen("study")}
+    onUpload={() => setScreen("upload")}
+    onNotes={() => setScreen("notes")}
+    onRoadmap={() => setScreen("roadmap")}
+    onAnalytics={() => setScreen("analytics")}
+    onAnalyticsV2={() => setScreen("analytics-v2")}
+  />
+)}
 
       {screen === "note-editor" && (
         <NoteEditor
@@ -177,6 +204,11 @@ function App() {
       {screen === "goal-setup" && (
         <GoalSetupScreen
           onBack={() => setScreen("dashboard")}
+          onDashboard={() => setScreen("dashboard")}
+          onStudy={() => setScreen("study")}
+          onNotes={() => setScreen("notes")}
+          onRoadmap={() => setScreen("roadmap")}
+          onAnalyticsV2={() => setScreen("analytics-v2")}
           onViewRoadmap={(subject) => {
             setRoadmapSubject(subject)
             setScreen("roadmap")
@@ -203,7 +235,7 @@ function App() {
           onLogin={(user) => {
             setUser(user)
             setSubject("")
-            setScreen("dashboard")  // ← Changed from "upload" to "dashboard"
+            setScreen("dashboard") 
           }}
           onSignup={() => setScreen("signup")}
           onBack={() => setScreen("landing")}
@@ -214,7 +246,7 @@ function App() {
       {screen === "signup" && (
         <SignupScreen
           onSignup={() => {
-            setScreen("dashboard")  // ← Changed from "login" to "dashboard"
+            setScreen("dashboard") 
           }}
           onLogin={() => setScreen("login")}
           onBack={() => setScreen("landing")}

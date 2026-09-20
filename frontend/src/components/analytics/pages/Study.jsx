@@ -20,25 +20,25 @@ function Study({ dashboard }) {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 14 },
+    hidden: { opacity: 0, y: 12 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+      transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
   return (
     <motion.div
-      className="space-y-6 sm:space-y-8"
+      className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Row 1: Continue Learning + Reading Progress */}
+      {/* Row 1 */}
       <motion.div
         variants={itemVariants}
-        className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5"
       >
         <div className="min-w-0">
           <ContinueLearning study={study} />
@@ -48,10 +48,10 @@ function Study({ dashboard }) {
         </div>
       </motion.div>
 
-      {/* Row 2: Recent Books + Reading Stats */}
+      {/* Row 2 */}
       <motion.div
         variants={itemVariants}
-        className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5"
       >
         <div className="min-w-0">
           <RecentBooks study={study} />

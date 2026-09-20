@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Menu, X, Sparkles, LogOut, ChevronRight } from "lucide-react";
+import { Menu, X, LogOut, ChevronRight } from "lucide-react";
 
 function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,9 +26,7 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
     let startTime = null;
 
     const ease = (t) =>
-      t < 0.5
-        ? 4 * t * t * t
-        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     const animate = (currentTime) => {
       if (!startTime) startTime = currentTime;
@@ -46,7 +44,7 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
     requestAnimationFrame(animate);
   };
 
-  // scroll spy (active section detection)
+  // scroll spy
   useEffect(() => {
     const sections = navItems.map((i) => i.id);
 
@@ -69,141 +67,88 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
     return () => observer.disconnect();
   }, []);
 
-  // navbar blur on scroll
+  // navbar background on scroll
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
+    const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50">
-
-      {/* glass background - warm colors */}
+      {/* background */}
       <div
-        className={`
-          absolute inset-0 transition-all duration-500
-          ${
-            scrolled
-              ? "bg-white/80 backdrop-blur-2xl border-b border-rose-200/30 shadow-sm"
-              : "bg-white/40 backdrop-blur-md"
-          }
-        `}
+        className={`absolute inset-0 transition-colors duration-300 ${
+          scrolled
+            ? "bg-[#faf7f3]/95 border-b border-[#e8dfd3]"
+            : "bg-[#f7f3ee]/80 border-b border-transparent"
+        }`}
       />
 
-      <div className="relative max-w-7xl mx-auto px-6 md:px-10 py-3 flex justify-between items-center">
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10 py-3.5 flex justify-between items-center">
 
         {/* LOGO */}
         <button
           onClick={onHome}
-          className="flex items-center gap-2 hover:scale-105 transition duration-300"
+          className="text-lg font-bold tracking-tight text-[#2a1f14] hover:text-[#5c1a1a] transition-colors"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-200/50">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-            RAG_V2
-          </span>
+          RAG<span className="text-[#5c1a1a]">_v2</span>
         </button>
 
         {/* DESKTOP NAV */}
         <ul className="hidden md:flex items-center gap-8 text-sm">
-
           {navItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => smoothScrollTo(item.id)}
-                className={`
-                  relative transition-all duration-300 font-medium
-                  ${
-                    activeSection === item.id
-                      ? "text-rose-600"
-                      : "text-gray-500 hover:text-rose-600"
-                  }
-                `}
+                className={`transition-colors duration-200 ${
+                  activeSection === item.id
+                    ? "text-[#2a1f14] font-medium"
+                    : "text-[#8a7965] hover:text-[#2a1f14]"
+                }`}
               >
                 {item.label}
-
-                {/* active underline */}
-                <span
-                  className={`
-                    absolute left-0 -bottom-1 h-[2px] rounded-full
-                    bg-gradient-to-r from-rose-500 to-amber-500
-                    transition-transform duration-300 origin-left
-                    ${
-                      activeSection === item.id
-                        ? "scale-x-100"
-                        : "scale-x-0"
-                    }
-                  `}
-                />
               </button>
             </li>
           ))}
-
         </ul>
 
         {/* RIGHT ACTIONS */}
         <div className="hidden md:flex items-center gap-3">
-
           {showGetStarted && (
             <button
               onClick={onGetStarted}
-              className="
-                px-5 py-2 rounded-xl text-sm font-medium
-                bg-gradient-to-r from-rose-500 to-amber-500
-                hover:from-rose-600 hover:to-amber-600
-                text-white
-                shadow-lg shadow-rose-200/50
-                hover:shadow-xl hover:shadow-rose-300/50
-                transition-all duration-300
-                hover:scale-[1.02]
-                flex items-center gap-1.5
-              "
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
             >
               Get Started
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight size={14} strokeWidth={1.8} />
             </button>
           )}
 
           {onLogout && (
             <button
               onClick={onLogout}
-              className="
-                px-4 py-2 rounded-xl text-sm font-medium
-                bg-white/80 text-gray-600 border border-rose-200/30
-                hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200
-                transition-all duration-200
-                flex items-center gap-1.5
-              "
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md border border-[#e8dfd3] bg-white text-[#5a4a3a] text-sm font-medium hover:border-[#5c1a1a]/40 hover:text-[#5c1a1a] transition-colors"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut size={14} strokeWidth={1.8} />
               Logout
             </button>
           )}
-
         </div>
 
         {/* MOBILE BUTTON */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden p-2 rounded-xl hover:bg-white/50 transition-colors duration-200"
+          aria-label="Toggle menu"
+          className="md:hidden w-9 h-9 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center text-[#5a4a3a] hover:text-[#5c1a1a] transition-colors"
         >
-          {menuOpen ? (
-            <X className="w-5 h-5 text-gray-600" />
-          ) : (
-            <Menu className="w-5 h-5 text-gray-600" />
-          )}
+          {menuOpen ? <X size={16} strokeWidth={1.8} /> : <Menu size={16} strokeWidth={1.8} />}
         </button>
       </div>
 
       {/* MOBILE MENU */}
       {menuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-xl border-t border-rose-200/30 shadow-lg py-6 flex flex-col items-center gap-4">
-
+        <div className="md:hidden absolute top-full left-0 w-full bg-[#faf7f3] border-t border-[#e8dfd3] py-6 flex flex-col items-center gap-4">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -211,14 +156,11 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
                 smoothScrollTo(item.id);
                 setMenuOpen(false);
               }}
-              className={`
-                text-sm font-medium transition-colors duration-200
-                ${
-                  activeSection === item.id
-                    ? "text-rose-600"
-                    : "text-gray-500 hover:text-rose-600"
-                }
-              `}
+              className={`text-sm transition-colors duration-200 ${
+                activeSection === item.id
+                  ? "text-[#2a1f14] font-medium"
+                  : "text-[#8a7965] hover:text-[#2a1f14]"
+              }`}
             >
               {item.label}
             </button>
@@ -230,14 +172,7 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
                 onGetStarted();
                 setMenuOpen(false);
               }}
-              className="
-                mt-2 px-6 py-2 rounded-xl text-sm font-medium
-                bg-gradient-to-r from-rose-500 to-amber-500
-                text-white
-                shadow-lg shadow-rose-200/50
-                transition-all duration-300
-                hover:scale-[1.02]
-              "
+              className="mt-2 px-6 py-2 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
             >
               Get Started
             </button>
@@ -249,18 +184,12 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
                 onLogout();
                 setMenuOpen(false);
               }}
-              className="
-                px-6 py-2 rounded-xl text-sm font-medium
-                text-gray-600 hover:text-rose-600
-                transition-colors duration-200
-                flex items-center gap-1.5
-              "
+              className="inline-flex items-center gap-1.5 px-6 py-2 rounded-md border border-[#e8dfd3] bg-white text-[#5a4a3a] text-sm font-medium hover:text-[#5c1a1a] transition-colors"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut size={14} strokeWidth={1.8} />
               Logout
             </button>
           )}
-
         </div>
       )}
     </nav>

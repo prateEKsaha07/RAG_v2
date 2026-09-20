@@ -15,42 +15,12 @@ import {
 import { useState } from "react";
 
 const menuItems = [
-  {
-    id: "overview",
-    label: "Overview",
-    icon: LayoutDashboard,
-    description: "Key metrics at a glance",
-  },
-  {
-    id: "performance",
-    label: "Performance",
-    icon: TrendingUp,
-    description: "Track your progress",
-  },
-  {
-    id: "study",
-    label: "Study",
-    icon: BookOpen,
-    description: "Learning analytics",
-  },
-  {
-    id: "quiz",
-    label: "Quiz",
-    icon: Brain,
-    description: "Assessment insights",
-  },
-  {
-    id: "roadmaps",
-    label: "Roadmaps",
-    icon: Map,
-    description: "Learning paths",
-  },
-  {
-    id: "reports",
-    label: "Reports",
-    icon: FileBarChart2,
-    description: "Detailed analysis",
-  },
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "performance", label: "Performance", icon: TrendingUp },
+  { id: "study", label: "Study", icon: BookOpen },
+  { id: "quiz", label: "Quiz", icon: Brain },
+  { id: "roadmaps", label: "Roadmaps", icon: Map },
+  { id: "reports", label: "Reports", icon: FileBarChart2 },
 ];
 
 const comingSoon = [
@@ -63,25 +33,25 @@ const comingSoon = [
 function AnalyticsSidebar({ page, setPage, isMobile = false }) {
   const [isHovered, setIsHovered] = useState(null);
 
-  // Container classes differ between desktop sidebar and mobile drawer body
   const containerClass = isMobile
     ? "w-full h-full bg-transparent flex flex-col overflow-hidden"
-    : "sticky top-16 h-[calc(100vh-4rem)] w-72 bg-white/70 backdrop-blur-lg border-r border-slate-200/60 flex flex-col transition-all duration-300 overflow-hidden";
+    : "sticky top-16 h-[calc(100vh-4rem)] w-72 bg-[#faf7f3] border-r border-[#e8dfd3] flex flex-col overflow-hidden";
 
   return (
     <aside className={containerClass}>
-      {/* Header — hidden on mobile (drawer already has its own header) */}
+
+      {/* Header — desktop only */}
       {!isMobile && (
-        <div className="flex-shrink-0 p-6 pb-4 border-b border-slate-200/60">
+        <div className="flex-shrink-0 px-6 py-5 border-b border-[#e8dfd3]">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-200/30">
-              <Sparkles size={18} className="text-indigo-500" />
+            <div className="w-8 h-8 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center">
+              <Sparkles size={14} strokeWidth={1.8} className="text-[#5c1a1a]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+              <h2 className="text-sm font-semibold text-[#2a1f14]">
                 Analytics
               </h2>
-              <p className="text-xs text-slate-400 font-medium">
+              <p className="text-[11px] text-[#8a7965] mt-0.5">
                 Insights & Reports
               </p>
             </div>
@@ -89,12 +59,11 @@ function AnalyticsSidebar({ page, setPage, isMobile = false }) {
         </div>
       )}
 
-      {/* Navigation — scrollable */}
+      {/* Navigation */}
       <nav
-        className={`
-          flex-1 overflow-y-auto
-          ${isMobile ? "px-2 py-3 space-y-0.5" : "px-3 py-4 space-y-1"}
-        `}
+        className={`flex-1 overflow-y-auto ${
+          isMobile ? "px-2 py-3 space-y-0.5" : "px-3 py-4 space-y-0.5"
+        }`}
       >
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -110,112 +79,93 @@ function AnalyticsSidebar({ page, setPage, isMobile = false }) {
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
               className={`
-                group relative w-full flex items-center rounded-xl
-                transition-all duration-200
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400
-                ${isMobile ? "gap-2.5 px-3 py-2.5" : "gap-3 px-4 py-3"}
+                group relative w-full flex items-center rounded-md
+                transition-colors duration-150
+                focus:outline-none focus-visible:border-[#5c1a1a]
+                ${isMobile ? "gap-2.5 px-3 py-2.5" : "gap-3 px-3 py-2.5"}
                 ${
                   active
-                    ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm border border-indigo-200/50"
-                    : "text-slate-600 hover:bg-slate-50/80 hover:text-slate-900"
+                    ? "bg-[#f0e9e0] text-[#5c1a1a]"
+                    : "text-[#5a4a3a] hover:bg-[#f0e9e0]/60"
                 }
-                ${hovered && !active && !isMobile ? "translate-x-1" : ""}
               `}
             >
-              {/* Icon */}
-              <div
-                className={`
-                  relative flex items-center justify-center rounded-lg
-                  transition-all duration-200 flex-shrink-0
-                  ${isMobile ? "w-8 h-8" : "w-9 h-9"}
-                  ${
-                    active
-                      ? "bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25"
-                      : "bg-slate-100/80 text-slate-500 group-hover:bg-slate-200/80 group-hover:text-slate-700"
-                  }
-                `}
-              >
-                <Icon size={isMobile ? 16 : 18} />
-              </div>
-
-              {/* Label + description */}
-              <div className="flex-1 text-left min-w-0">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`
-                      font-medium transition-colors duration-200 truncate
-                      ${isMobile ? "text-sm" : "text-sm"}
-                      ${active ? "text-indigo-700" : "text-slate-600 group-hover:text-slate-800"}
-                    `}
-                  >
-                    {item.label}
-                  </span>
-                  {active && (
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse flex-shrink-0" />
-                  )}
-                </div>
-                {active && !isMobile && (
-                  <p className="text-[10px] text-slate-400 font-medium truncate">
-                    {item.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Chevron indicator */}
+              {/* Active bar */}
               {active && (
-                <div className="flex-shrink-0">
-                  <ChevronRight
-                    size={16}
-                    className="text-indigo-400"
-                  />
-                </div>
+                <span className="absolute left-0 top-0 h-full w-[3px] bg-[#5c1a1a]" />
               )}
 
-              {/* Hover glow — desktop only */}
-              {hovered && !active && !isMobile && (
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 -z-10" />
+              {/* Icon */}
+              <div
+                className={`flex items-center justify-center rounded-md flex-shrink-0 ${
+                  isMobile ? "w-7 h-7" : "w-8 h-8"
+                } ${
+                  active
+                    ? "bg-white border border-[#e8dfd3] text-[#5c1a1a]"
+                    : "border border-transparent text-[#8a7965] group-hover:text-[#5c1a1a]"
+                }`}
+              >
+                <Icon size={isMobile ? 14 : 15} strokeWidth={1.8} />
+              </div>
+
+              {/* Label */}
+              <div className="flex-1 text-left min-w-0">
+                <span
+                  className={`text-sm truncate block ${
+                    active
+                      ? "font-medium text-[#5c1a1a]"
+                      : "text-[#5a4a3a]"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </div>
+
+              {/* Chevron */}
+              {active && (
+                <ChevronRight
+                  size={14}
+                  strokeWidth={1.8}
+                  className="text-[#5c1a1a] flex-shrink-0"
+                />
               )}
             </button>
           );
         })}
       </nav>
 
-      {/* Coming Soon — hidden on mobile drawer to save space */}
+      {/* Coming Soon — desktop only */}
       {!isMobile && (
-        <div className="flex-shrink-0 p-4 border-t border-slate-200/60">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 border border-indigo-200/40 p-5 group hover:shadow-md transition-all duration-300">
-            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-indigo-200/30 to-purple-200/30 blur-2xl group-hover:scale-150 transition-transform duration-500" />
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-100/80 px-2.5 py-1 rounded-full border border-indigo-200/50">
-                  Coming Soon
-                </span>
-                <Sparkles size={12} className="text-indigo-400" />
-              </div>
-
-              <ul className="space-y-2">
-                {comingSoon.map((item, index) => {
-                  const Icon = item.icon;
-                  return (
-                    <li
-                      key={index}
-                      className="flex items-center gap-2 text-sm text-slate-600 group-hover:text-slate-700 transition-colors duration-200"
-                    >
-                      <div className="w-6 h-6 rounded-md bg-white/70 border border-indigo-100 flex items-center justify-center flex-shrink-0">
-                        <Icon size={13} className="text-indigo-500" />
-                      </div>
-                      <span className="font-medium truncate">
-                        {item.label}
-                      </span>
-                      <span className="ml-auto text-[10px] text-slate-400 bg-white/50 px-2 py-0.5 rounded-full border border-slate-200/50 flex-shrink-0">
-                        Soon
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
+        <div className="flex-shrink-0 p-4 border-t border-[#e8dfd3]">
+          <div className="rounded-lg bg-white border border-[#e8dfd3] p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] tracking-[0.12em] uppercase text-[#8a7965] border border-[#e8dfd3] bg-[#faf7f3] px-2 py-0.5 rounded-full font-medium">
+                Coming Soon
+              </span>
+              <Sparkles size={11} strokeWidth={1.8} className="text-[#5c1a1a]" />
             </div>
+
+            <ul className="space-y-2">
+              {comingSoon.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <li
+                    key={index}
+                    className="flex items-center gap-2.5 text-xs text-[#6a5a48]"
+                  >
+                    <div className="w-6 h-6 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                      <Icon size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                    </div>
+                    <span className="truncate">
+                      {item.label}
+                    </span>
+                    <span className="ml-auto text-[9px] tracking-[0.08em] uppercase text-[#8a7965] border border-[#e8dfd3] bg-[#faf7f3] px-1.5 py-0.5 rounded-full flex-shrink-0">
+                      Soon
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
       )}

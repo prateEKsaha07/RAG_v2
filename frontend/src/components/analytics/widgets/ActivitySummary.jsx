@@ -1,4 +1,4 @@
-import { 
+import {
     BookOpen,
     Brain,
     FileText,
@@ -8,9 +8,6 @@ import {
     TrendingUp,
     Play,
     CheckCircle,
-    Calendar,
-    Target,
-    Award,
     Activity
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -18,38 +15,16 @@ import { motion } from "framer-motion";
 function ActivitySummary({ dashboard }) {
     const { activity } = dashboard;
 
-    // Get icon with colored background
     const getIcon = (type) => {
         const icons = {
-            book: { 
-                icon: BookOpen, 
-                bg: "bg-indigo-100", 
-                color: "text-indigo-600",
-                label: "Book"
-            },
-            quiz: { 
-                icon: Brain, 
-                bg: "bg-purple-100", 
-                color: "text-purple-600",
-                label: "Quiz"
-            },
-            note: { 
-                icon: FileText, 
-                bg: "bg-emerald-100", 
-                color: "text-emerald-600",
-                label: "Note"
-            },
-            roadmap: { 
-                icon: Map, 
-                bg: "bg-rose-100", 
-                color: "text-rose-600",
-                label: "Roadmap"
-            },
+            book:    { icon: BookOpen, label: "Book" },
+            quiz:    { icon: Brain,    label: "Quiz" },
+            note:    { icon: FileText, label: "Note" },
+            roadmap: { icon: Map,      label: "Roadmap" },
         };
         return icons[type] || icons.note;
     };
 
-    // Get time ago string
     const getTimeAgo = (date) => {
         const now = new Date();
         const diff = now - new Date(date);
@@ -64,121 +39,110 @@ function ActivitySummary({ dashboard }) {
         return new Date(date).toLocaleDateString();
     };
 
-    // Get status for each activity
     const getStatus = (index) => {
         const statuses = [
-            { label: "Completed", icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-50" },
-            { label: "In Progress", icon: Play, color: "text-indigo-500", bg: "bg-indigo-50" },
-            { label: "New", icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
+            { label: "Completed", icon: CheckCircle },
+            { label: "In Progress", icon: Play },
+            { label: "New", icon: TrendingUp },
         ];
         return statuses[index % statuses.length];
     };
 
-    // Calculate summary stats
     const totalActivities = activity?.length || 0;
     const completedActivities = activity?.filter((_, i) => i % 3 === 0).length || 0;
     const inProgressActivities = activity?.filter((_, i) => i % 3 === 1).length || 0;
     const newActivities = activity?.filter((_, i) => i % 3 === 2).length || 0;
 
-    // Show first 6 items
     const visibleActivity = activity?.slice(0, 6) || [];
     const hasMoreActivity = activity?.length > 6;
 
-    // Animation variants
     const containerVariants = {
         hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.05
-            }
-        }
+        visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, x: -20 },
-        visible: { 
-            opacity: 1, 
-            x: 0,
-            transition: { duration: 0.3 }
-        }
+        hidden: { opacity: 0, x: -12 },
+        visible: { opacity: 1, x: 0, transition: { duration: 0.3 } }
     };
 
     if (!activity || activity.length === 0) {
         return (
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-lg transition-all duration-300 p-6 flex items-center justify-center min-h-[300px]"
+                transition={{ duration: 0.35 }}
+                className="bg-white border border-[#e8dfd3] rounded-lg p-6 flex items-center justify-center min-h-[300px]"
             >
                 <div className="flex flex-col items-center text-center">
-                    <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-200/30 mb-4">
-                        <Clock size={40} className="text-indigo-300" />
+                    <div className="w-12 h-12 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center mb-4">
+                        <Clock size={20} strokeWidth={1.8} className="text-[#5c1a1a]" />
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-700">No Activity Yet</h3>
-                    <p className="text-xs text-slate-400 mt-1">Start learning to see your progress</p>
+                    <h3 className="text-sm font-semibold text-[#2a1f14]">No Activity Yet</h3>
+                    <p className="text-xs text-[#8a7965] mt-1">Start learning to see your progress</p>
                 </div>
             </motion.div>
         );
     }
 
     return (
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-lg transition-all duration-300 p-6"
+            transition={{ duration: 0.35 }}
+            className="bg-white border border-[#e8dfd3] rounded-lg p-6"
         >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-200/30">
-                        <Activity size={20} className="text-indigo-500" />
+                    <div className="w-9 h-9 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center">
+                        <Activity size={15} strokeWidth={1.8} className="text-[#5c1a1a]" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800">
+                        <h2 className="text-base font-semibold text-[#2a1f14]">
                             Recent Activity
                         </h2>
-                        <p className="text-xs text-slate-400 font-medium">
+                        <p className="text-[11px] text-[#8a7965] mt-0.5">
                             Your latest learning actions
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-slate-400">{totalActivities} total</span>
+                <div className="flex items-center gap-2 text-[11px]">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#5c1a1a]" />
+                    <span className="text-[#8a7965] tabular-nums">{totalActivities} total</span>
                 </div>
             </div>
 
-            {/* Quick Stats Row */}
-            <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200/50 text-center">
-                    <div className="flex items-center justify-center gap-1.5">
-                        <CheckCircle size={12} className="text-emerald-500" />
-                        <span className="text-[10px] font-medium text-emerald-600">Completed</span>
-                    </div>
-                    <p className="text-sm font-bold text-slate-700 mt-0.5">{completedActivities}</p>
-                </div>
-                <div className="p-2.5 rounded-xl bg-indigo-50/80 border border-indigo-200/50 text-center">
-                    <div className="flex items-center justify-center gap-1.5">
-                        <Play size={12} className="text-indigo-500" />
-                        <span className="text-[10px] font-medium text-indigo-600">In Progress</span>
-                    </div>
-                    <p className="text-sm font-bold text-slate-700 mt-0.5">{inProgressActivities}</p>
-                </div>
-                <div className="p-2.5 rounded-xl bg-purple-50/80 border border-purple-200/50 text-center">
-                    <div className="flex items-center justify-center gap-1.5">
-                        <TrendingUp size={12} className="text-purple-500" />
-                        <span className="text-[10px] font-medium text-purple-600">New</span>
-                    </div>
-                    <p className="text-sm font-bold text-slate-700 mt-0.5">{newActivities}</p>
-                </div>
+            {/* Quick stats */}
+            <div className="grid grid-cols-3 gap-2 mb-5">
+                {[
+                    { label: "Completed", value: completedActivities, icon: CheckCircle },
+                    { label: "In Progress", value: inProgressActivities, icon: Play },
+                    { label: "New", value: newActivities, icon: TrendingUp },
+                ].map((stat) => {
+                    const Icon = stat.icon;
+                    return (
+                        <div
+                            key={stat.label}
+                            className="p-2.5 rounded-md border border-[#e8dfd3] bg-[#faf7f3] text-center"
+                        >
+                            <div className="flex items-center justify-center gap-1.5">
+                                <Icon size={11} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                                <span className="text-[10px] tracking-[0.08em] uppercase text-[#8a7965]">
+                                    {stat.label}
+                                </span>
+                            </div>
+                            <p className="text-sm font-semibold text-[#2a1f14] mt-1 tabular-nums">
+                                {stat.value}
+                            </p>
+                        </div>
+                    );
+                })}
             </div>
 
-            {/* Activity List */}
-            <motion.div 
-                className="space-y-2.5"
+            {/* Activity list */}
+            <motion.div
+                className="space-y-2"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -193,70 +157,55 @@ function ActivitySummary({ dashboard }) {
                         <motion.div
                             key={index}
                             variants={itemVariants}
-                            whileHover={{ 
-                                x: 4,
-                                transition: { duration: 0.2 }
-                            }}
-                            className="group flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-50/80 to-white border border-slate-200/50 transition-all duration-300 hover:shadow-md"
+                            className="group flex items-center gap-3 p-3 rounded-md border border-[#e8dfd3] bg-[#faf7f3]"
                         >
                             {/* Icon */}
-                            <div className={`
-                                flex-shrink-0 p-2 rounded-xl ${IconData.bg}
-                                transition-all duration-300 group-hover:scale-110
-                            `}>
-                                <Icon size={16} className={IconData.color} />
+                            <div className="flex-shrink-0 w-8 h-8 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center">
+                                <Icon size={14} strokeWidth={1.8} className="text-[#5c1a1a]" />
                             </div>
 
                             {/* Content */}
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-slate-800 truncate">
+                                        <p className="text-sm font-medium text-[#2a1f14] truncate">
                                             {item.title}
                                         </p>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-[10px] font-medium text-slate-400">
+                                            <span className="text-[10px] tracking-[0.08em] uppercase text-[#8a7965]">
                                                 {IconData.label}
                                             </span>
-                                            <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                                            <span className="text-[10px] text-slate-400">
+                                            <span className="w-0.5 h-0.5 rounded-full bg-[#c9bda9]" />
+                                            <span className="text-[10px] text-[#8a7965]">
                                                 {getTimeAgo(item.time)}
                                             </span>
                                         </div>
                                     </div>
-                                    
-                                    {/* Status Badge */}
-                                    <div className={`
-                                        flex-shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-full
-                                        ${status.bg}
-                                    `}>
-                                        <StatusIcon size={10} className={status.color} />
-                                        <span className={`text-[8px] font-medium ${status.color}`}>
+
+                                    {/* Status */}
+                                    <div className="flex-shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-full border border-[#e8dfd3] bg-white">
+                                        <StatusIcon size={9} strokeWidth={2} className="text-[#5c1a1a]" />
+                                        <span className="text-[9px] tracking-[0.06em] uppercase text-[#5a4a3a] font-medium">
                                             {status.label}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Chevron on hover */}
-                            <ChevronRight size={14} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0" />
+                            {/* Chevron */}
+                            <ChevronRight
+                                size={12}
+                                strokeWidth={1.8}
+                                className="text-[#a89880] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0"
+                            />
                         </motion.div>
                     );
                 })}
 
-                {/* Show more indicator if there are more activities */}
                 {hasMoreActivity && (
                     <div className="text-center py-3">
-                        <p className="text-xs text-slate-400 font-medium">
+                        <p className="text-[11px] text-[#8a7965]">
                             + {activity.length - 6} more activities
-                        </p>
-                        <div className="flex items-center justify-center gap-1.5 mt-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '300ms' }} />
-                        </div>
-                        <p className="text-[9px] text-slate-400 mt-1">
-                            Scroll for more
                         </p>
                     </div>
                 )}

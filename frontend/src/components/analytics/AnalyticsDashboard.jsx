@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import AnalyticsNavbar from "./components/AnalyticsNavbar";
 import AnalyticsSidebar from "./components/AnalyticsSidebar";
@@ -29,7 +29,6 @@ function AnalyticsDashboard({ onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Mobile drawer state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -50,12 +49,10 @@ function AnalyticsDashboard({ onBack }) {
     }
   }
 
-  // Close mobile menu when page changes
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [page]);
 
-  // Lock body scroll while drawer is open
   useEffect(() => {
     if (mobileMenuOpen) {
       const original = document.body.style.overflow;
@@ -66,7 +63,6 @@ function AnalyticsDashboard({ onBack }) {
     }
   }, [mobileMenuOpen]);
 
-  // Escape closes drawer
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") setMobileMenuOpen(false);
@@ -78,20 +74,20 @@ function AnalyticsDashboard({ onBack }) {
   const CurrentPage = pages[page] || Overview;
 
   const pageVariants = {
-    initial: { opacity: 0, y: 10 },
+    initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 },
+    exit: { opacity: 0, y: -8 },
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/80 flex flex-col">
+    <div className="min-h-screen bg-[#f7f3ee] flex flex-col">
       <AnalyticsNavbar
         onBack={onBack}
         onMenuClick={() => setMobileMenuOpen(true)}
       />
 
       <div className="flex flex-1 relative min-h-0">
-        {/* Desktop sidebar — hidden on mobile */}
+        {/* Desktop sidebar */}
         <div className="hidden lg:block flex-shrink-0">
           <AnalyticsSidebar page={page} setPage={setPage} />
         </div>
@@ -100,61 +96,46 @@ function AnalyticsDashboard({ onBack }) {
         <AnimatePresence>
           {mobileMenuOpen && (
             <>
-              {/* Backdrop */}
               <motion.div
                 key="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+                className="fixed inset-0 bg-[#2a1f14]/40 z-40 lg:hidden"
                 onClick={() => setMobileMenuOpen(false)}
               />
 
-              {/* Drawer panel */}
               <motion.aside
                 key="drawer"
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 26, stiffness: 260 }}
-                className="
-                  fixed top-0 left-0 bottom-0 z-50
-                  w-[82%] max-w-xs
-                  bg-white shadow-2xl
-                  lg:hidden
-                  flex flex-col
-                "
+                className="fixed top-0 left-0 bottom-0 z-50 w-[82%] max-w-xs bg-[#faf7f3] border-r border-[#e8dfd3] lg:hidden flex flex-col"
                 style={{
                   paddingTop: "env(safe-area-inset-top, 0px)",
                   paddingBottom: "env(safe-area-inset-bottom, 0px)",
                 }}
               >
-                {/* Drawer header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                <div className="flex items-center justify-between p-4 border-b border-[#e8dfd3]">
                   <div>
-                    <h2 className="text-sm font-semibold text-slate-800">
+                    <h2 className="text-sm font-semibold text-[#2a1f14]">
                       Analytics
                     </h2>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#8a7965]">
                       Navigate sections
                     </p>
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     aria-label="Close menu"
-                    className="
-                      p-2 rounded-xl
-                      hover:bg-slate-100 active:scale-90
-                      transition-colors
-                      focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400
-                    "
+                    className="w-9 h-9 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center text-[#8a7965] hover:text-[#5c1a1a] transition-colors"
                   >
-                    <X className="w-5 h-5 text-slate-500" />
+                    <X size={16} strokeWidth={1.8} />
                   </button>
                 </div>
 
-                {/* Drawer body — reused AnalyticsSidebar */}
                 <div className="flex-1 overflow-y-auto">
                   <AnalyticsSidebar
                     page={page}
@@ -169,12 +150,7 @@ function AnalyticsDashboard({ onBack }) {
 
         {/* Main content */}
         <main
-          className="
-            flex-1 min-w-0
-            overflow-y-auto
-            p-4 sm:p-6 lg:p-8
-            lg:h-[calc(100vh-4rem)]
-          "
+          className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8 lg:h-[calc(100vh-4rem)]"
           style={{
             paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",
           }}
@@ -188,14 +164,9 @@ function AnalyticsDashboard({ onBack }) {
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center justify-center min-h-[60vh] lg:h-full"
               >
-                <div className="relative">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 border-4 border-slate-100 border-t-purple-400 rounded-full animate-spin animation-delay-150" />
-                  </div>
-                </div>
-                <p className="mt-6 text-sm font-medium text-slate-500 animate-pulse">
-                  Loading Analytics...
+                <div className="w-8 h-8 border-2 border-[#e8dfd3] border-t-[#5c1a1a] rounded-full animate-spin" />
+                <p className="mt-5 text-sm text-[#8a7965]">
+                  Loading analytics...
                 </p>
               </motion.div>
             )}
@@ -203,15 +174,17 @@ function AnalyticsDashboard({ onBack }) {
             {!loading && error && (
               <motion.div
                 key="error"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="flex flex-col items-center justify-center min-h-[60vh] lg:h-full"
               >
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-xl ring-1 ring-red-100">
-                  <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 rounded-full bg-red-50">
+                <div className="bg-white border border-[#e8dfd3] rounded-lg p-8 max-w-md w-full text-center">
+                  <div className="w-12 h-12 rounded-md border border-[#e8dfd3] bg-[#faf7f3] mx-auto flex items-center justify-center mb-4">
                     <svg
-                      className="w-7 h-7 sm:w-8 sm:h-8 text-red-400"
+                      width="20"
+                      height="20"
+                      className="text-[#5c1a1a]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -219,26 +192,17 @@ function AnalyticsDashboard({ onBack }) {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth="2"
+                        strokeWidth="1.8"
                         d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
                   </div>
-                  <p className="text-center text-red-600 mb-6 font-medium text-sm sm:text-base">
+                  <p className="text-sm text-[#5a4a3a] mb-6">
                     {error}
                   </p>
                   <button
                     onClick={fetchDashboard}
-                    className="
-                      w-full px-4 py-2.5 rounded-xl
-                      bg-gradient-to-r from-indigo-500 to-purple-500
-                      text-white font-medium
-                      hover:from-indigo-600 hover:to-purple-600
-                      transition-all duration-300
-                      transform hover:scale-[1.02] active:scale-[0.98]
-                      shadow-lg shadow-indigo-500/25
-                      focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2
-                    "
+                    className="w-full px-4 py-2.5 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
                   >
                     Retry
                   </button>
@@ -253,7 +217,7 @@ function AnalyticsDashboard({ onBack }) {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
                 className="min-h-full"
               >
                 <CurrentPage

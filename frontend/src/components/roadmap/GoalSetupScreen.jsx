@@ -1,36 +1,40 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import {
-  ArrowLeft,
   Map,
   Calendar,
   Clock,
   Target,
   BookOpen,
-  CheckCircle,
   AlertCircle,
   Trash2,
   Eye,
   Sparkles,
   Loader,
   Layers,
-  Zap,
-  TrendingUp,
   FileText
 } from "lucide-react"
-import DashboardNav from "../dashboard/DashboardNav"
-import Footer from "../common/Footer"
 import ModuleNav from "../common/ModuleNav"
+import Footer from "../common/Footer"
 
-function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
+function GoalSetupScreen({
+  onBack,
+  onViewRoadmap,
+  onLogout,
+  user,
+  onAnalyticsV2,
+  onStudy,
+  onNotes,
+  onUpload,
+}) {
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState("")
   const [existingRoadmap, setExistingRoadmap] = useState(null)
+  const [noRoadmap, setNoRoadmap] = useState(false)
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState("")
 
-  // Form fields
   const [scope, setScope] = useState("full")
   const [unitNumber, setUnitNumber] = useState(1)
   const [hoursPerDay, setHoursPerDay] = useState(2)
@@ -41,7 +45,6 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
   }, [])
 
   const fetchSubjects = async () => {
-    const token = localStorage.getItem("access_token")
     const response = await axios.get(
       import.meta.env.VITE_API_URL + "/subjects"
     )
@@ -52,30 +55,30 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
     const token = localStorage.getItem("access_token")
     setSelectedSubject(subject)
     setExistingRoadmap(null)
+    setNoRoadmap(false)
     setError("")
 
-    if (!subject) {
-      return
-    }
+    if (!subject) return
+
     setChecking(true)
 
     try {
       const response = await axios.get(
         import.meta.env.VITE_API_URL + `/roadmap/${subject}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         }
       )
-      console.log("GET roadmap:", response.data)
-      if (!response.data.error) {
-        setExistingRoadmap(response.data)
+
+      const data = response.data
+      if (!data || data.error || !data.weeks || data.weeks.length === 0) {
+        setNoRoadmap(true)
+        setExistingRoadmap(null)
+      } else {
+        setExistingRoadmap(data)
       }
-      console.log(response.data)
-      console.log(Array.isArray(response.data))
-    } catch (error) {
-      console.log(JSON.stringify(error.response?.data, null, 2))
+    } catch (err) {
+      setNoRoadmap(true)
       setExistingRoadmap(null)
     } finally {
       setChecking(false)
@@ -85,19 +88,24 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
   const handleDelete = async () => {
     const token = localStorage.getItem("access_token")
     if (!confirm("Delete this roadmap?")) return
-    await axios.delete(
-      import.meta.env.VITE_API_URL + `/roadmap/${selectedSubject}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+
+    try {
+      await axios.delete(
+        import.meta.env.VITE_API_URL + `/roadmap/${selectedSubject}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
         }
-      }
-    )
-    setExistingRoadmap(null)
+      )
+      setExistingRoadmap(null)
+      setNoRoadmap(true)
+    } catch (err) {
+      setError("Failed to delete roadmap")
+    }
   }
 
   const handleGenerate = async () => {
     const token = localStorage.getItem("access_token")
-    console.log("TOKEN:", token)
+
     if (!selectedSubject || !targetDate) {
       setError("Please select subject and target date!")
       return
@@ -115,10 +123,9 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
           target_date: targetDate,
           scope: scope,
           unit_number: scope === "unit" ? unitNumber : null
-        }, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
         }
       )
 
@@ -127,13 +134,10 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
         return
       }
 
-      const targetSubject = selectedSubject
       setExistingRoadmap(response.data)
-      setError("")
-      onViewRoadmap(targetSubject)
-
-    } catch (error) {
-      console.log(JSON.stringify(error.response?.data, null, 2))
+      setNoRoadmap(false)
+      onViewRoadmap(selectedSubject)
+    } catch (err) {
       setError("Failed to generate roadmap")
     } finally {
       setLoading(false)
@@ -151,124 +155,114 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-orange-50/40">
-      
-      {/* Decorative warm elements */}
-      <div className="fixed top-0 right-0 w-96 h-96 bg-rose-200/20 rounded-full blur-3xl -z-10" />
-      <div className="fixed bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl -z-10" />
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-100/10 rounded-full blur-3xl -z-10" />
+    <div className="min-h-screen bg-[#f7f3ee] text-[#2a1f14]">
 
       <ModuleNav
-  active="notes" // or "study", "upload", "roadmap", "analytics-v2"
-  onDashboard={onBack}
-  onStudy={() => {}}
-  onUpload={() => {}}
-  onNotes={() => {}}
-  onRoadmap={() => {}}
-  onAnalyticsV2={() => {}}
-  onLogout={onLogout}
-  user={user}
-/>
+        active="roadmap"
+        onDashboard={onBack}
+        onStudy={onStudy}
+        onUpload={onUpload}
+        onNotes={onNotes}
+        onRoadmap={() => {}}
+        onAnalyticsV2={onAnalyticsV2}
+        onLogout={onLogout}
+        user={user}
+      />
 
-      <main className="max-w-3xl mx-auto px-6 lg:px-8 py-10 relative">
-        
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8 animate-fadeUp">
-          <div className="p-3 bg-gradient-to-br from-rose-100 to-amber-100 rounded-2xl">
-            <Map className="w-7 h-7 text-rose-600" />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-              Study Roadmap
-            </h1>
-            <p className="text-rose-500/80 flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              Plan your study journey
-            </p>
+      <main className="max-w-3xl mx-auto px-6 lg:px-8 py-10">
+
+        {/* Page header */}
+        <div className="mb-8">
+          <p className="text-[11px] tracking-[0.14em] uppercase text-[#8a7965] mb-1.5">
+            Study Roadmap
+          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#2a1f14] mb-1.5">
+            Study Roadmap
+          </h1>
+          <p className="text-sm text-[#8a7965]">
+            Plan your study journey
+          </p>
+        </div>
+
+        {/* Subject selector */}
+        <div className="bg-white border border-[#e8dfd3] rounded-lg p-6 mb-6">
+          <label className="block text-[11px] tracking-[0.12em] uppercase text-[#8a7965] mb-2 flex items-center gap-2">
+            <BookOpen size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+            Select Subject
+          </label>
+          <div className="relative">
+            <select
+              value={selectedSubject}
+              onChange={(e) => handleSubjectChange(e.target.value)}
+              className="w-full appearance-none bg-[#faf7f3] border border-[#e8dfd3] rounded-md py-3 px-4 pr-12 text-sm text-[#2a1f14] focus:outline-none focus:border-[#5c1a1a] transition-colors cursor-pointer"
+            >
+              <option value="">Choose subject...</option>
+              {subjects.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+              <svg width="14" height="14" className="text-[#8a7965]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
         </div>
 
-        {/* Subject Selector */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-rose-200/20 border border-rose-200/30 p-6 mb-6 animate-fadeUp">
-  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-    <BookOpen className="w-4 h-4 text-rose-400" />
-    Select Subject
-  </label>
-  <div className="relative">
-    <select
-      value={selectedSubject}
-      onChange={(e) => handleSubjectChange(e.target.value)}
-      className="w-full appearance-none bg-white/80 border border-rose-200/50 rounded-xl py-3 px-4 pr-12 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400/50 focus:border-transparent transition-all duration-200 cursor-pointer hover:border-rose-300"
-    >
-      <option value="" className="text-gray-400">Choose subject...</option>
-      {subjects.map(s => (
-        <option key={s} value={s} className="text-gray-700">{s}</option>
-      ))}
-    </select>
-    
-    {/* Custom dropdown arrow */}
-    <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-      <svg className="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-      </svg>
-    </div>
-  </div>
-</div>
-
-        {/* Checking State */}
+        {/* Checking */}
         {checking && (
-          <div className="flex items-center justify-center gap-3 py-6 animate-fadeUp">
-            <Loader className="w-5 h-5 text-rose-500 animate-spin" />
-            <p className="text-gray-500 font-medium">Checking existing roadmap...</p>
+          <div className="flex items-center justify-center gap-3 py-6">
+            <Loader size={16} strokeWidth={1.8} className="text-[#5c1a1a] animate-spin" />
+            <p className="text-sm text-[#8a7965]">Checking existing roadmap...</p>
           </div>
         )}
 
-        {/* Existing Roadmap Card */}
-        {existingRoadmap && (
-          <div className="bg-gradient-to-r from-orange-50/80 to-amber-50/80 backdrop-blur-sm rounded-2xl border border-orange-200/30 p-6 mb-6 animate-fadeUp shadow-lg shadow-orange-100/20">
+        {/* Existing roadmap */}
+        {existingRoadmap && !checking && (
+          <div className="bg-white border border-[#e8dfd3] rounded-lg p-6 mb-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-orange-100 rounded-xl">
-                <Map className="w-6 h-6 text-orange-600" />
+              <div className="w-10 h-10 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                <Map size={16} strokeWidth={1.8} className="text-[#5c1a1a]" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg text-gray-800 mb-2">
-                  Active Roadmap Found 🗺️
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-[#2a1f14] mb-3">
+                  Active Roadmap Found
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#8a7965] mb-5">
                   <div className="flex items-center gap-2">
-                    <BookOpen className="w-3.5 h-3.5 text-orange-400" />
-                    <span className="font-medium text-gray-700">{existingRoadmap.subject}</span>
+                    <BookOpen size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                    <span className="font-medium text-[#2a1f14] truncate">{existingRoadmap.subject}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Layers className="w-3.5 h-3.5 text-orange-400" />
-                    <span className="font-medium text-gray-700">{existingRoadmap.scope}</span>
+                    <Layers size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                    <span className="font-medium text-[#2a1f14]">{existingRoadmap.scope}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-orange-400" />
-                    <span className="font-medium text-gray-700">{existingRoadmap.target_date}</span>
+                    <Calendar size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                    <span className="font-medium text-[#2a1f14]">{existingRoadmap.target_date}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-orange-400" />
-                    <span className="font-medium text-gray-700">{formatDate(existingRoadmap.created_at)}</span>
+                    <Clock size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                    <span className="font-medium text-[#2a1f14]">{formatDate(existingRoadmap.created_at)}</span>
                   </div>
-                  <div className="flex items-center gap-2 col-span-2">
-                    <FileText className="w-3.5 h-3.5 text-orange-400" />
-                    <span className="font-medium text-gray-700">{existingRoadmap.weeks?.length} weeks planned</span>
+                  <div className="flex items-center gap-2 sm:col-span-2">
+                    <FileText size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                    <span className="font-medium text-[#2a1f14]">{existingRoadmap.weeks?.length} weeks planned</span>
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <button
                     onClick={() => onViewRoadmap(selectedSubject)}
-                    className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-2.5 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-orange-200/50 flex items-center justify-center gap-2"
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Eye size={14} strokeWidth={1.8} />
                     View Roadmap
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-red-200/50"
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-md border border-[#e8dfd3] bg-white text-[#5a4a3a] text-sm font-medium transition-colors hover:border-[#a83232] hover:text-[#a83232]"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 size={14} strokeWidth={1.8} />
                     Delete
                   </button>
                 </div>
@@ -277,59 +271,76 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
           </div>
         )}
 
-        {/* Create New Roadmap Form */}
-        {selectedSubject && !existingRoadmap && !checking && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-amber-200/20 border border-amber-200/30 p-6 animate-fadeUp">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl">
-                <Sparkles className="w-5 h-5 text-amber-600" />
+        {/* No roadmap */}
+        {noRoadmap && selectedSubject && !checking && (
+          <div className="bg-white border border-[#e8dfd3] rounded-lg p-6 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                <AlertCircle size={16} strokeWidth={1.8} className="text-[#8a7965]" />
               </div>
-              <h3 className="font-bold text-lg text-gray-800">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-[#2a1f14] mb-1.5">
+                  No Roadmap Found
+                </h3>
+                <p className="text-sm text-[#8a7965] leading-relaxed">
+                  You have not created a roadmap for{" "}
+                  <span className="font-semibold text-[#2a1f14]">{selectedSubject}</span> yet.
+                  Fill in the form below to generate one.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create new roadmap */}
+        {selectedSubject && !existingRoadmap && !checking && (
+          <div className="bg-white border border-[#e8dfd3] rounded-lg p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center">
+                <Sparkles size={14} strokeWidth={1.8} className="text-[#5c1a1a]" />
+              </div>
+              <h3 className="font-semibold text-[#2a1f14]">
                 Create New Roadmap
               </h3>
             </div>
 
             {/* Scope */}
             <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <Target className="w-4 h-4 text-amber-400" />
+              <label className="block text-[11px] tracking-[0.12em] uppercase text-[#8a7965] mb-2 flex items-center gap-2">
+                <Target size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
                 Study Scope
               </label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setScope("full")}
-                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${
-                    scope === "full"
-                      ? "bg-gradient-to-r from-rose-500 to-amber-500 text-white border-rose-500 shadow-lg shadow-rose-200/50"
-                      : "bg-white/50 text-gray-600 border-gray-200/50 hover:border-rose-300"
-                  }`}
-                >
-                  Full Syllabus
-                </button>
-                <button
-                  onClick={() => setScope("unit")}
-                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${
-                    scope === "unit"
-                      ? "bg-gradient-to-r from-rose-500 to-amber-500 text-white border-rose-500 shadow-lg shadow-rose-200/50"
-                      : "bg-white/50 text-gray-600 border-gray-200/50 hover:border-rose-300"
-                  }`}
-                >
-                  Specific Unit
-                </button>
+              <div className="flex gap-2">
+                {[
+                  { value: "full", label: "Full Syllabus" },
+                  { value: "unit", label: "Specific Unit" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setScope(option.value)}
+                    className={`flex-1 py-2.5 rounded-md border text-sm font-medium transition-colors ${
+                      scope === option.value
+                        ? "bg-[#5c1a1a] text-white border-[#5c1a1a]"
+                        : "bg-white text-[#5a4a3a] border-[#e8dfd3] hover:border-[#5c1a1a]/40"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Unit Number */}
+            {/* Unit number */}
             {scope === "unit" && (
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-amber-400" />
+                <label className="block text-[11px] tracking-[0.12em] uppercase text-[#8a7965] mb-2 flex items-center gap-2">
+                  <Layers size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
                   Unit Number
                 </label>
                 <select
                   value={unitNumber}
                   onChange={(e) => setUnitNumber(parseInt(e.target.value))}
-                  className="w-full border border-amber-200/50 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-transparent transition-all duration-200 bg-white/50"
+                  className="w-full bg-[#faf7f3] border border-[#e8dfd3] rounded-md p-3 text-sm text-[#2a1f14] focus:outline-none focus:border-[#5c1a1a] transition-colors"
                 >
                   {[1, 2, 3, 4, 5].map(n => (
                     <option key={n} value={n}>Unit {n}</option>
@@ -338,35 +349,33 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
               </div>
             )}
 
-            {/* Hours Per Day */}
+            {/* Hours per day */}
             <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-400" />
-                Hours Per Day: <span className="text-amber-600 font-bold">{hoursPerDay}h</span>
+              <label className="block text-[11px] tracking-[0.12em] uppercase text-[#8a7965] mb-2 flex items-center gap-2">
+                <Clock size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                Hours Per Day: <span className="text-[#5c1a1a] font-bold">{hoursPerDay}h</span>
               </label>
-              <div className="relative">
-                <input
-                  type="range"
-                  min="1"
-                  max="8"
-                  value={hoursPerDay}
-                  onChange={(e) => setHoursPerDay(parseInt(e.target.value))}
-                  className="w-full h-2 bg-amber-100 rounded-lg appearance-none cursor-pointer accent-rose-500"
-                />
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>1h</span>
-                  <span>2h</span>
-                  <span>4h</span>
-                  <span>6h</span>
-                  <span>8h</span>
-                </div>
+              <input
+                type="range"
+                min="1"
+                max="8"
+                value={hoursPerDay}
+                onChange={(e) => setHoursPerDay(parseInt(e.target.value))}
+                className="w-full h-1 bg-[#e8dfd3] rounded-lg appearance-none cursor-pointer accent-[#5c1a1a]"
+              />
+              <div className="flex justify-between text-[10px] text-[#a89880] mt-1.5">
+                <span>1h</span>
+                <span>2h</span>
+                <span>4h</span>
+                <span>6h</span>
+                <span>8h</span>
               </div>
             </div>
 
-            {/* Target Date */}
+            {/* Target date */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-amber-400" />
+              <label className="block text-[11px] tracking-[0.12em] uppercase text-[#8a7965] mb-2 flex items-center gap-2">
+                <Calendar size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
                 Target Date
               </label>
               <input
@@ -374,32 +383,36 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
                 value={targetDate}
                 onChange={(e) => setTargetDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
-                className="w-full border border-amber-200/50 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-transparent transition-all duration-200 bg-white/50"
+                className="w-full bg-[#faf7f3] border border-[#e8dfd3] rounded-md p-3 text-sm text-[#2a1f14] focus:outline-none focus:border-[#5c1a1a] transition-colors"
               />
             </div>
 
-            {/* Error Message */}
+            {/* Error */}
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl mb-4">
-                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="flex items-center gap-2 p-3 bg-[#faf0f0] border border-[#dcc9c9] rounded-md mb-4">
+                <AlertCircle size={14} strokeWidth={1.8} className="text-[#a83232] flex-shrink-0" />
+                <p className="text-sm text-[#7a2a2a]">{error}</p>
               </div>
             )}
 
-            {/* Generate Button */}
+            {/* Generate */}
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-orange-200/50 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className={`w-full py-3 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                loading
+                  ? "bg-[#f0e9e0] text-[#a89880] cursor-not-allowed"
+                  : "bg-[#5c1a1a] text-white hover:bg-[#4a1414]"
+              }`}
             >
               {loading ? (
                 <>
-                  <Loader className="w-5 h-5 animate-spin" />
+                  <Loader size={14} strokeWidth={1.8} className="animate-spin" />
                   Generating Roadmap...
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-5 h-5" />
+                  <Sparkles size={14} strokeWidth={1.8} />
                   Generate Roadmap
                 </>
               )}
@@ -407,14 +420,14 @@ function GoalSetupScreen({ onBack, onViewRoadmap, onLogout, user }) {
           </div>
         )}
 
-        {/* Empty State - No Subject Selected */}
+        {/* Empty state */}
         {!selectedSubject && !checking && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 text-center border border-rose-200/30 animate-fadeUp">
-            <div className="p-4 bg-rose-50 rounded-full mx-auto w-20 h-20 flex items-center justify-center mb-4">
-              <Map className="w-10 h-10 text-rose-400" />
+          <div className="bg-white border border-[#e8dfd3] rounded-lg p-12 text-center">
+            <div className="w-12 h-12 rounded-md border border-[#e8dfd3] bg-[#faf7f3] mx-auto flex items-center justify-center mb-4">
+              <Map size={20} strokeWidth={1.8} className="text-[#5c1a1a]" />
             </div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Select a Subject</h3>
-            <p className="text-gray-500 max-w-sm mx-auto">
+            <h3 className="text-lg font-semibold text-[#2a1f14] mb-2">Select a Subject</h3>
+            <p className="text-sm text-[#8a7965] max-w-sm mx-auto">
               Choose a subject from the dropdown above to create or view your study roadmap
             </p>
           </div>

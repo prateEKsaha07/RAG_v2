@@ -17,11 +17,11 @@ function Roadmaps({ dashboard }) {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 16 },
+    hidden: { opacity: 0, y: 12 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+      transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
@@ -31,71 +31,69 @@ function Roadmaps({ dashboard }) {
       fullLabel: "Active Roadmaps",
       value: roadmap.active || 0,
       icon: Map,
-      color: "text-indigo-500",
     },
     {
       label: "Completed",
       fullLabel: "Completed",
       value: roadmap.completed || 0,
       icon: Target,
-      color: "text-emerald-500",
     },
     {
       label: "Deadlines",
       fullLabel: "Upcoming Deadlines",
       value: roadmap.upcoming_deadlines?.length || 0,
       icon: Calendar,
-      color: "text-amber-500",
     },
     {
       label: "Progress",
       fullLabel: "Progress",
       value: `${roadmap.progress || 0}%`,
       icon: TrendingUp,
-      color: "text-purple-500",
     },
   ];
 
   return (
     <motion.div
-      className="space-y-5 sm:space-y-6"
+      className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Page Header */}
+      {/* Page header */}
       <motion.div
         variants={itemVariants}
-        className="flex flex-col gap-3 sm:gap-4 mb-1 sm:mb-2"
+        className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
       >
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+          <p className="text-[11px] tracking-[0.14em] uppercase text-[#8a7965] mb-1.5">
+            Roadmaps
+          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#2a1f14] mb-1.5">
             Learning Roadmaps
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#8a7965]">
             Track your learning paths and achieve your goals
           </p>
         </div>
 
-        {/* Badges — wrap on small screens */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/50">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] sm:text-xs font-medium text-emerald-700">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#e8dfd3] bg-white">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#5c1a1a]" />
+            <span className="text-[10px] tracking-[0.1em] uppercase text-[#5a4a3a] font-medium">
               Active
             </span>
           </div>
-          <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200/50">
-            <Map size={13} className="text-indigo-500 flex-shrink-0" />
-            <span className="text-[11px] sm:text-xs font-medium text-indigo-700">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#e8dfd3] bg-white">
+            <Map size={11} strokeWidth={1.8} className="text-[#5c1a1a]" />
+            <span className="text-[10px] tracking-[0.1em] uppercase text-[#5a4a3a] font-medium">
               {roadmap.active || 0} Active
             </span>
           </div>
         </div>
       </motion.div>
 
-      {/* Row 1: Summary + Upcoming Deadline */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      {/* Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         <motion.div variants={itemVariants} className="h-full min-w-0">
           <RoadmapSummary roadmap={roadmap} />
         </motion.div>
@@ -104,8 +102,8 @@ function Roadmaps({ dashboard }) {
         </motion.div>
       </div>
 
-      {/* Row 2: Status + Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      {/* Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         <motion.div variants={itemVariants} className="h-full min-w-0">
           <RoadmapStatus roadmap={roadmap} />
         </motion.div>
@@ -114,36 +112,27 @@ function Roadmaps({ dashboard }) {
         </motion.div>
       </div>
 
-      {/* Quick Stats Footer */}
+      {/* Quick stats */}
       <motion.div
         variants={itemVariants}
-        className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 pt-1 sm:pt-2"
+        className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2"
       >
         {quickStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div
               key={index}
-              className="
-                flex items-center gap-2 sm:gap-3
-                p-2.5 sm:p-3 rounded-xl
-                bg-white/50 backdrop-blur-sm
-                border border-slate-200/50
-                hover:shadow-sm hover:border-slate-300/60
-                transition-all duration-200
-                min-w-0
-              "
+              className="bg-white border border-[#e8dfd3] rounded-lg p-4 flex items-center gap-3 min-w-0"
             >
-              <div className="p-1.5 sm:p-2 rounded-lg bg-slate-50 flex-shrink-0">
-                <Icon size={14} className={`${stat.color} sm:hidden`} />
-                <Icon size={16} className={`${stat.color} hidden sm:block`} />
+              <div className="w-9 h-9 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                <Icon size={15} strokeWidth={1.8} className="text-[#5c1a1a]" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] sm:text-xs font-medium text-slate-400 truncate">
+                <p className="text-[10px] tracking-[0.1em] uppercase text-[#8a7965] truncate">
                   <span className="sm:hidden">{stat.label}</span>
                   <span className="hidden sm:inline">{stat.fullLabel}</span>
                 </p>
-                <p className="text-xs sm:text-sm font-bold text-slate-700 truncate">
+                <p className="text-sm font-semibold text-[#2a1f14] truncate mt-0.5 tabular-nums">
                   {stat.value}
                 </p>
               </div>

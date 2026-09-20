@@ -9,7 +9,11 @@ import {
     ReferenceLine,
 } from "recharts";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+
+const ACCENT = "#5c1a1a";
+const MUTED = "#8a7965";
+const GRID = "#e8dfd3";
 
 function PerformanceTrend({ dashboard }) {
     const data = dashboard.quiz.recent_attempts.map((item, index) => ({
@@ -18,7 +22,6 @@ function PerformanceTrend({ dashboard }) {
         label: `Quiz ${index + 1}`
     }));
 
-    // Calculate statistics
     const scores = data.map(d => d.score);
     const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
     const highestScore = Math.max(...scores);
@@ -27,26 +30,25 @@ function PerformanceTrend({ dashboard }) {
     const firstScore = scores[0] || 0;
     const trend = latestScore - firstScore;
 
-    // Custom Tooltip
-    const CustomTooltip = ({ active, payload, label }) => {
+    const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200/60 p-4">
-                    <p className="text-sm font-semibold text-slate-700 mb-2">
+                <div className="bg-white border border-[#e8dfd3] rounded-md p-3">
+                    <p className="text-xs font-semibold text-[#2a1f14] mb-2">
                         {payload[0].payload.label}
                     </p>
-                    <div className="flex items-center gap-3">
-                        <span className="inline-block w-3 h-3 rounded-full bg-indigo-500" />
-                        <span className="text-sm text-slate-600">Score:</span>
-                        <span className="text-sm font-bold text-slate-800">
+                    <div className="flex items-center gap-2 text-xs">
+                        <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: ACCENT }} />
+                        <span className="text-[#8a7965]">Score:</span>
+                        <span className="font-semibold text-[#2a1f14] tabular-nums">
                             {payload[0].value}%
                         </span>
                     </div>
-                    <div className="mt-2 pt-2 border-t border-slate-100">
-                        <span className="text-xs text-slate-400">
-                            {payload[0].value >= 70 ? '✅ Good performance' : 
-                             payload[0].value >= 50 ? '📈 Keep improving' : 
-                             '🎯 Focus needed'}
+                    <div className="mt-2 pt-2 border-t border-[#e8dfd3]">
+                        <span className="text-[10px] tracking-[0.06em] uppercase text-[#8a7965]">
+                            {payload[0].value >= 70 ? 'Good performance' :
+                             payload[0].value >= 50 ? 'Keep improving' :
+                             'Focus needed'}
                         </span>
                     </div>
                 </div>
@@ -55,133 +57,121 @@ function PerformanceTrend({ dashboard }) {
         return null;
     };
 
-    // Get trend icon and color
     const getTrendInfo = () => {
-        if (trend > 0) {
-            return { icon: TrendingUp, color: "text-emerald-500", label: "Improving" };
-        } else if (trend < 0) {
-            return { icon: TrendingDown, color: "text-rose-500", label: "Declining" };
-        }
-        return { icon: Minus, color: "text-slate-400", label: "Stable" };
+        if (trend > 0) return { icon: TrendingUp, label: "Improving", tone: "up" };
+        if (trend < 0) return { icon: TrendingDown, label: "Declining", tone: "down" };
+        return { icon: Minus, label: "Stable", tone: "neutral" };
     };
 
-    const TrendIcon = getTrendInfo().icon;
+    const trendInfo = getTrendInfo();
+    const TrendIcon = trendInfo.icon;
 
     return (
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-lg transition-all duration-300 p-6"
+            transition={{ duration: 0.35 }}
+            className="bg-white border border-[#e8dfd3] rounded-lg p-6"
         >
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between gap-3 mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-200/30">
-                        <TrendingUp size={20} className="text-indigo-500" />
+                    <div className="w-9 h-9 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center">
+                        <TrendingUp size={15} strokeWidth={1.8} className="text-[#5c1a1a]" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800">
+                        <h2 className="text-base font-semibold text-[#2a1f14]">
                             Score Trend
                         </h2>
-                        <p className="text-xs text-slate-400 font-medium">
+                        <p className="text-[11px] text-[#8a7965] mt-0.5">
                             Your performance over time
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    {/* Trend Badge */}
-                    <div className={`
-                        flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                        ${getTrendInfo().color === 'text-emerald-500' ? 'bg-emerald-50 border border-emerald-200/50' :
-                          getTrendInfo().color === 'text-rose-500' ? 'bg-rose-50 border border-rose-200/50' :
-                          'bg-slate-50 border border-slate-200/50'}
-                    `}>
-                        <TrendIcon size={14} className={getTrendInfo().color} />
-                        <span className={`text-xs font-medium ${getTrendInfo().color}`}>
-                            {getTrendInfo().label}
-                        </span>
-                    </div>
+
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#e8dfd3] bg-white">
+                    <TrendIcon
+                        size={11}
+                        strokeWidth={1.8}
+                        className={trendInfo.tone === 'up' ? 'text-[#5c1a1a]' : trendInfo.tone === 'down' ? 'text-[#a83232]' : 'text-[#8a7965]'}
+                    />
+                    <span className={`text-[10px] tracking-[0.08em] uppercase font-medium ${
+                        trendInfo.tone === 'up' ? 'text-[#5c1a1a]' : trendInfo.tone === 'down' ? 'text-[#a83232]' : 'text-[#8a7965]'
+                    }`}>
+                        {trendInfo.label}
+                    </span>
                 </div>
             </div>
 
             {/* Chart */}
             <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart 
+                    <AreaChart
                         data={data}
                         margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
                     >
                         <defs>
                             <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="#818cf8" stopOpacity={0}/>
+                                <stop offset="5%" stopColor={ACCENT} stopOpacity={0.18} />
+                                <stop offset="95%" stopColor={ACCENT} stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        
-                        <CartesianGrid 
-                            strokeDasharray="3 3" 
-                            stroke="#e2e8f0"
+
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke={GRID}
                             vertical={false}
                         />
-                        
-                        <XAxis 
+
+                        <XAxis
                             dataKey="attempt"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ 
-                                fill: '#94a3b8', 
-                                fontSize: 11,
-                                fontWeight: 500
-                            }}
+                            tick={{ fill: MUTED, fontSize: 11 }}
                             dy={10}
-                            label={{ 
-                                value: 'Attempts', 
-                                position: 'insideBottom', 
+                            label={{
+                                value: 'Attempts',
+                                position: 'insideBottom',
                                 offset: -5,
-                                style: { fill: '#94a3b8', fontSize: 11, fontWeight: 500 }
+                                style: { fill: MUTED, fontSize: 10, letterSpacing: '0.06em' }
                             }}
                         />
-                        
-                        <YAxis 
+
+                        <YAxis
                             domain={[0, 100]}
                             axisLine={false}
                             tickLine={false}
-                            tick={{ 
-                                fill: '#94a3b8', 
-                                fontSize: 11,
-                                fontWeight: 500
-                            }}
+                            tick={{ fill: MUTED, fontSize: 11 }}
                             dx={-10}
-                            label={{ 
-                                value: 'Score %', 
-                                angle: -90, 
+                            label={{
+                                value: 'Score %',
+                                angle: -90,
                                 position: 'insideLeft',
-                                style: { fill: '#94a3b8', fontSize: 11, fontWeight: 500 }
+                                style: { fill: MUTED, fontSize: 10, letterSpacing: '0.06em' }
                             }}
                         />
-                        
+
                         <Tooltip content={<CustomTooltip />} />
-                        
-                        <ReferenceLine 
-                            y={70} 
-                            stroke="#fbbf24" 
-                            strokeDasharray="5 5"
-                            label={{ 
-                                value: 'Target: 70%', 
+
+                        <ReferenceLine
+                            y={70}
+                            stroke={MUTED}
+                            strokeDasharray="4 4"
+                            label={{
+                                value: 'Target: 70%',
                                 position: 'insideRight',
-                                style: { fill: '#fbbf24', fontSize: 10, fontWeight: 600 }
+                                style: { fill: MUTED, fontSize: 10 }
                             }}
                         />
-                        
+
                         <Area
                             dataKey="score"
-                            stroke="#818cf8"
-                            strokeWidth={2.5}
+                            stroke={ACCENT}
+                            strokeWidth={2}
                             fill="url(#scoreGradient)"
-                            activeDot={{ 
-                                r: 6, 
-                                stroke: '#818cf8',
+                            activeDot={{
+                                r: 5,
+                                stroke: ACCENT,
                                 strokeWidth: 2,
                                 fill: '#fff'
                             }}
@@ -190,40 +180,27 @@ function PerformanceTrend({ dashboard }) {
                 </ResponsiveContainer>
             </div>
 
-            {/* Stats Footer */}
-            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-4 gap-3">
-                <div className="text-center">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                        Average
-                    </p>
-                    <p className="text-sm font-bold text-slate-700">
-                        {averageScore.toFixed(1)}%
-                    </p>
-                </div>
-                <div className="text-center">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                        Best
-                    </p>
-                    <p className="text-sm font-bold text-emerald-600">
-                        {highestScore}%
-                    </p>
-                </div>
-                <div className="text-center">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                        Lowest
-                    </p>
-                    <p className="text-sm font-bold text-rose-600">
-                        {lowestScore}%
-                    </p>
-                </div>
-                <div className="text-center">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                        Latest
-                    </p>
-                    <p className={`text-sm font-bold ${latestScore >= 70 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        {latestScore}%
-                    </p>
-                </div>
+            {/* Stats footer */}
+            <div className="mt-4 pt-4 border-t border-[#e8dfd3] grid grid-cols-4 gap-3">
+                {[
+                    { label: "Average", value: `${averageScore.toFixed(1)}%`, tone: "neutral" },
+                    { label: "Best", value: `${highestScore}%`, tone: "up" },
+                    { label: "Lowest", value: `${lowestScore}%`, tone: "down" },
+                    { label: "Latest", value: `${latestScore}%`, tone: latestScore >= 70 ? "up" : "neutral" },
+                ].map((stat) => (
+                    <div key={stat.label} className="text-center">
+                        <p className="text-[10px] tracking-[0.1em] uppercase text-[#8a7965]">
+                            {stat.label}
+                        </p>
+                        <p className={`text-sm font-semibold mt-1 tabular-nums ${
+                            stat.tone === "up" ? "text-[#5c1a1a]" :
+                            stat.tone === "down" ? "text-[#a83232]" :
+                            "text-[#2a1f14]"
+                        }`}>
+                            {stat.value}
+                        </p>
+                    </div>
+                ))}
             </div>
         </motion.div>
     );

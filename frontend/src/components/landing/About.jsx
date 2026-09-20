@@ -13,10 +13,9 @@ import {
   Lightbulb,
 } from "lucide-react";
 
-// ============================================================
-// Hook: useInView
-// Triggers animations when an element enters the viewport.
-// ============================================================
+/* ============================================================
+   useInView
+   ============================================================ */
 function useInView(options = { threshold: 0.2, once: true }) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -42,9 +41,9 @@ function useInView(options = { threshold: 0.2, once: true }) {
   return [ref, inView];
 }
 
-// ============================================================
-// AnimatedCounter - parses "100K+", "95%", "4.9" and counts up
-// ============================================================
+/* ============================================================
+   AnimatedCounter
+   ============================================================ */
 function AnimatedCounter({ value, duration = 1400 }) {
   const [display, setDisplay] = useState("0");
   const [ref, inView] = useInView({ threshold: 0.4, once: true });
@@ -83,48 +82,20 @@ function AnimatedCounter({ value, duration = 1400 }) {
 
 function About() {
   const features = [
-    {
-      icon: Brain,
-      title: "AI-Powered Learning",
-      desc: "Retrieval-Augmented Generation provides accurate answers from your own study materials.",
-      color: "from-rose-500 to-amber-500",
-      bgColor: "bg-rose-50/50",
-      iconColor: "text-rose-600",
-    },
-    {
-      icon: Target,
-      title: "Personalized Insights",
-      desc: "Identify weak topics and get tailored recommendations to improve your understanding.",
-      color: "from-blue-500 to-cyan-500",
-      bgColor: "bg-blue-50/50",
-      iconColor: "text-blue-600",
-    },
-    {
-      icon: TrendingUp,
-      title: "Performance Analytics",
-      desc: "Track your progress with detailed analytics and measure your learning efficiency.",
-      color: "from-emerald-500 to-teal-500",
-      bgColor: "bg-emerald-50/50",
-      iconColor: "text-emerald-600",
-    },
-    {
-      icon: BookOpen,
-      title: "Smart Quiz Generation",
-      desc: "Auto-generate MCQs from your notes and test your knowledge instantly.",
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-50/50",
-      iconColor: "text-purple-600",
-    },
+    { icon: Brain,      title: "AI-Powered Learning",     desc: "Retrieval-Augmented Generation provides accurate answers from your own study materials." },
+    { icon: Target,     title: "Personalized Insights",   desc: "Identify weak topics and get tailored recommendations to improve your understanding." },
+    { icon: TrendingUp, title: "Performance Analytics",   desc: "Track your progress with detailed analytics and measure your learning efficiency." },
+    { icon: BookOpen,   title: "Smart Quiz Generation",   desc: "Auto-generate MCQs from your notes and test your knowledge instantly." },
   ];
 
   const stats = [
     { value: "100K+", label: "Questions Answered", icon: Zap },
-    { value: "50K+", label: "Students Active", icon: Users },
-    { value: "95%", label: "Accuracy Rate", icon: Shield },
-    { value: "4.9", label: "User Rating", icon: Sparkles },
+    { value: "50K+",  label: "Students Active",    icon: Users },
+    { value: "95%",   label: "Accuracy Rate",      icon: Shield },
+    { value: "4.9",   label: "User Rating",        icon: Sparkles },
   ];
 
-  const [leftRef, leftInView] = useInView({ threshold: 0.2 });
+  const [leftRef, leftInView]   = useInView({ threshold: 0.2 });
   const [rightRef, rightInView] = useInView({ threshold: 0.15 });
   const [statsRef, statsInView] = useInView({ threshold: 0.2 });
 
@@ -137,60 +108,47 @@ function About() {
 
   return (
     <section id="about" className="relative z-10 max-w-7xl mx-auto px-6 py-28">
-      {/* Decorative elements - drifting orbs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-96 h-96 bg-rose-200/10 rounded-full blur-3xl top-20 right-20 animate-about-float" />
-        <div
-          className="absolute w-80 h-80 bg-amber-200/10 rounded-full blur-3xl bottom-20 left-20 animate-about-float"
-          style={{ animationDelay: "1.2s" }}
-        />
-      </div>
-
       <div className="grid lg:grid-cols-2 gap-14 items-center relative">
+
         {/* LEFT - Image */}
         <div
           ref={leftRef}
-          className={`relative group transition-all duration-1000 ease-out ${
-            leftInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          className={`relative transition-all duration-700 ease-out ${
+            leftInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <div className="relative overflow-hidden rounded-3xl bg-white/60 backdrop-blur-sm border border-rose-200/30 shadow-2xl shadow-rose-100/20">
+          <div className="relative overflow-hidden rounded-lg border border-[#e8dfd3] bg-white">
             <img
               src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80"
               alt="Student studying with books and laptop"
-              className="w-full h-[420px] object-cover transition duration-700 group-hover:scale-105 will-change-transform"
+              className="w-full h-[420px] object-cover will-change-transform"
               style={{
                 transform: `translateY(${Math.min(scrollY * 0.02, 12)}px)`,
               }}
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-rose-500/10 to-transparent" />
-
-            {/* Floating badge - AI Powered */}
-            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 border border-rose-200/30 shadow-lg animate-badge-float">
+            {/* Badge - AI Powered */}
+            <div className="absolute bottom-4 right-4 bg-white border border-[#e8dfd3] rounded-md px-3 py-1.5">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-rose-500 to-amber-500 flex items-center justify-center">
-                  <Rocket className="w-3.5 h-3.5 text-white" />
+                <div className="w-6 h-6 rounded-md bg-[#5c1a1a] flex items-center justify-center">
+                  <Rocket size={12} strokeWidth={1.8} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold text-gray-800">
+                  <p className="text-[11px] font-semibold text-[#2a1f14] leading-tight">
                     AI Powered
                   </p>
-                  <p className="text-[8px] text-gray-400">RAG_V2</p>
+                  <p className="text-[9px] tracking-[0.12em] uppercase text-[#8a7965]">
+                    RAG_V2
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Floating badge - Rating */}
-            <div
-              className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 border border-amber-200/30 shadow-lg animate-badge-float"
-              style={{ animationDelay: "0.8s" }}
-            >
+            {/* Badge - Rating */}
+            <div className="absolute top-4 left-4 bg-white border border-[#e8dfd3] rounded-md px-3 py-1.5">
               <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-sparkle-soft" />
-                <span className="text-[11px] font-semibold text-gray-800">
-                  4.9
-                </span>
+                <Sparkles size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                <span className="text-[11px] font-semibold text-[#2a1f14]">4.9</span>
               </div>
             </div>
           </div>
@@ -199,24 +157,20 @@ function About() {
         {/* RIGHT - Content */}
         <div
           ref={rightRef}
-          className={`relative transition-all duration-1000 ease-out ${
-            rightInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          className={`relative transition-all duration-700 ease-out ${
+            rightInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-rose-100/80 to-amber-100/80 backdrop-blur-sm border border-rose-200/30 text-rose-700 text-xs font-medium mb-6">
-            <Sparkles className="w-3.5 h-3.5" />
+          <p className="text-[11px] tracking-[0.14em] uppercase text-[#8a7965] mb-3 inline-flex items-center gap-2">
+            <Sparkles size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
             About RAG_V2
-          </div>
+          </p>
 
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 leading-tight">
-            Building a{" "}
-            <span className="bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-              Smarter Way
-            </span>{" "}
-            to Learn with AI
+          <h2 className="text-3xl md:text-4xl font-bold text-[#2a1f14] leading-tight">
+            Building a Smarter Way to Learn with AI
           </h2>
 
-          <p className="mt-6 text-gray-500 leading-7 text-sm">
+          <p className="mt-6 text-[#6a5a48] leading-7 text-sm">
             RAG_V2 is an AI-powered learning platform designed to make studying
             more interactive, personalized, and efficient. Instead of relying on
             generic AI responses, it uses Retrieval-Augmented Generation (RAG)
@@ -224,65 +178,57 @@ function About() {
             accurate and context-aware assistance.
           </p>
 
-          {/* Feature Grid - staggered reveal */}
+          {/* Feature Grid */}
           <div className="grid grid-cols-2 gap-3 mt-6">
-            {features.map((feature, idx) => (
-              <div
-                key={idx}
-                className={`${feature.bgColor} backdrop-blur-sm rounded-xl p-3 border border-rose-200/20 group hover:shadow-lg transition-all duration-500 hover:-translate-y-0.5 ${
-                  rightInView
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-3"
-                }`}
-                style={{
-                  transitionDelay: rightInView ? `${150 + idx * 100}ms` : "0ms",
-                }}
-              >
-                <div className="flex items-start gap-2">
-                  <div
-                    className={`p-1.5 rounded-lg bg-gradient-to-br ${feature.color} bg-opacity-10 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}
-                  >
-                    <feature.icon className={`w-4 h-4 ${feature.iconColor}`} />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold text-gray-800">
-                      {feature.title}
-                    </p>
-                    <p className="text-[10px] text-gray-400 line-clamp-2">
-                      {feature.desc}
-                    </p>
+            {features.map((feature, idx) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={idx}
+                  className={`bg-white border border-[#e8dfd3] rounded-md p-3 transition-all duration-500 ${
+                    rightInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                  }`}
+                  style={{ transitionDelay: rightInView ? `${150 + idx * 100}ms` : "0ms" }}
+                >
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-8 h-8 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                      <Icon size={14} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-[#2a1f14]">
+                        {feature.title}
+                      </p>
+                      <p className="text-[10px] text-[#8a7965] leading-relaxed line-clamp-2">
+                        {feature.desc}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Vision Card */}
           <div
-            className={`mt-6 rounded-2xl bg-gradient-to-r from-rose-50/80 to-amber-50/80 backdrop-blur-sm border border-rose-200/30 p-6 shadow-lg shadow-rose-100/20 transition-all duration-700 ${
-              rightInView
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4"
+            className={`mt-6 rounded-lg bg-white border border-[#e8dfd3] p-5 transition-all duration-500 ${
+              rightInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
             }`}
-            style={{
-              transitionDelay: rightInView ? "550ms" : "0ms",
-            }}
+            style={{ transitionDelay: rightInView ? "550ms" : "0ms" }}
           >
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-gradient-to-br from-rose-100 to-amber-100 rounded-xl flex-shrink-0 animate-icon-breathe">
-                <Lightbulb className="w-5 h-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                <Lightbulb size={16} strokeWidth={1.8} className="text-[#5c1a1a]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  <Rocket className="w-4 h-4 text-rose-500" />
+                <h3 className="text-sm font-semibold text-[#2a1f14] mb-1.5 flex items-center gap-2">
+                  <Rocket size={13} strokeWidth={1.8} className="text-[#5c1a1a]" />
                   Vision
                 </h3>
-                <p className="text-gray-500 leading-6 text-xs">
-                  The long-term vision is to build an intelligent study
-                  companion that adapts to every learner. By combining AI,
-                  personalized knowledge retrieval, and performance analytics,
-                  RAG_V2 aims to transform static notes into an interactive
-                  learning ecosystem.
+                <p className="text-[#6a5a48] leading-6 text-xs">
+                  The long-term vision is to build an intelligent study companion
+                  that adapts to every learner. By combining AI, personalized
+                  knowledge retrieval, and performance analytics, RAG_V2 aims to
+                  transform static notes into an interactive learning ecosystem.
                 </p>
               </div>
             </div>
@@ -290,60 +236,50 @@ function About() {
 
           {/* CTA Link */}
           <button
-            className={`mt-6 text-rose-600 hover:text-rose-700 text-sm font-medium flex items-center gap-2 group transition-all duration-700 ${
-              rightInView
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-2"
+            className={`mt-6 text-[#5c1a1a] hover:text-[#4a1414] text-sm font-medium flex items-center gap-2 group transition-all duration-500 ${
+              rightInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
             }`}
             style={{ transitionDelay: rightInView ? "700ms" : "0ms" }}
           >
             Learn more about RAG_V2
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+            <ArrowRight
+              size={14}
+              strokeWidth={1.8}
+              className="group-hover:translate-x-1 transition-transform duration-200"
+            />
           </button>
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div
-        ref={statsRef}
-        className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 relative"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-rose-100/20 to-amber-100/20 rounded-3xl blur-2xl" />
-
-        {stats.map((stat, idx) => (
-          <div
-            key={idx}
-            className={`relative bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-rose-200/30 shadow-lg shadow-rose-100/10 hover:shadow-xl hover:shadow-rose-100/20 transition-all duration-500 hover:-translate-y-1 ${
-              statsInView
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4"
-            }`}
-            style={{
-              transitionDelay: statsInView ? `${idx * 120}ms` : "0ms",
-            }}
-          >
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <stat.icon className="w-5 h-5 text-rose-500" />
-              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent tabular-nums">
-                <AnimatedCounter value={stat.value} />
-              </span>
+      {/* Stats */}
+      <div ref={statsRef} className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 relative">
+        {stats.map((stat, idx) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={idx}
+              className={`bg-white border border-[#e8dfd3] rounded-lg p-6 text-center transition-all duration-500 ${
+                statsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+              }`}
+              style={{ transitionDelay: statsInView ? `${idx * 120}ms` : "0ms" }}
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Icon size={15} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                <span className="text-xl md:text-2xl font-bold text-[#2a1f14] tabular-nums">
+                  <AnimatedCounter value={stat.value} />
+                </span>
+              </div>
+              <p className="text-[11px] tracking-[0.1em] uppercase text-[#8a7965] font-medium">
+                {stat.label}
+              </p>
             </div>
-            <p className="text-xs text-gray-500 font-medium">{stat.label}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Bottom decorative line */}
-      <div className="mt-16 flex justify-center gap-4 opacity-40">
-        <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-rose-300 to-transparent rounded-full animate-line-shimmer" />
-        <div
-          className="w-8 h-0.5 bg-gradient-to-r from-transparent via-amber-300 to-transparent rounded-full animate-line-shimmer"
-          style={{ animationDelay: "0.4s" }}
-        />
-        <div
-          className="w-32 h-0.5 bg-gradient-to-r from-transparent via-orange-300 to-transparent rounded-full animate-line-shimmer"
-          style={{ animationDelay: "0.8s" }}
-        />
+      {/* Bottom divider */}
+      <div className="mt-16 flex justify-center">
+        <div className="w-32 h-px bg-[#e8dfd3]" />
       </div>
     </section>
   );

@@ -22,113 +22,85 @@ function Reports({ dashboard }) {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 16 },
+    hidden: { opacity: 0, y: 12 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+      transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
-  // Same calculations as before
   const totalActivities =
     dashboard?.overview?.books + dashboard?.overview?.notes || 0;
   const totalQuizzes = dashboard?.quiz?.total_attempts || 0;
 
   const quickStats = [
-    {
-      label: "Total Resources",
-      value: totalActivities,
-      icon: FileBarChart2,
-      color: "text-indigo-500",
-    },
-    {
-      label: "Quiz Attempts",
-      value: totalQuizzes,
-      icon: TrendingUp,
-      color: "text-purple-500",
-    },
-    {
-      label: "Active Days",
-      value: dashboard?.overview?.active_days || 0,
-      icon: Calendar,
-      color: "text-emerald-500",
-    },
-    {
-      label: "Overall Progress",
-      value: `${dashboard?.overview?.overall_progress || 0}%`,
-      icon: Sparkles,
-      color: "text-amber-500",
-    },
+    { label: "Total Resources", value: totalActivities, icon: FileBarChart2 },
+    { label: "Quiz Attempts", value: totalQuizzes, icon: TrendingUp },
+    { label: "Active Days", value: dashboard?.overview?.active_days || 0, icon: Calendar },
+    { label: "Overall Progress", value: `${dashboard?.overview?.overall_progress || 0}%`, icon: Sparkles },
   ];
 
   return (
     <motion.div
-      className="space-y-5 sm:space-y-6"
+      className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Page Header */}
+      {/* Page header */}
       <motion.div
         variants={itemVariants}
-        className="flex flex-col gap-3 sm:gap-4 mb-1 sm:mb-2"
+        className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
       >
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+          <p className="text-[11px] tracking-[0.14em] uppercase text-[#8a7965] mb-1.5">
+            Reports
+          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#2a1f14] mb-1.5">
             Reports & Analytics
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#8a7965]">
             Comprehensive overview of your learning journey
           </p>
         </div>
 
-        {/* Badges — wrap on small screens */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/50">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] sm:text-xs font-medium text-emerald-700">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#e8dfd3] bg-white">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#5c1a1a]" />
+            <span className="text-[10px] tracking-[0.1em] uppercase text-[#5a4a3a] font-medium">
               Live
             </span>
           </div>
-          <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200/50">
-            <FileBarChart2 size={13} className="text-indigo-500 flex-shrink-0" />
-            <span className="text-[11px] sm:text-xs font-medium text-indigo-700">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#e8dfd3] bg-white">
+            <FileBarChart2 size={11} strokeWidth={1.8} className="text-[#5c1a1a]" />
+            <span className="text-[10px] tracking-[0.1em] uppercase text-[#5a4a3a] font-medium">
               Detailed
             </span>
           </div>
         </div>
       </motion.div>
 
-      {/* Quick Stats Row */}
+      {/* Quick stats */}
       <motion.div
         variants={itemVariants}
-        className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4"
+        className="grid grid-cols-2 sm:grid-cols-4 gap-3"
       >
         {quickStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div
               key={index}
-              className="
-                flex items-center gap-2 sm:gap-3
-                p-2.5 sm:p-3 rounded-xl
-                bg-white/50 backdrop-blur-sm
-                border border-slate-200/50
-                hover:shadow-sm hover:border-slate-300/60
-                transition-all duration-200
-                min-w-0
-              "
+              className="bg-white border border-[#e8dfd3] rounded-lg p-4 flex items-center gap-3 min-w-0"
             >
-              <div className="p-1.5 sm:p-2 rounded-lg bg-slate-50 flex-shrink-0">
-                <Icon size={14} className={`${stat.color} sm:hidden`} />
-                <Icon size={16} className={`${stat.color} hidden sm:block`} />
+              <div className="w-9 h-9 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                <Icon size={15} strokeWidth={1.8} className="text-[#5c1a1a]" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] sm:text-xs font-medium text-slate-400 truncate">
+                <p className="text-[10px] tracking-[0.1em] uppercase text-[#8a7965] truncate">
                   {stat.label}
                 </p>
-                <p className="text-xs sm:text-sm font-bold text-slate-700 truncate">
+                <p className="text-sm font-semibold text-[#2a1f14] truncate mt-0.5 tabular-nums">
                   {stat.value}
                 </p>
               </div>
@@ -137,8 +109,8 @@ function Reports({ dashboard }) {
         })}
       </motion.div>
 
-      {/* Row 1: Overall Report + Quiz Report */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      {/* Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         <motion.div variants={itemVariants} className="h-full min-w-0">
           <OverallReport dashboard={dashboard} />
         </motion.div>
@@ -147,8 +119,8 @@ function Reports({ dashboard }) {
         </motion.div>
       </div>
 
-      {/* Row 2: Learning Resources + Activity Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      {/* Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         <motion.div variants={itemVariants} className="h-full min-w-0">
           <LearningResources dashboard={dashboard} />
         </motion.div>
@@ -157,49 +129,21 @@ function Reports({ dashboard }) {
         </motion.div>
       </div>
 
-      {/* Export Actions */}
+      {/* Export actions */}
       <motion.div
         variants={itemVariants}
-        className="
-          flex flex-col sm:flex-row sm:items-center sm:justify-between
-          gap-3 sm:gap-4 pt-4
-          border-t border-slate-100
-        "
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-6 border-t border-[#e8dfd3]"
       >
-        <p className="text-[11px] sm:text-xs text-slate-400">
+        <p className="text-[11px] text-[#8a7965]">
           Export your reports for offline viewing or sharing
         </p>
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            className="
-              flex items-center gap-2
-              px-3 sm:px-4 py-2
-              text-xs sm:text-sm font-medium
-              text-slate-600 bg-white/50
-              border border-slate-200/50 rounded-xl
-              hover:bg-slate-50 active:scale-95
-              transition-all duration-200
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400
-            "
-          >
-            <Download size={15} className="sm:hidden" />
-            <Download size={16} className="hidden sm:block" />
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[#e8dfd3] bg-white text-[#5a4a3a] text-xs font-medium hover:border-[#5c1a1a]/40 hover:text-[#5c1a1a] transition-colors">
+            <Download size={14} strokeWidth={1.8} />
             <span>Download PDF</span>
           </button>
-          <button
-            className="
-              flex items-center gap-2
-              px-3 sm:px-4 py-2
-              text-xs sm:text-sm font-medium
-              text-slate-600 bg-white/50
-              border border-slate-200/50 rounded-xl
-              hover:bg-slate-50 active:scale-95
-              transition-all duration-200
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400
-            "
-          >
-            <Share2 size={15} className="sm:hidden" />
-            <Share2 size={16} className="hidden sm:block" />
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[#e8dfd3] bg-white text-[#5a4a3a] text-xs font-medium hover:border-[#5c1a1a]/40 hover:text-[#5c1a1a] transition-colors">
+            <Share2 size={14} strokeWidth={1.8} />
             <span>Share</span>
           </button>
         </div>

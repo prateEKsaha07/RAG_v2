@@ -21,7 +21,7 @@ import {
   Clock,
 } from "lucide-react";
 
-/* ---------- Reusable full-screen section wrapper ---------- */
+/* ---------- Full-screen section wrapper ---------- */
 const FullScreenSection = ({
   id,
   children,
@@ -32,15 +32,14 @@ const FullScreenSection = ({
   return (
     <section
       id={id}
-      className={`relative min-h-screen w-full flex items-center justify-center
-                  px-6 py-20 overflow-hidden ${className}`}
+      className={`relative min-h-screen w-full flex items-center justify-center px-6 py-20 overflow-hidden ${className}`}
       style={{ backgroundColor: bg }}
     >
       <motion.div
-        initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 40 }}
+        initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.25 }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="w-full flex items-center justify-center"
       >
         {children}
@@ -49,13 +48,8 @@ const FullScreenSection = ({
   );
 };
 
-/* ---------- Typewriter for "RAG_V2" ---------- */
-function Typewriter({
-  text = "RAG_V2",
-  speed = 90,
-  delay = 400,
-  reduceMotion = false,
-}) {
+/* ---------- Typewriter ---------- */
+function Typewriter({ text = "RAG_V2", speed = 90, delay = 400, reduceMotion = false }) {
   const [displayed, setDisplayed] = useState(reduceMotion ? text : "");
   const [done, setDone] = useState(reduceMotion);
 
@@ -89,15 +83,10 @@ function Typewriter({
   }, [text, speed, delay, reduceMotion]);
 
   return (
-    <span className="inline-flex items-baseline">
-      <span className="bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-        {displayed}
-      </span>
-      {/* Blinking cursor — hides after typing completes */}
+    <span className="inline-flex items-baseline text-[#5c1a1a]">
+      <span>{displayed}</span>
       {!done && (
-        <span className="inline-block w-[3px] h-[0.9em] ml-1 align-baseline
-                         bg-gradient-to-b from-rose-500 to-amber-500
-                         animate-caret" />
+        <span className="inline-block w-[3px] h-[0.9em] ml-1 align-baseline bg-[#5c1a1a] animate-caret" />
       )}
     </span>
   );
@@ -108,57 +97,14 @@ function LandingPage({ onGetStarted, onHome }) {
   const [activeSection, setActiveSection] = useState("home");
 
   const features = [
-    {
-      icon: Upload,
-      title: "Smart Notes Upload",
-      desc: "Upload markdown notes and turn them into AI searchable knowledge.",
-      color: "from-rose-500 to-amber-500",
-      iconBg: "from-rose-100 to-amber-100",
-      iconColor: "text-rose-600",
-    },
-    {
-      icon: MessageCircle,
-      title: "AI Chat Assistant",
-      desc: "Ask anything from your notes and get instant answers.",
-      color: "from-blue-500 to-cyan-500",
-      iconBg: "from-blue-100 to-cyan-100",
-      iconColor: "text-blue-600",
-    },
-    {
-      icon: Brain,
-      title: "Quiz Generator",
-      desc: "Auto-generate MCQs from your study topics.",
-      color: "from-purple-500 to-pink-500",
-      iconBg: "from-purple-100 to-pink-100",
-      iconColor: "text-purple-600",
-    },
-    {
-      icon: BarChart3,
-      title: "Performance Analytics",
-      desc: "Identify weak areas with AI-powered insights.",
-      color: "from-orange-500 to-rose-500",
-      iconBg: "from-orange-100 to-rose-100",
-      iconColor: "text-orange-600",
-    },
-    {
-      icon: Target,
-      title: "Smart Roadmaps",
-      desc: "Get personalized study roadmaps for your goals.",
-      color: "from-emerald-500 to-teal-500",
-      iconBg: "from-emerald-100 to-teal-100",
-      iconColor: "text-emerald-600",
-    },
-    {
-      icon: TrendingUp,
-      title: "Progress Tracking",
-      desc: "Track your learning with detailed analytics.",
-      color: "from-indigo-500 to-purple-500",
-      iconBg: "from-indigo-100 to-purple-100",
-      iconColor: "text-indigo-600",
-    },
+    { icon: Upload,         title: "Smart Notes Upload",      desc: "Upload markdown notes and turn them into AI searchable knowledge." },
+    { icon: MessageCircle,  title: "AI Chat Assistant",       desc: "Ask anything from your notes and get instant answers." },
+    { icon: Brain,          title: "Quiz Generator",          desc: "Auto-generate MCQs from your study topics." },
+    { icon: BarChart3,      title: "Performance Analytics",   desc: "Identify weak areas with AI-powered insights." },
+    { icon: Target,         title: "Smart Roadmaps",          desc: "Get personalized study roadmaps for your goals." },
+    { icon: TrendingUp,     title: "Progress Tracking",       desc: "Track your learning with detailed analytics." },
   ];
 
-  /* Track active section for dot navigation */
   useEffect(() => {
     const sections = ["home", "features", "about", "contact", "cta"];
     const observers = [];
@@ -188,86 +134,63 @@ function LandingPage({ onGetStarted, onHome }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50/90 via-amber-50/70 to-orange-50/50 text-gray-800 overflow-x-hidden relative">
-      {/* Decorative glows */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute w-[500px] h-[500px] bg-rose-300/20 blur-[120px] rounded-full top-[-100px] left-[-100px]" />
-        <div className="absolute w-[500px] h-[500px] bg-amber-300/20 blur-[120px] rounded-full bottom-[-120px] right-[-100px]" />
-        <div className="absolute w-[400px] h-[400px] bg-orange-200/15 blur-[100px] rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-      </div>
+    <div className="min-h-screen bg-[#f7f3ee] text-[#2a1f14] overflow-x-hidden relative">
 
       {/* NAVBAR */}
-      <Navbar
-        onHome={onHome}
-        onGetStarted={onGetStarted}
-        showGetStarted={true}
-      />
+      <Navbar onHome={onHome} onGetStarted={onGetStarted} showGetStarted={true} />
       <NoticePopup />
 
-      {/* ================= HERO (full screen) ================= */}
+      {/* ================= HERO ================= */}
       <FullScreenSection id="home" reduceMotion={reduceMotion}>
-        <div className="relative z-10 flex flex-col items-center text-center max-w-4xl mx-auto">
+        <div className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto">
+
           <motion.div
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.5 }}
-            className="px-5 py-1.5 rounded-full bg-gradient-to-r from-rose-100/80 to-amber-100/80
-                       backdrop-blur-sm border border-rose-200/30 text-xs mb-6
-                       text-rose-700 font-medium shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#e8dfd3] bg-white text-[11px] uppercase tracking-[0.12em] text-[#5a4a3a] mb-8"
           >
-            <Sparkles className="inline w-3.5 h-3.5 mr-2" />
+            <Sparkles size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
             AI Powered Study Assistant
           </motion.div>
 
           <motion.h1
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.6 }}
-            className="text-4xl md:text-6xl font-bold leading-tight text-gray-800"
+            className="text-4xl md:text-6xl font-bold leading-tight text-[#2a1f14]"
           >
             Learn Smarter with{" "}
-            <Typewriter
-              text="RAG_V2"
-              speed={90}
-              delay={700}
-              reduceMotion={reduceMotion}
-            />
+            <Typewriter text="RAG_V2" speed={90} delay={700} reduceMotion={reduceMotion} />
           </motion.h1>
 
           <motion.p
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.6 }}
-            className="mt-6 text-gray-500 max-w-2xl text-base"
+            className="mt-6 text-[#6a5a48] max-w-2xl text-base leading-relaxed"
           >
-            Upload your notes, ask questions, generate quizzes, and track your
-            learning — all powered by Retrieval-Augmented AI.
+            Upload your notes, ask questions, generate quizzes, and track your learning —
+            all powered by Retrieval-Augmented AI.
           </motion.p>
 
           <motion.div
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.6 }}
-            className="flex flex-wrap justify-center gap-4 mt-10"
+            className="flex flex-wrap justify-center gap-3 mt-10"
           >
             <button
               onClick={onGetStarted}
-              className="px-7 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500
-                         hover:from-rose-600 hover:to-amber-600 text-white text-sm
-                         font-medium transition-all duration-300
-                         shadow-lg shadow-rose-200/50 hover:shadow-xl
-                         hover:shadow-rose-300/50 hover:scale-[1.02]
-                         flex items-center gap-2"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
             >
               Start Learning
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight size={15} strokeWidth={1.8} />
             </button>
 
             <button
               onClick={() => scrollToSection("features")}
-              className="px-7 py-3 rounded-xl border border-rose-200/50 text-sm
-                         text-gray-600 hover:bg-white/50 transition-all duration-300
-                         hover:shadow-lg hover:scale-[1.02] backdrop-blur-sm"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-md border border-[#e8dfd3] bg-white text-[#2a1f14] text-sm font-medium hover:bg-[#faf7f3] transition-colors"
             >
               Explore Features
             </button>
@@ -275,168 +198,126 @@ function LandingPage({ onGetStarted, onHome }) {
         </div>
       </FullScreenSection>
 
-      {/* ================= CAROUSEL (full screen) ================= */}
+      {/* ================= CAROUSEL ================= */}
       <FullScreenSection id="features" reduceMotion={reduceMotion}>
         <div className="w-full max-w-6xl">
           <FeatureCarousel />
         </div>
       </FullScreenSection>
 
-      {/* ================= FEATURES GRID (full screen) ================= */}
+      {/* ================= FEATURES GRID ================= */}
       <FullScreenSection reduceMotion={reduceMotion}>
         <div className="w-full max-w-6xl">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
-                            bg-gradient-to-r from-rose-100/80 to-amber-100/80
-                            backdrop-blur-sm border border-rose-200/30
-                            text-rose-700 text-xs font-medium mb-4">
-              <Sparkles className="w-3.5 h-3.5" />
+            <p className="text-[11px] tracking-[0.14em] uppercase text-[#8a7965] mb-2">
               Features
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-              Everything You Need to{" "}
-              <span className="bg-gradient-to-r from-rose-600 to-amber-600
-                               bg-clip-text text-transparent">
-                Study Smarter
-              </span>
+            </p>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#2a1f14]">
+              Everything You Need to Study Smarter
             </h2>
-            <p className="text-gray-500 mt-2 text-xs max-w-2xl mx-auto">
+            <p className="text-[#6a5a48] mt-3 text-sm max-w-2xl mx-auto">
               AI-powered tools designed to enhance your learning experience.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{
-                  delay: index * 0.06,
-                  duration: 0.5,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="group relative rounded-xl p-5 bg-white/70 backdrop-blur-sm
-                           border border-rose-200/20 hover:-translate-y-1
-                           transition-all duration-300 hover:shadow-lg
-                           hover:shadow-rose-100/20"
-              >
-                <div
-                  className={`absolute inset-0 rounded-xl opacity-0
-                              group-hover:opacity-100 bg-gradient-to-br
-                              ${feature.color}/10 blur-xl
-                              transition-all duration-500`}
-                />
-
-                <div className="relative z-10">
-                  <div
-                    className={`w-9 h-9 rounded-lg bg-gradient-to-br ${feature.iconBg}
-                                flex items-center justify-center mb-3
-                                group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <feature.icon className={`w-4 h-4 ${feature.iconColor}`} />
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ delay: index * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  className="group bg-white border border-[#e8dfd3] rounded-lg p-5 hover:border-[#5c1a1a]/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                      <Icon size={17} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                    </div>
+                    <h3 className="text-[15px] font-semibold text-[#2a1f14]">
+                      {feature.title}
+                    </h3>
                   </div>
-
-                  <h3 className="text-xs font-semibold text-gray-800 mb-1">
-                    {feature.title}
-                  </h3>
-
-                  <p className="text-[11px] text-gray-500 leading-relaxed">
+                  <p className="text-xs text-[#8a7965] leading-relaxed">
                     {feature.desc}
                   </p>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                            bg-white/60 backdrop-blur-sm border border-rose-200/30
-                            text-gray-600 text-[11px]">
-              <Award className="w-3.5 h-3.5 text-rose-500" />
-              <span>AI-Powered</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                            bg-white/60 backdrop-blur-sm border border-amber-200/30
-                            text-gray-600 text-[11px]">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
-              <span>Real-time</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                            bg-white/60 backdrop-blur-sm border border-emerald-200/30
-                            text-gray-600 text-[11px]">
-              <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Student-Friendly</span>
-            </div>
+            {[
+              { icon: Award, label: "AI-Powered" },
+              { icon: Clock, label: "Real-time" },
+              { icon: GraduationCap, label: "Student-Friendly" },
+            ].map((badge) => {
+              const Icon = badge.icon;
+              return (
+                <div
+                  key={badge.label}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#e8dfd3] bg-white text-[11px] uppercase tracking-[0.08em] text-[#5a4a3a]"
+                >
+                  <Icon size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                  {badge.label}
+                </div>
+              );
+            })}
           </div>
         </div>
       </FullScreenSection>
 
-      {/* ================= ABOUT (full screen) ================= */}
+      {/* ================= ABOUT ================= */}
       <FullScreenSection id="about" reduceMotion={reduceMotion}>
         <div className="w-full max-w-6xl">
           <About />
         </div>
       </FullScreenSection>
 
-      {/* ================= CONTACT (full screen) ================= */}
+      {/* ================= CONTACT ================= */}
       <FullScreenSection id="contact" reduceMotion={reduceMotion}>
         <div className="w-full max-w-6xl">
           <AboutContact />
         </div>
       </FullScreenSection>
 
-      {/* ================= CTA (full screen) ================= */}
+      {/* ================= CTA ================= */}
       <FullScreenSection id="cta" reduceMotion={reduceMotion}>
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
-                          bg-gradient-to-r from-rose-100/80 to-amber-100/80
-                          backdrop-blur-sm border border-rose-200/30
-                          text-rose-700 text-xs font-medium mb-6">
-            <Rocket className="w-3.5 h-3.5" />
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-[11px] tracking-[0.14em] uppercase text-[#8a7965] mb-3">
             Get Started Today
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-            Start Your{" "}
-            <span className="bg-gradient-to-r from-rose-600 to-amber-600
-                             bg-clip-text text-transparent">
-              AI Learning
-            </span>{" "}
-            Journey
+          </p>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#2a1f14]">
+            Start Your AI Learning Journey
           </h2>
-          <p className="text-gray-500 mt-3 text-base">
+          <p className="text-[#6a5a48] mt-4 text-base leading-relaxed">
             Smarter learning starts here. Join thousands of students using RAG_V2.
           </p>
 
           <button
             onClick={onGetStarted}
-            className="mt-8 px-9 py-3 bg-gradient-to-r from-rose-500 to-amber-500
-                       hover:from-rose-600 hover:to-amber-600 text-white text-sm
-                       rounded-xl font-medium transition-all duration-300
-                       shadow-lg shadow-rose-200/50 hover:shadow-xl
-                       hover:shadow-rose-300/50 hover:scale-[1.02]
-                       flex items-center gap-2 mx-auto"
+            className="mt-8 inline-flex items-center gap-2 px-7 py-3 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
           >
             Get Started
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight size={15} strokeWidth={1.8} />
           </button>
 
-          <p className="text-[11px] text-gray-400 mt-4">
-            <GraduationCap className="inline w-3 h-3 mr-1" />
+          <p className="text-[11px] text-[#8a7965] mt-5 inline-flex items-center gap-1.5">
+            <GraduationCap size={12} strokeWidth={1.8} />
             Trusted by students worldwide
           </p>
         </div>
       </FullScreenSection>
 
-      {/* ================= FOOTER (own section) ================= */}
+      {/* ================= FOOTER ================= */}
       <Footer />
 
       {/* ================= SIDE DOT NAVIGATION ================= */}
       <nav
         aria-label="Section navigation"
-        className="hidden md:flex fixed right-6 top-1/2 -translate-y-1/2 z-40
-                   flex-col gap-3"
+        className="hidden md:flex fixed right-6 top-1/2 -translate-y-1/2 z-40 flex-col gap-3"
       >
         {[
           { id: "home", label: "Home" },
@@ -451,17 +332,14 @@ function LandingPage({ onGetStarted, onHome }) {
             className="group flex items-center gap-2 justify-end"
             aria-label={`Scroll to ${item.label}`}
           >
-            <span
-              className="text-[10px] font-medium opacity-0 group-hover:opacity-100
-                         transition-opacity text-rose-600 whitespace-nowrap"
-            >
+            <span className="text-[10px] uppercase tracking-[0.12em] font-medium opacity-0 group-hover:opacity-100 transition-opacity text-[#5c1a1a] whitespace-nowrap">
               {item.label}
             </span>
             <span
               className={`block rounded-full transition-all duration-300 ${
                 activeSection === item.id
-                  ? "w-2.5 h-2.5 bg-rose-500 shadow-md shadow-rose-200/50"
-                  : "w-1.5 h-1.5 bg-rose-300/60 group-hover:bg-rose-400"
+                  ? "w-2.5 h-2.5 bg-[#5c1a1a]"
+                  : "w-1.5 h-1.5 bg-[#c9bda9] group-hover:bg-[#8a7965]"
               }`}
             />
           </button>

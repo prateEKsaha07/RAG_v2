@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
 import Footer from "../common/Footer"
 import {
     getRoadmap,
@@ -7,31 +6,33 @@ import {
     extendRoadmap,
 } from "../../api/roadmapApi";
 import { getRoadmapStats } from "../../utils/roadmapStats";
-import DashboardNav from "../dashboard/DashboardNav";
+import ModuleNav from "../common/ModuleNav";
 import {
     Map,
     Calendar,
     Clock,
     CheckCircle,
     AlertCircle,
-    Target,
     BookOpen,
-    TrendingUp,
-    TrendingDown,
-    Zap,
-    Sparkles,
-    ArrowLeft,
-    CalendarDays,
-    BarChart3,
     Loader,
     ChevronRight,
-    Award,
     Flag,
-    Plus,
-    X
+    CalendarDays,
+    X,
+    BarChart3,
+    Target,
 } from "lucide-react"
 
-function RoadmapScreen({ subject, onBack, onLogout, user }) {
+function RoadmapScreen({
+    subject,
+    onBack,
+    onLogout,
+    user,
+    onStudy,
+    onUpload,
+    onNotes,
+    onAnalyticsV2,
+}) {
     const [roadmap, setRoadmap] = useState(null)
     const [loading, setLoading] = useState(true)
     const [extending, setExtending] = useState(false)
@@ -61,7 +62,7 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
         try {
             await completeTopic(subject, week, topicName)
             await fetchRoadmap()
-            setMessage(`✅ "${topicName}" marked complete!`)
+            setMessage(`"${topicName}" marked complete`)
             setMessageType("success")
             setTimeout(() => setMessage(""), 3000)
         } catch {
@@ -71,13 +72,12 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
     }
 
     const handleExtendDate = async () => {
-        const token = localStorage.getItem("access_token")
         if (!newTargetDate) return
         try {
             await extendRoadmap(subject, newTargetDate)
             setExtending(false)
             await fetchRoadmap()
-            setMessage("✅ Target date extended!")
+            setMessage("Target date extended")
             setMessageType("success")
             setTimeout(() => setMessage(""), 3000)
         } catch {
@@ -86,42 +86,37 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
         }
     }
 
-    // Calculate stats
     const stats = getRoadmapStats(roadmap)
 
     const paceConfig = {
-        ahead: { label: "Ahead of schedule!", color: "text-emerald-600", icon: TrendingUp, bg: "bg-emerald-50" },
-        on_track: { label: "On track!", color: "text-blue-600", icon: Target, bg: "bg-blue-50" },
-        behind: { label: "Behind schedule", color: "text-rose-600", icon: TrendingDown, bg: "bg-rose-50" }
+        ahead: { label: "Ahead of schedule", icon: Target },
+        on_track: { label: "On track", icon: Target },
+        behind: { label: "Behind schedule", icon: Target },
     }
-
     const pace = paceConfig[stats.pace] || paceConfig.on_track
 
     if (loading) return (
-        <div className="min-h-screen bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-orange-50/40 flex items-center justify-center">
+        <div className="min-h-screen bg-[#f7f3ee] flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
-                <div className="relative">
-                    <div className="w-16 h-16 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <Map className="w-6 h-6 text-rose-500 animate-pulse" />
-                    </div>
-                </div>
-                <p className="text-rose-600 font-medium">Loading your roadmap...</p>
+                <div className="w-10 h-10 border-2 border-[#e8dfd3] border-t-[#5c1a1a] rounded-full animate-spin" />
+                <p className="text-sm text-[#8a7965]">Loading your roadmap...</p>
             </div>
         </div>
     )
 
     if (!roadmap || roadmap.error) return (
-        <div className="min-h-screen bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-orange-50/40 flex items-center justify-center p-4">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full text-center border border-rose-200/30 shadow-lg">
-                <div className="p-4 bg-amber-100 rounded-full mx-auto w-16 h-16 flex items-center justify-center mb-4">
-                    <AlertCircle className="w-8 h-8 text-amber-600" />
+        <div className="min-h-screen bg-[#f7f3ee] flex items-center justify-center p-4">
+            <div className="bg-white border border-[#e8dfd3] rounded-lg p-8 max-w-md w-full text-center">
+                <div className="w-12 h-12 rounded-md border border-[#e8dfd3] bg-[#faf7f3] mx-auto flex items-center justify-center mb-4">
+                    <AlertCircle size={20} strokeWidth={1.8} className="text-[#5c1a1a]" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">No Roadmap Found</h3>
-                <p className="text-gray-500 mb-4">No roadmap found for {subject}</p>
+                <h3 className="text-lg font-semibold text-[#2a1f14] mb-2">No Roadmap Found</h3>
+                <p className="text-sm text-[#8a7965] mb-6">
+                    No roadmap found for {subject}
+                </p>
                 <button
                     onClick={onBack}
-                    className="px-6 py-2.5 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
+                    className="px-5 py-2.5 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
                 >
                     Go Back
                 </button>
@@ -130,177 +125,135 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
     )
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-orange-50/40">
-            
-            {/* Decorative warm elements */}
-            <div className="fixed top-0 right-0 w-96 h-96 bg-rose-200/20 rounded-full blur-3xl -z-10" />
-            <div className="fixed bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl -z-10" />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-100/10 rounded-full blur-3xl -z-10" />
+        <div className="min-h-screen bg-[#f7f3ee] text-[#2a1f14]">
 
-            <DashboardNav
+            <ModuleNav
                 active="roadmap"
                 onDashboard={onBack}
-                onUpload={() => {}}
-                onNotes={() => {}}
-                onQuiz={() => {}}
+                onStudy={onStudy}
+                onUpload={onUpload}
+                onNotes={onNotes}
                 onRoadmap={() => {}}
-                onAnalytics={() => {}}
-                onAnalyticsV2={() => {}}
+                onAnalyticsV2={onAnalyticsV2}
                 onLogout={onLogout}
-                onStudy={() => {}}
+                user={user}
             />
 
-            <main className="max-w-5xl mx-auto px-6 lg:px-8 py-10 relative">
-                
+            <main className="max-w-5xl mx-auto px-6 lg:px-8 py-10 space-y-8">
+
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 animate-fadeUp">
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-3 bg-gradient-to-br from-rose-100 to-amber-100 rounded-2xl">
-                                <Map className="w-7 h-7 text-rose-600" />
-                            </div>
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-                                Study Roadmap
-                            </h1>
-                        </div>
-                        <p className="text-rose-500/80 flex items-center gap-2">
-                            <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                            {subject} • {roadmap.scope === "full" ? "Full Syllabus" : `Unit ${roadmap.unit_number}`}
+                        <p className="text-[11px] tracking-[0.14em] uppercase text-[#8a7965] mb-1.5">
+                            Study Roadmap
+                        </p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-[#2a1f14] mb-1.5">
+                            Study Roadmap
+                        </h1>
+                        <p className="text-sm text-[#8a7965]">
+                            {subject} · {roadmap.scope === "full" ? "Full Syllabus" : `Unit ${roadmap.unit_number}`}
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
                         {message && (
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
-                                messageType === "success" 
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                            <div className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs border ${
+                                messageType === "success"
+                                    ? "bg-[#faf7f3] text-[#5c1a1a] border-[#e8dfd3]"
                                     : messageType === "error"
-                                    ? "bg-red-50 text-red-700 border border-red-200"
-                                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                                    ? "bg-[#faf0f0] text-[#7a2a2a] border-[#dcc9c9]"
+                                    : "bg-[#faf7f3] text-[#5a4a3a] border-[#e8dfd3]"
                             }`}>
-                                {messageType === "success" ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                {messageType === "success" ? (
+                                    <CheckCircle size={12} strokeWidth={1.8} />
+                                ) : (
+                                    <AlertCircle size={12} strokeWidth={1.8} />
+                                )}
                                 {message}
                             </div>
                         )}
-                        
+
                         <button
                             onClick={() => setExtending(!extending)}
-                            className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-orange-200/50 flex items-center gap-2"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
                         >
-                            <Calendar className="w-4 h-4" />
+                            <Calendar size={14} strokeWidth={1.8} />
                             Extend Date
                         </button>
                     </div>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-fadeUp">
-                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-rose-200/30 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">Progress</p>
-                                <p className="text-2xl font-bold text-rose-600 mt-1">{stats.progress}%</p>
+                {/* Stats */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                        { label: "Progress", value: `${stats.progress}%`, icon: BarChart3 },
+                        { label: "Days Left", value: stats.daysLeft, icon: Clock },
+                        { label: "Topics Done", value: stats.completed, icon: CheckCircle },
+                        { label: "Total Topics", value: stats.total, icon: BookOpen },
+                    ].map((stat) => {
+                        const Icon = stat.icon;
+                        return (
+                            <div key={stat.label} className="bg-white border border-[#e8dfd3] rounded-lg p-5">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <p className="text-[11px] tracking-[0.12em] uppercase text-[#8a7965]">
+                                            {stat.label}
+                                        </p>
+                                        <p className="text-2xl font-bold text-[#2a1f14] mt-2 tabular-nums">
+                                            {stat.value}
+                                        </p>
+                                    </div>
+                                    <div className="w-9 h-9 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
+                                        <Icon size={16} strokeWidth={1.8} className="text-[#5c1a1a]" />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="p-3 bg-rose-100 rounded-xl">
-                                <BarChart3 className="w-6 h-6 text-rose-600" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-amber-200/30 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">Days Left</p>
-                                <p className="text-2xl font-bold text-amber-600 mt-1">{stats.daysLeft}</p>
-                            </div>
-                            <div className="p-3 bg-amber-100 rounded-xl">
-                                <Clock className="w-6 h-6 text-amber-600" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-emerald-200/30 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">Topics Done</p>
-                                <p className="text-2xl font-bold text-emerald-600 mt-1">{stats.completed}</p>
-                            </div>
-                            <div className="p-3 bg-emerald-100 rounded-xl">
-                                <CheckCircle className="w-6 h-6 text-emerald-600" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-orange-200/30 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">Total Topics</p>
-                                <p className="text-2xl font-bold text-orange-600 mt-1">{stats.total}</p>
-                            </div>
-                            <div className="p-3 bg-orange-100 rounded-xl">
-                                <BookOpen className="w-6 h-6 text-orange-600" />
-                            </div>
-                        </div>
-                    </div>
+                        );
+                    })}
                 </div>
 
-                {/* Pace Indicator */}
-                <div className={`${pace.bg} backdrop-blur-sm rounded-2xl border p-6 mb-8 animate-fadeUp ${
-                    stats.pace === 'ahead' ? 'border-emerald-200/50' :
-                    stats.pace === 'behind' ? 'border-rose-200/50' :
-                    'border-blue-200/50'
-                }`}>
-                    <div className="flex items-center justify-between mb-2">
+                {/* Pace indicator */}
+                <div className="bg-white border border-[#e8dfd3] rounded-lg p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                         <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-xl ${
-                                stats.pace === 'ahead' ? 'bg-emerald-100' :
-                                stats.pace === 'behind' ? 'bg-rose-100' :
-                                'bg-blue-100'
-                            }`}>
-                                <pace.icon className={`w-5 h-5 ${
-                                    stats.pace === 'ahead' ? 'text-emerald-600' :
-                                    stats.pace === 'behind' ? 'text-rose-600' :
-                                    'text-blue-600'
-                                }`} />
+                            <div className="w-8 h-8 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center">
+                                <pace.icon size={14} strokeWidth={1.8} className="text-[#5c1a1a]" />
                             </div>
-                            <p className={`font-semibold ${pace.color}`}>
+                            <p className="font-semibold text-[#2a1f14] text-sm">
                                 {pace.label}
                             </p>
                         </div>
-                        <p className="text-xs text-gray-400">
-                            Target: {roadmap.target_date} • {roadmap.hours_per_day}h/day
+                        <p className="text-[11px] text-[#8a7965]">
+                            Target: {roadmap.target_date} · {roadmap.hours_per_day}h/day
                         </p>
                     </div>
-                    <div className="w-full bg-gray-200/50 rounded-full h-2.5">
+                    <div className="w-full bg-[#f0e9e0] rounded-full h-1.5 overflow-hidden">
                         <div
-                            className={`h-2.5 rounded-full transition-all duration-500 ${
-                                stats.pace === 'ahead' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
-                                stats.pace === 'behind' ? 'bg-gradient-to-r from-rose-500 to-orange-500' :
-                                'bg-gradient-to-r from-blue-500 to-cyan-500'
-                            }`}
+                            className="h-full rounded-full bg-[#5c1a1a] transition-all duration-500"
                             style={{ width: `${stats.progress}%` }}
                         />
                     </div>
                 </div>
 
-                {/* Extend Date Form */}
+                {/* Extend date form */}
                 {extending && (
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-orange-200/30 p-6 mb-8 animate-fadeUp shadow-lg shadow-orange-100/20">
+                    <div className="bg-white border border-[#e8dfd3] rounded-lg p-6">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-orange-100 rounded-xl">
-                                <CalendarDays className="w-5 h-5 text-orange-600" />
+                            <div className="w-8 h-8 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center">
+                                <CalendarDays size={14} strokeWidth={1.8} className="text-[#5c1a1a]" />
                             </div>
-                            <h3 className="font-bold text-gray-800">Extend Target Date</h3>
+                            <h3 className="font-semibold text-[#2a1f14] text-sm">Extend Target Date</h3>
                             <button
                                 onClick={() => setExtending(false)}
-                                className="ml-auto p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                                aria-label="Close"
+                                className="ml-auto w-8 h-8 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center text-[#8a7965] hover:text-[#5c1a1a] transition-colors"
                             >
-                                <X className="w-5 h-5 text-gray-500" />
+                                <X size={14} strokeWidth={1.8} />
                             </button>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-[11px] tracking-[0.12em] uppercase text-[#8a7965] mb-2">
                                     New Target Date
                                 </label>
                                 <input
@@ -308,19 +261,19 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
                                     value={newTargetDate}
                                     onChange={(e) => setNewTargetDate(e.target.value)}
                                     min={new Date().toISOString().split("T")[0]}
-                                    className="w-full border border-orange-200/50 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-transparent transition-all duration-200 bg-white/50"
+                                    className="w-full bg-[#faf7f3] border border-[#e8dfd3] rounded-md p-2.5 text-sm text-[#2a1f14] focus:outline-none focus:border-[#5c1a1a] transition-colors"
                                 />
                             </div>
                             <div className="flex gap-2 self-end">
                                 <button
                                     onClick={handleExtendDate}
-                                    className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-6 py-2.5 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-orange-200/50"
+                                    className="px-5 py-2.5 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
                                 >
                                     Update
                                 </button>
                                 <button
                                     onClick={() => setExtending(false)}
-                                    className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-2.5 rounded-xl font-medium transition-all duration-200"
+                                    className="px-5 py-2.5 rounded-md border border-[#e8dfd3] bg-white text-[#5a4a3a] text-sm font-medium hover:border-[#5c1a1a]/40 transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -329,24 +282,27 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
                     </div>
                 )}
 
-                {/* Weak Topics Banner */}
+                {/* Weak topics */}
                 {roadmap.weak_topics?.length > 0 && (
-                    <div className="bg-gradient-to-r from-rose-50/80 to-orange-50/80 backdrop-blur-sm rounded-2xl border border-rose-200/30 p-6 mb-8 animate-fadeUp">
-                        <div className="flex items-center gap-2 mb-3">
-                            <div className="p-2 bg-rose-100 rounded-lg">
-                                <AlertCircle className="w-5 h-5 text-rose-600" />
+                    <div className="bg-white border border-[#e8dfd3] rounded-lg p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center">
+                                <AlertCircle size={14} strokeWidth={1.8} className="text-[#5c1a1a]" />
                             </div>
-                            <h3 className="font-bold text-gray-800">Focus Areas (Weak Topics)</h3>
-                            <span className="ml-auto text-xs bg-rose-100 text-rose-700 px-2.5 py-0.5 rounded-full font-medium">
+                            <h3 className="font-semibold text-[#2a1f14] text-sm">
+                                Focus Areas (Weak Topics)
+                            </h3>
+                            <span className="ml-auto text-[10px] tracking-[0.1em] uppercase text-[#8a7965] border border-[#e8dfd3] bg-[#faf7f3] px-2.5 py-1 rounded-full">
                                 {roadmap.weak_topics.length} topics
                             </span>
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5">
                             {roadmap.weak_topics.map((topic, i) => (
-                                <span key={i}
-                                    className="bg-rose-200/50 text-rose-900 px-4 py-2 rounded-xl text-sm font-medium border border-rose-300/30 flex items-center gap-2"
+                                <span
+                                    key={i}
+                                    className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-full border border-[#e8dfd3] bg-[#faf7f3] text-[#5a4a3a] font-medium"
                                 >
-                                    <AlertCircle className="w-3.5 h-3.5" />
+                                    <AlertCircle size={10} strokeWidth={1.8} className="text-[#5c1a1a]" />
                                     {topic}
                                 </span>
                             ))}
@@ -354,14 +310,16 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
                     </div>
                 )}
 
-                {/* Weekly Plan */}
-                <div className="animate-fadeUp">
+                {/* Weekly plan */}
+                <div>
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl">
-                            <Calendar className="w-5 h-5 text-amber-600" />
+                        <div className="w-8 h-8 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center">
+                            <Calendar size={14} strokeWidth={1.8} className="text-[#5c1a1a]" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-800">Weekly Plan</h3>
-                        <span className="ml-auto text-sm text-gray-400">{roadmap.weeks?.length} weeks</span>
+                        <h3 className="text-lg font-semibold text-[#2a1f14]">Weekly Plan</h3>
+                        <span className="ml-auto text-xs text-[#8a7965]">
+                            {roadmap.weeks?.length} weeks
+                        </span>
                     </div>
 
                     <div className="space-y-4">
@@ -371,88 +329,85 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
                             const weekProgress = Math.round((completedTopics / totalTopics) * 100)
 
                             return (
-                                <div key={wi} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-rose-200/20 border border-rose-200/30 overflow-hidden">
-                                    {/* Week Header */}
-                                    <div className="bg-gradient-to-r from-rose-500 to-amber-500 text-white px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div key={wi} className="bg-white border border-[#e8dfd3] rounded-lg overflow-hidden">
+
+                                    {/* Week header */}
+                                    <div className="bg-[#faf7f3] border-b border-[#e8dfd3] px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-1.5 bg-white/20 rounded-lg">
-                                                <Flag className="w-4 h-4" />
+                                            <div className="w-7 h-7 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center">
+                                                <Flag size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
                                             </div>
-                                            <span className="font-bold text-lg">Week {week.week}</span>
+                                            <span className="font-semibold text-[#2a1f14]">Week {week.week}</span>
                                             {weekProgress === 100 && (
-                                                <span className="bg-white/20 text-white text-xs px-2.5 py-0.5 rounded-full font-medium">
-                                                    Complete 🎉
+                                                <span className="text-[10px] tracking-[0.1em] uppercase text-[#5c1a1a] border border-[#e8dfd3] bg-white px-2.5 py-0.5 rounded-full">
+                                                    Complete
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-3 text-sm text-white/80">
+                                        <div className="flex items-center gap-2 text-xs text-[#8a7965]">
                                             <span>{week.start_date}</span>
-                                            <ChevronRight className="w-4 h-4" />
+                                            <ChevronRight size={12} strokeWidth={1.8} />
                                             <span>{week.end_date}</span>
-                                            <span className="ml-2 bg-white/20 px-2.5 py-0.5 rounded-full text-xs">
+                                            <span className="ml-2 text-[10px] tracking-[0.08em] uppercase text-[#5c1a1a] border border-[#e8dfd3] bg-white px-2 py-0.5 rounded-full">
                                                 {weekProgress}%
                                             </span>
                                         </div>
                                     </div>
 
-                                    {/* Week Progress Bar */}
+                                    {/* Week progress */}
                                     <div className="px-6 pt-3">
-                                        <div className="w-full bg-gray-100 rounded-full h-1.5">
+                                        <div className="w-full bg-[#f0e9e0] rounded-full h-1.5 overflow-hidden">
                                             <div
-                                                className="h-1.5 rounded-full bg-gradient-to-r from-rose-400 to-amber-400 transition-all duration-500"
+                                                className="h-full rounded-full bg-[#5c1a1a] transition-all duration-500"
                                                 style={{ width: `${weekProgress}%` }}
                                             />
                                         </div>
                                     </div>
 
                                     {/* Topics */}
-                                    <div className="divide-y divide-rose-200/20">
+                                    <div className="divide-y divide-[#e8dfd3]">
                                         {week.topics.map((item, ti) => (
-                                            <div key={ti}
-                                                className={`px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors duration-200 ${
-                                                    item.topic.status === "completed" 
-                                                        ? "bg-emerald-50/50 hover:bg-emerald-50" 
-                                                        : "hover:bg-rose-50/30"
-                                                }`}
+                                            <div
+                                                key={ti}
+                                                className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                                             >
-                                                <div className="flex-1">
-                                                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                        <span className={`font-medium ${
-                                                            item.topic.status === "completed" 
-                                                                ? "text-gray-500 line-through" 
-                                                                : "text-gray-800"
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                                        <span className={`text-sm font-medium ${
+                                                            item.topic.status === "completed"
+                                                                ? "text-[#a89880] line-through"
+                                                                : "text-[#2a1f14]"
                                                         }`}>
                                                             {item.topic.name}
                                                         </span>
                                                         {item.topic.is_weak && (
-                                                            <span className="bg-rose-100 text-rose-700 text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
-                                                                <AlertCircle className="w-3 h-3" />
+                                                            <span className="text-[10px] tracking-[0.08em] uppercase px-2 py-0.5 rounded-full border border-[#e8dfd3] bg-[#faf7f3] text-[#5a4a3a] font-medium">
                                                                 weak
                                                             </span>
                                                         )}
                                                         {item.topic.status === "completed" && (
-                                                            <span className="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
-                                                                <CheckCircle className="w-3 h-3" />
+                                                            <span className="text-[10px] tracking-[0.08em] uppercase px-2 py-0.5 rounded-full border border-[#e8dfd3] bg-[#faf7f3] text-[#5c1a1a] font-medium inline-flex items-center gap-1">
+                                                                <CheckCircle size={9} strokeWidth={2} />
                                                                 done
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+                                                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#8a7965]">
                                                         <span className="flex items-center gap-1">
-                                                            <BookOpen className="w-3 h-3" />
+                                                            <BookOpen size={10} strokeWidth={1.8} />
                                                             {item.unit_name}
                                                         </span>
                                                         <span className="flex items-center gap-1">
-                                                            <Clock className="w-3 h-3" />
+                                                            <Clock size={10} strokeWidth={1.8} />
                                                             {item.topic.hours}h
                                                         </span>
                                                         <span className="flex items-center gap-1">
-                                                            <Calendar className="w-3 h-3" />
+                                                            <Calendar size={10} strokeWidth={1.8} />
                                                             {item.topic.days_needed} day(s)
                                                         </span>
                                                         {item.topic.completed_date && (
-                                                            <span className="text-emerald-600 flex items-center gap-1">
-                                                                <CheckCircle className="w-3 h-3" />
+                                                            <span className="flex items-center gap-1 text-[#5c1a1a]">
+                                                                <CheckCircle size={10} strokeWidth={2} />
                                                                 Completed: {item.topic.completed_date}
                                                             </span>
                                                         )}
@@ -461,13 +416,10 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
 
                                                 {item.topic.status !== "completed" && (
                                                     <button
-                                                        onClick={() => handleCompleteTopic(
-                                                            week.week, 
-                                                            item.topic.name
-                                                        )}
-                                                        className="sm:ml-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:shadow-lg hover:shadow-emerald-200/50 whitespace-nowrap flex items-center gap-1.5"
+                                                        onClick={() => handleCompleteTopic(week.week, item.topic.name)}
+                                                        className="sm:ml-4 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#5c1a1a] text-white text-xs font-medium hover:bg-[#4a1414] transition-colors whitespace-nowrap"
                                                     >
-                                                        <CheckCircle className="w-4 h-4" />
+                                                        <CheckCircle size={12} strokeWidth={1.8} />
                                                         Mark Done
                                                     </button>
                                                 )}
@@ -480,24 +432,22 @@ function RoadmapScreen({ subject, onBack, onLogout, user }) {
                     </div>
                 </div>
 
-                {/* Footer Action */}
-                <div className="mt-8 flex flex-col sm:flex-row gap-4 animate-fadeUp">
+                {/* Footer actions */}
+                <div className="flex flex-col sm:flex-row gap-3">
                     <button
                         onClick={onBack}
-                        className="flex-1 px-6 py-3.5 bg-white/80 backdrop-blur-sm border border-rose-200/30 text-gray-700 hover:bg-white/90 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:scale-[1.02] flex items-center justify-center gap-2"
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md border border-[#e8dfd3] bg-white text-[#5a4a3a] text-sm font-medium hover:border-[#5c1a1a]/40 transition-colors"
                     >
-                        <ArrowLeft className="w-4 h-4" />
                         Back to Dashboard
                     </button>
                     <button
                         onClick={() => setExtending(true)}
-                        className="flex-1 px-6 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-orange-200/50 hover:scale-[1.02] flex items-center justify-center gap-2"
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
                     >
-                        <Calendar className="w-4 h-4" />
+                        <Calendar size={14} strokeWidth={1.8} />
                         Extend Target Date
                     </button>
                 </div>
-
             </main>
 
             <Footer />
