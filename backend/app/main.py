@@ -100,7 +100,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+# ---------------------------------------------------------------------------
 # Request models
+# ---------------------------------------------------------------------------
 class QuizRequest(BaseModel):
     subject: str
     unit_number: int | None = None
@@ -112,6 +114,7 @@ class EvaluateRequest(BaseModel):
 
 class AskRequest(BaseModel):
     question: str
+    subject: str | None = None   # NEW: optional subject scope
 
 class GenerateTagsRequest(BaseModel):
     note_content: str
@@ -284,7 +287,9 @@ def ingestion(file: UploadFile = File(...)):
     }
 
 
-# Q&A
+# ---------------------------------------------------------------------------
+# Q&A — upgraded to accept optional subject scope
+# ---------------------------------------------------------------------------
 @app.post("/ask")
 def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
     from app.modules.Qa.query import get_answer
@@ -294,6 +299,7 @@ def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
         uploads_db=vectorStoreDB,
         user_id=user.id,
         embeddings=embeddings,
+        subject=request.subject,   # NEW: pass through if provided
     )
     return response
 
@@ -411,7 +417,6 @@ def get_upload_content(subject: str):
     if not uploads_dir.exists():
         return {"error": "No uploads directory found"}
 
-    # Find a file whose normalized name matches
     match = None
     for file in uploads_dir.glob("*.md"):
         if normalize_subject_key(file.stem) == needle:

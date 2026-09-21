@@ -142,6 +142,34 @@
   to   { opacity: 1; }
 }
 
+/* ---------------------------------------------------------------
+   QA SCREEN — typing indicator + bubble entrance + thinking pulse
+   --------------------------------------------------------------- */
+
+/* Typing dots — bouncing pulse */
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0);    opacity: 0.4; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Question / answer bubble entrance */
+@keyframes qa-fade-slide {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Gentle pulse for "Thinking" sparkle */
+@keyframes qa-sparkle-pulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.12); }
+}
+
+/* Shimmer skeleton (optional fallback) */
+@keyframes qa-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
 /* ============================================
    ANIMATION UTILITY CLASSES
    ============================================ */
@@ -168,6 +196,31 @@
 .animate-upload-bob      { animation: upload-bob 2.4s ease-in-out infinite; }
 .animate-shimmer-slow    { animation: shimmer-slow 4s ease-in-out infinite; }
 
+/* ---------------------------------------------------------------
+   QA SCREEN
+   --------------------------------------------------------------- */
+.animate-qa-fade-slide { animation: qa-fade-slide 0.4s ease-out both; }
+.animate-qa-sparkle    { animation: qa-sparkle-pulse 1.5s ease-in-out infinite; }
+
+/* Typing dots — use three of these in sequence for bouncing effect */
+.typing-dot {
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.30s; }
+
+/* Shimmer skeleton (QA loading placeholder) */
+.qa-shimmer {
+  background: linear-gradient(
+    90deg,
+    #faf7f3 0%,
+    #f0e9e0 50%,
+    #faf7f3 100%
+  );
+  background-size: 800px 100%;
+  animation: qa-shimmer 1.5s infinite linear;
+}
+
 /* ============================================
    REDUCED MOTION — disables all custom animations
    ============================================ */
@@ -185,7 +238,50 @@
   .animate-hero-float,
   .animate-hero-float-slow,
   .animate-upload-bob,
-  .animate-shimmer-slow {
+  .animate-shimmer-slow,
+  .animate-qa-fade-slide,
+  .animate-qa-sparkle,
+  .typing-dot,
+  .qa-shimmer {
+    animation: none !important;
+  }
+  .animate-page-in-right,
+  .animate-page-in-left {
     animation: none !important;
   }
 }
+
+/* ============================================
+   BOOK READER — page turn animations
+   ============================================ */
+
+@keyframes page-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes page-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.animate-page-in-right {
+  animation: page-slide-in-right 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-page-in-left {
+  animation: page-slide-in-left 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
