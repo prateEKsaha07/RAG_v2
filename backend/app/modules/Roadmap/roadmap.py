@@ -1,58 +1,99 @@
 import json
 import os
 import math
+import re
 from datetime import datetime, timedelta
 
-TAGS_DIR = "tags/"
 ANALYTICS_DIR = "analytics/"
-ROADMAPS_DIR = "analytics/roadmaps/"
 
-def load_subject_units(subject):
-    file_path = os.path.join(TAGS_DIR, f"{subject}.json")
-    
-    if not os.path.exists(file_path):
-        return {"error": f"No tags found for {subject}"}
-    
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        
-        if "units" not in data:
-            return {"error": f"No unit structure for {subject}"}
-        
-        return data["units"]
-        
-    except json.JSONDecodeError:
-        return {"error": "Invalid JSON format"}
-    
+
+def normalize_subject_key(subject: str) -> str:
+    """
+    Canonical form for subject matching.
+    'Computer-Graphics', 'Computer Graphics', 'computer_graphics'
+      -> 'computergraphics'
+    """
+    return re.sub(r"[\s\-_]+", "", subject).lower()
+
+
+# ---------------------------------------------------------------------------
+# Unit loading — pulls directly from FAISS metadata
+# ---------------------------------------------------------------------------
+def load_subject_units_from_faiss(subject, vectorStoreDB):
+    """
+    Extract unique units + topics for a subject from FAISS metadata.
+    Matches by canonical subject_key to tolerate naming variations.
+    Returns:
+      [{"unit": 1, "name": "Fundamentals of...", "topics": [{"name": "..."}, ...]}]
+    """
+    needle = normalize_subject_key(subject)
+    all_docs = list(vectorStoreDB.docstore._dict.values())
+    units = {}
+
+    for doc in all_docs:
+        meta = doc.metadata
+
+        # Match on canonical key (preferred), fall back to normalized subject
+        haystack = meta.get("subject_key") or normalize_subject_key(meta.get("subject", ""))
+        if haystack != needle:
+            continue
+
+        unit_num = meta.get("unit_number")
+        if unit_num is None:
+            continue
+
+        if unit_num not in units:
+            units[unit_num] = {
+                "unit": unit_num,
+                "name": meta.get("unit_name") or f"Unit {unit_num}",
+                "topics": set(),
+            }
+
+        topic = meta.get("topic") or meta.get("chapter")
+        if topic:
+            units[unit_num]["topics"].add(topic)
+
+    return [
+        {
+            "unit": u["unit"],
+            "name": u["name"],
+            "topics": [{"name": t} for t in sorted(u["topics"])]
+        }
+        for u in sorted(units.values(), key=lambda x: x["unit"])
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Weak topics from quiz history
+# ---------------------------------------------------------------------------
 def load_weak_topics(subject):
     history_file = os.path.join(ANALYTICS_DIR, "quiz_history.json")
-    
     if not os.path.exists(history_file):
         return []
-    
+
     with open(history_file, "r") as f:
         history = json.load(f)
-    
-    # Filter by subject
-    subject_history = [h for h in history 
-                      if h["subject"].lower() == subject.lower()]
-    
+
+    needle = normalize_subject_key(subject)
+    subject_history = [
+        h for h in history
+        if normalize_subject_key(h.get("subject", "")) == needle
+    ]
     if not subject_history:
         return []
-    
-    # Count frequency of each weak topic
+
     topic_count = {}
     for attempt in subject_history:
-        for topic in attempt["weak_topics"]:
+        for topic in attempt.get("weak_topics", []):
             topic_count[topic] = topic_count.get(topic, 0) + 1
-    
-    # Sort by frequency → most weak first
-    sorted_topics = sorted(topic_count.items(), 
-                          key=lambda x: x[1], reverse=True)
-    
-    return [topic for topic, count in sorted_topics]
 
+    sorted_topics = sorted(topic_count.items(), key=lambda x: x[1], reverse=True)
+    return [topic for topic, _ in sorted_topics]
+
+
+# ---------------------------------------------------------------------------
+# LLM roadmap structure
+# ---------------------------------------------------------------------------
 def get_roadmap_structure(units, weak_topics, llm):
     prompt = f"""You are a study planner.
 Given these subject units and topics, estimate study hours per topic.
@@ -61,6 +102,7 @@ Rules:
 - Weak topics need MORE time (add 1-2 extra hours)
 - Order topics within each unit: beginner first
 - Hours per topic: minimum 1, maximum 4
+- Preserve the exact unit numbers and topic names given below
 - Return ONLY a JSON array matching the input structure
 
 Weak topics that need priority: {weak_topics}
@@ -71,10 +113,10 @@ Units and topics:
 Return format:
 [
   {{
-    "unit": 1,
-    "name": "unit name",
+    "unit": <same unit number as input>,
+    "name": "<same name as input>",
     "topics": [
-      {{"name": "topic name", "hours": 2, "is_weak": false}}
+      {{"name": "<same topic name>", "hours": 2, "is_weak": false}}
     ]
   }}
 ]"""
@@ -83,35 +125,62 @@ Return format:
     from app.modules.Quiz.quiz import parse_json_response
     return parse_json_response(response.content)
 
+
+def validate_roadmap_structure(structure, original_units):
+    if not isinstance(structure, list) or not structure:
+        return False
+
+    for unit in structure:
+        if not isinstance(unit, dict):
+            return False
+        if "unit" not in unit or "topics" not in unit:
+            return False
+        if not isinstance(unit["topics"], list):
+            return False
+        for topic in unit["topics"]:
+            if "name" not in topic or "hours" not in topic:
+                return False
+
+    input_units = {u["unit"] for u in original_units}
+    output_units = {u["unit"] for u in structure}
+    if not input_units.issubset(output_units):
+        return False
+
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Weekly schedule builder
+# ---------------------------------------------------------------------------
 def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
     weeks = []
     current_week = 1
     current_day = 0
     week_topics = []
-    
+
     start = datetime.strptime(start_date, "%Y-%m-%d")
-    
+
     for unit in roadmap_structure:
         for topic in unit["topics"]:
             days_needed = math.ceil(topic["hours"] / hours_per_day)
-            
+
             topic["days_needed"] = days_needed
             topic["status"] = "not_started"
             topic["completed_date"] = None
-            
+
             week_topics.append({
                 "unit": unit["unit"],
                 "unit_name": unit["name"],
                 "topic": topic
             })
-            
+
             current_day += days_needed
-            
-            # Start new week every 7 days
-            if current_day >= 7 * current_week:
-                week_start = start + timedelta(days=(current_week-1)*7)
+
+            # Flush all completed weeks
+            while current_day >= 7 * current_week:
+                week_start = start + timedelta(days=(current_week - 1) * 7)
                 week_end = week_start + timedelta(days=6)
-                
+
                 weeks.append({
                     "week": current_week,
                     "start_date": week_start.strftime("%Y-%m-%d"),
@@ -120,10 +189,10 @@ def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
                 })
                 week_topics = []
                 current_week += 1
-    
-    # Add remaining topics to last week
+
+    # Remaining topics
     if week_topics:
-        week_start = start + timedelta(days=(current_week-1)*7)
+        week_start = start + timedelta(days=(current_week - 1) * 7)
         week_end = week_start + timedelta(days=6)
         weeks.append({
             "week": current_week,
@@ -131,35 +200,42 @@ def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
             "end_date": week_end.strftime("%Y-%m-%d"),
             "topics": week_topics
         })
-    
+
     return weeks
 
-# supabase integration for roadmap generation
-def generate_roadmap(subject, hours_per_day, target_date, scope, unit_number=None, llm=None, user_id=None):
+
+# ---------------------------------------------------------------------------
+# Roadmap generation
+# ---------------------------------------------------------------------------
+def generate_roadmap(subject, hours_per_day, target_date, scope,
+                     unit_number=None, llm=None, user_id=None,
+                     vectorStoreDB=None):
     from app.core.supabase_client import supabase
-    # load units
-    units = load_subject_units(subject)
-    if "error" in units:
-        return units
-    
-    #filter by scope
+
+    if vectorStoreDB is None:
+        return {"error": "Vector store not ready"}
+
+    units = load_subject_units_from_faiss(subject, vectorStoreDB)
+    if not units:
+        return {"error": f"No units found for {subject}"}
+
     if scope == "unit" and unit_number:
         units = [u for u in units if u["unit"] == unit_number]
         if not units:
             return {"error": f"Unit {unit_number} not found"}
-    
-    # load weak topics
+
     weak_topics = load_weak_topics(subject)
-    
-    #get LLM ordered structure
     roadmap_structure = get_roadmap_structure(units, weak_topics, llm)
-    
-    #build weekly schedule
+
+    if not validate_roadmap_structure(roadmap_structure, units):
+        return {"error": "LLM returned invalid roadmap structure. Please try again."}
+
     start_date = datetime.now().strftime("%Y-%m-%d")
     weeks = build_weekly_schedule(roadmap_structure, hours_per_day, start_date)
-    
-    roadmap = supabase.table("roadmaps").insert({
+
+    response = supabase.table("roadmaps").insert({
         "subject": subject,
+        "subject_key": normalize_subject_key(subject),   # canonical
         "scope": scope,
         "unit_number": unit_number,
         "hours_per_day": hours_per_day,
@@ -168,55 +244,42 @@ def generate_roadmap(subject, hours_per_day, target_date, scope, unit_number=Non
         "status": "active",
         "weeks": weeks,
         "weak_topics": weak_topics,
-        "user_id": user_id
-        })
+        "user_id": user_id,
+    }).execute()
 
-    roadmap_response = roadmap.execute()
-    return roadmap_response.data[0] if roadmap_response.data else {"error": "Failed to create roadmap"}
+    return response.data[0] if response.data else {"error": "Failed to create roadmap"}
 
-# older one
-def save_roadmap(subject, roadmap):
-    # One roadmap per subject
-    filepath = os.path.join(ROADMAPS_DIR, f"roadmap_{subject}.json")
-    
-    with open(filepath, "w") as f:
-        json.dump(roadmap, f, indent=2)
 
-# supabase updated
+# ---------------------------------------------------------------------------
+# Supabase loaders
+# ---------------------------------------------------------------------------
 def load_roadmap(subject, user_id=None):
     from app.core.supabase_client import supabase
-
-    print("Searching:", subject, user_id)
+    needle = normalize_subject_key(subject)
 
     results = (
         supabase.table("roadmaps")
         .select("*")
-        .eq("subject", subject)
+        .eq("subject_key", needle)
         .eq("user_id", user_id)
         .eq("status", "active")
         .execute()
     )
 
-    print("Supabase returned:", results.data)
+    return results.data[0] if results.data else None
 
-    if not results.data:
-        return None
 
-    return results.data[0]
-    
-# supabase check for existing roadmap 
 def check_existing_roadmap(subject, user_id=None):
     from app.core.supabase_client import supabase
+    needle = normalize_subject_key(subject)
 
     results = (
         supabase.table("roadmaps")
-        .select("*")
-        .eq("subject", subject)
+        .select("id")
+        .eq("subject_key", needle)
         .eq("user_id", user_id)
         .eq("status", "active")
         .execute()
     )
-
-    print(results.data)
 
     return len(results.data) > 0
