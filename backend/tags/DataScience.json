@@ -1,0 +1,119 @@
+{
+  "subject": "Data Science",
+  "units": [
+    {
+      "unit": 1,
+      "name": "Data Science in a Big Data World",
+      "topics": [
+        {
+          "topic": "why data science benefits and uses",
+          "tags": ["data science", "big data", "data growth", "decision making", "competitive advantage", "automation", "customer experience", "operational efficiency", "risk mitigation", "innovation", "healthcare", "finance", "retail", "transportation", "government"]
+        },
+        {
+          "topic": "facets of data",
+          "tags": ["structured data", "unstructured data", "semi-structured data", "big data", "5 vs", "volume", "velocity", "variety", "veracity", "value", "data types", "data characteristics"]
+        },
+        {
+          "topic": "the data science process",
+          "tags": ["data science process", "goal setting", "data retrieval", "data preparation", "data cleaning", "data transformation", "data integration", "data reduction", "exploratory data analysis", "eda", "data modeling", "model evaluation", "deployment", "automation", "monitoring"]
+        }
+      ]
+    },
+    {
+      "unit": 2,
+      "name": "Introduction to Programming",
+      "topics": [
+        {
+          "topic": "sequence data string list dictionary array tuple",
+          "tags": ["python data structures", "string", "list", "dictionary", "array", "tuple", "immutable", "mutable", "key-value pairs", "sequence data", "data types", "python programming"]
+        },
+        {
+          "topic": "toolkits using python",
+          "tags": ["matplotlib", "numpy", "scikit-learn", "nltk", "python libraries", "data science tools", "visualization", "scientific computing", "machine learning", "nlp", "data analysis"]
+        },
+        {
+          "topic": "visualizing data bar line scatter plots",
+          "tags": ["data visualization", "bar charts", "line charts", "scatter plots", "categorical data", "trends over time", "correlation", "outliers", "clusters", "matplotlib", "seaborn", "plotly"]
+        },
+        {
+          "topic": "working with data",
+          "tags": ["reading files", "csv", "excel", "json", "web scraping", "beautifulsoup", "scrapy", "selenium", "api", "twitter api", "data cleaning", "data munging", "data manipulation", "filtering", "sorting", "grouping", "joining", "rescaling", "normalization", "standardization", "dimensionality reduction", "pca", "lda", "t-sne"]
+        }
+      ]
+    },
+    {
+      "unit": 3,
+      "name": "Mathematical Foundations",
+      "topics": [
+        {
+          "topic": "linear algebra vectors matrices",
+          "tags": ["linear algebra", "vectors", "matrices", "vector addition", "scalar multiplication", "dot product", "cross product", "norm", "matrix addition", "matrix multiplication", "transpose", "determinant", "inverse", "linear transformations", "data science math"]
+        },
+        {
+          "topic": "statistics describing data correlation simpsons paradox",
+          "tags": ["statistics", "central tendency", "mean", "median", "mode", "dispersion", "range", "variance", "standard deviation", "iqr", "correlation", "correlation coefficient", "simpsons paradox", "confounding variable", "correlation vs causation", "descriptive statistics"]
+        },
+        {
+          "topic": "probability dependence independence conditional bayes",
+          "tags": ["probability", "independent events", "dependent events", "conditional probability", "bayes theorem", "random variables", "discrete random variables", "continuous random variables", "continuous distributions", "normal distribution", "gaussian distribution", "central limit theorem", "clt", "probability theory"]
+        },
+        {
+          "topic": "hypothesis and inference testing confidence intervals p-hacking bayesian",
+          "tags": ["hypothesis testing", "null hypothesis", "alternative hypothesis", "significance level", "p-value", "confidence intervals", "p-hacking", "bayesian inference", "prior distribution", "likelihood", "posterior distribution", "statistical inference", "data science statistics"]
+        }
+      ]
+    },
+    {
+      "unit": 4,
+      "name": "Machine Learning",
+      "topics": [
+        {
+          "topic": "overview of machine learning overfitting train test splits",
+          "tags": ["machine learning", "overfitting", "underfitting", "bias", "variance", "train test split", "training set", "test set", "validation set", "cross-validation", "k-fold cross-validation", "model evaluation", "generalization"]
+        },
+        {
+          "topic": "types of machine learning",
+          "tags": ["supervised learning", "unsupervised learning", "reinforcement learning", "classification", "regression", "clustering", "dimensionality reduction", "agent", "environment", "reward", "policy", "machine learning paradigms"]
+        },
+        {
+          "topic": "introduction to bayes theorem",
+          "tags": ["bayes theorem", "naive bayes", "bayesian networks", "bayesian optimization", "prior probability", "posterior probability", "likelihood", "machine learning", "probabilistic models"]
+        },
+        {
+          "topic": "linear regression assumptions regularization lasso ridge elastic net",
+          "tags": ["linear regression", "model assumptions", "linearity", "independence", "homoscedasticity", "normality", "multicollinearity", "regularization", "lasso", "l1", "ridge", "l2", "elastic net", "overfitting prevention", "regression"]
+        },
+        {
+          "topic": "classification and regression algorithms",
+          "tags": ["naive bayes", "k-nearest neighbors", "knn", "logistic regression", "support vector machines", "svm", "decision trees", "random forest", "classification errors", "false positive", "false negative", "confusion matrix", "accuracy", "precision", "recall", "f1-score", "machine learning algorithms"]
+        },
+        {
+          "topic": "analysis of time series linear systems nonlinear dynamics",
+          "tags": ["time series analysis", "trend", "seasonality", "cyclical", "irregular", "moving average", "exponential smoothing", "arima", "linear systems analysis", "nonlinear dynamics", "chaotic behavior", "time series forecasting"]
+        },
+        {
+          "topic": "rule induction neural networks learning generalization",
+          "tags": ["rule induction", "if-then rules", "expert systems", "neural networks", "perceptron", "backpropagation", "activation function", "hidden layers", "weights", "biases", "generalization", "regularization", "dropout", "early stopping", "machine learning"]
+        },
+        {
+          "topic": "overview of deep learning",
+          "tags": ["deep learning", "deep neural networks", "cnn", "convolutional neural networks", "rnn", "recurrent neural networks", "transformers", "image recognition", "natural language processing", "speech recognition", "autonomous driving", "machine learning"]
+        }
+      ]
+    },
+    {
+      "unit": 5,
+      "name": "Application of Data Science",
+      "topics": [
+        {
+          "topic": "complete development of application weather forecasting stock market prediction object recognition sentiment analysis",
+          "tags": ["data science application", "weather forecasting", "stock market prediction", "object recognition", "sentiment analysis", "time series analysis", "arima", "lstm", "cnn", "transfer learning", "nlp", "real-time sentiment", "prediction", "data science projects"]
+        },
+        {
+          "topic": "exploratory data analysis visualization prediction analysis accuracy",
+          "tags": ["exploratory data analysis", "eda", "data visualization", "matplotlib", "seaborn", "plotly", "tableau", "prediction", "model evaluation", "accuracy", "precision", "recall", "f1-score", "roc-auc", "rmse", "system analysis", "data science workflow"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,219 @@
+{
+  "subject": "Computer Graphics",
+  "units": [
+    {
+      "unit": 1,
+      "name": "Fundamentals of Computer Graphics",
+      "topics": [
+        {
+          "topic": "introduction to computer graphics",
+          "tags": ["computer graphics", "graphics basics", "modeling", "rendering", "animation", "interaction", "visual computing", "image synthesis", "graphics applications", "cad", "scientific visualization", "entertainment", "cartography", "education"]
+        },
+        {
+          "topic": "random scan and raster scan devices",
+          "tags": ["random scan", "vector display", "calligraphic display", "raster scan", "bitmap display", "frame buffer", "refresh rate", "display list", "electron beam", "aliasing", "flicker", "resolution"]
+        },
+        {
+          "topic": "input-output devices",
+          "tags": ["crt", "cathode ray tube", "lcd", "liquid crystal display", "laser printer", "electron gun", "phosphor", "shadow mask", "backlight", "polarizing filter", "toner", "rasterization", "display devices"]
+        },
+        {
+          "topic": "line drawing algorithms dda",
+          "tags": ["dda", "digital differential analyzer", "line drawing", "incremental algorithm", "slope", "floating point", "rounding errors", "output primitives", "graphics algorithms", "line generation"]
+        },
+        {
+          "topic": "line drawing algorithms bresenham",
+          "tags": ["bresenham", "line algorithm", "integer algorithm", "decision variable", "error term", "pixel selection", "efficient line drawing", "hardware implementable", "graphics primitives", "line generation"]
+        },
+        {
+          "topic": "circle generating algorithms bresenham",
+          "tags": ["bresenham circle", "circle algorithm", "8-way symmetry", "octants", "decision parameter", "midpoint", "circle drawing", "graphics primitives", "rasterization", "pixel plotting"]
+        },
+        {
+          "topic": "circle generating algorithms midpoint",
+          "tags": ["midpoint circle", "circle algorithm", "circle equation", "decision parameter", "8-way symmetry", "pixel selection", "graphics primitives", "rasterization", "circle drawing", "integer arithmetic"]
+        },
+        {
+          "topic": "antialiasing techniques",
+          "tags": ["antialiasing", "aliasing", "jaggies", "super sampling", "post-filtering", "pixel weighting", "area sampling", "pixel phasing", "smoothing", "edge quality", "graphics rendering", "sub-pixels"]
+        },
+        {
+          "topic": "boundary fill algorithm",
+          "tags": ["boundary fill", "area filling", "seed pixel", "boundary color", "4-connected", "8-connected", "recursive fill", "polygon filling", "region filling", "graphics algorithms"]
+        },
+        {
+          "topic": "flood fill algorithm",
+          "tags": ["flood fill", "area filling", "seed pixel", "same color", "recursive fill", "region filling", "paint bucket", "graphics algorithms", "polygon filling", "connected pixels"]
+        },
+        {
+          "topic": "scan-line polygon fill algorithm",
+          "tags": ["scan-line fill", "polygon filling", "active edge table", "intersections", "sorting", "pairing", "concave polygon", "convex polygon", "area filling", "graphics algorithms", "edge table"]
+        }
+      ]
+    },
+    {
+      "unit": 2,
+      "name": "Transformation, Viewing, and Clipping",
+      "topics": [
+        {
+          "topic": "2d transformation basics",
+          "tags": ["2d transformation", "translation", "scaling", "rotation", "reflection", "shear", "uniform scaling", "non-uniform scaling", "pivot point", "affine transformation", "coordinate transformation"]
+        },
+        {
+          "topic": "matrix representation homogeneous coordinates",
+          "tags": ["homogeneous coordinates", "matrix representation", "composite transformation", "translation matrix", "rotation matrix", "scaling matrix", "order of transformations", "affine matrix", "2d graphics math", "coordinate systems"]
+        },
+        {
+          "topic": "two-dimensional viewing pipeline",
+          "tags": ["2d viewing", "viewing pipeline", "window", "viewport", "window-to-viewport transformation", "world coordinates", "device coordinates", "aspect ratio", "mapping", "graphics pipeline"]
+        },
+        {
+          "topic": "line clipping cohen-sutherland",
+          "tags": ["cohen-sutherland", "line clipping", "region codes", "outcodes", "trivial acceptance", "trivial rejection", "intersection", "clipping window", "graphics algorithms", "2d clipping"]
+        },
+        {
+          "topic": "line clipping liang-barsky",
+          "tags": ["liang-barsky", "line clipping", "parametric equations", "clipping window", "efficient clipping", "intersection calculation", "graphics algorithms", "2d clipping", "cyrus-beck", "line clipping algorithm"]
+        },
+        {
+          "topic": "polygon clipping sutherland-hodgman",
+          "tags": ["sutherland-hodgman", "polygon clipping", "clip against edges", "vertex list", "inside-outside test", "concave polygon", "convex polygon", "disconnected polygons", "graphics algorithms", "2d clipping"]
+        },
+        {
+          "topic": "polygon clipping weiler-atherton",
+          "tags": ["weiler-atherton", "polygon clipping", "concave polygons", "intersection points", "boundary traversal", "multiple polygons", "graphics algorithms", "2d clipping", "polygon clipping algorithm", "complex clipping"]
+        }
+      ]
+    },
+    {
+      "unit": 3,
+      "name": "3D Transformation, Visible Surface Detection, and Curves",
+      "topics": [
+        {
+          "topic": "visible surface detection object vs image space",
+          "tags": ["visible surface detection", "object-space", "image-space", "hidden surface removal", "visibility", "rendering", "depth comparison", "graphics algorithms", "3d rendering", "surface detection"]
+        },
+        {
+          "topic": "z-buffer depth comparison",
+          "tags": ["z-buffer", "depth buffer", "depth comparison", "frame buffer", "image-space method", "hidden surface removal", "rendering", "pixel depth", "graphics algorithms", "3d rendering"]
+        },
+        {
+          "topic": "a-buffer method",
+          "tags": ["a-buffer", "anti-aliasing", "transparency", "fragments", "depth sorting", "image-space method", "hidden surface removal", "rendering", "graphics algorithms", "3d rendering"]
+        },
+        {
+          "topic": "back face removal",
+          "tags": ["back face removal", "back face culling", "normal vector", "view vector", "dot product", "hidden surface removal", "rendering optimization", "graphics algorithms", "3d rendering", "polygon culling"]
+        },
+        {
+          "topic": "scan-line method visible surface detection",
+          "tags": ["scan-line method", "visible surface detection", "active edge table", "depth sorting", "image-space method", "hidden surface removal", "rendering", "graphics algorithms", "3d rendering", "scan-line algorithm"]
+        },
+        {
+          "topic": "depth sorting painters algorithm",
+          "tags": ["painter's algorithm", "depth sorting", "object-space method", "polygon sorting", "cyclic overlap", "intersecting polygons", "hidden surface removal", "rendering", "graphics algorithms", "3d rendering"]
+        },
+        {
+          "topic": "area subdivision warnocks algorithm",
+          "tags": ["warnock's algorithm", "area subdivision", "image-space method", "recursive subdivision", "quadrants", "hidden surface removal", "rendering", "graphics algorithms", "3d rendering", "visibility"]
+        },
+        {
+          "topic": "3d transformation",
+          "tags": ["3d transformation", "3d translation", "3d scaling", "3d rotation", "x-axis rotation", "y-axis rotation", "z-axis rotation", "3d reflection", "3d graphics math", "coordinate transformation"]
+        },
+        {
+          "topic": "3d viewing projections",
+          "tags": ["3d projection", "parallel projection", "orthographic projection", "oblique projection", "perspective projection", "vanishing point", "center of projection", "view plane", "3d viewing", "graphics pipeline"]
+        },
+        {
+          "topic": "3d object representations",
+          "tags": ["3d object representation", "boundary representation", "b-rep", "spatial partitioning", "octree", "bsp tree", "constructive solid geometry", "csg", "3d modeling", "graphics primitives"]
+        },
+        {
+          "topic": "spline representations",
+          "tags": ["spline", "interpolating curves", "approximating curves", "c0 continuity", "c1 continuity", "c2 continuity", "control points", "curve representation", "graphics curves", "smooth curves"]
+        },
+        {
+          "topic": "bezier curves",
+          "tags": ["bezier curve", "control points", "bernstein polynomial", "convex hull", "curve degree", "local control", "graphics curves", "smooth curves", "cad", "curve modeling"]
+        },
+        {
+          "topic": "b-spline curves",
+          "tags": ["b-spline", "control points", "knot vector", "local control", "uniform b-spline", "non-uniform b-spline", "nurbs", "graphics curves", "smooth curves", "cad", "curve modeling"]
+        }
+      ]
+    },
+    {
+      "unit": 4,
+      "name": "Introduction to Image Processing",
+      "topics": [
+        {
+          "topic": "fundamentals of image processing",
+          "tags": ["image processing", "dip", "digital image processing", "image acquisition", "image storage", "image processing components", "medical imaging", "remote sensing", "image restoration", "dip system"]
+        },
+        {
+          "topic": "image formation and resolution",
+          "tags": ["image formation", "spatial resolution", "gray level resolution", "quantization", "dpi", "pixel intensity", "digital image", "image model", "sampling", "image resolution"]
+        },
+        {
+          "topic": "image enhancement spatial domain",
+          "tags": ["image enhancement", "spatial domain", "piecewise transformation", "negative transformation", "log transformation", "power-law transformation", "gamma correction", "contrast enhancement", "image processing", "pixel transformation"]
+        },
+        {
+          "topic": "histogram equalization and specification",
+          "tags": ["histogram equalization", "histogram specification", "histogram matching", "contrast enhancement", "global contrast", "image processing", "histogram", "cumulative distribution function", "image enhancement", "spatial domain"]
+        },
+        {
+          "topic": "image averaging",
+          "tags": ["image averaging", "noise reduction", "random noise", "multiple images", "image processing", "image enhancement", "spatial domain", "signal averaging", "denoising", "image restoration"]
+        },
+        {
+          "topic": "spatial filters smoothing and sharpening",
+          "tags": ["spatial filters", "smoothing filters", "low pass filter", "averaging filter", "gaussian blur", "median filter", "sharpening filters", "high pass filter", "laplacian filter", "unsharp masking", "image processing", "convolution"]
+        },
+        {
+          "topic": "image sampling and quantization",
+          "tags": ["image sampling", "image quantization", "digitization", "spatial coordinates", "intensity levels", "pixel neighbors", "4-neighbors", "8-neighbors", "adjacency", "connectivity", "image processing", "digital image"]
+        }
+      ]
+    },
+    {
+      "unit": 5,
+      "name": "Image Compression",
+      "topics": [
+        {
+          "topic": "fundamentals of data compression",
+          "tags": ["data compression", "storage space", "coding requirements", "source coding", "entropy", "hybrid coding", "image compression", "compression basics", "bandwidth", "data redundancy"]
+        },
+        {
+          "topic": "run length encoding",
+          "tags": ["run length encoding", "rle", "lossless compression", "binary images", "simple graphics", "compression technique", "data compression", "image compression", "encoding", "repetitive data"]
+        },
+        {
+          "topic": "huffman coding",
+          "tags": ["huffman coding", "variable-length coding", "lossless compression", "binary tree", "probability", "prefix code", "data compression", "image compression", "entropy coding", "optimal prefix code"]
+        },
+        {
+          "topic": "lzw compression",
+          "tags": ["lzw", "lempel-ziv-welch", "dictionary-based coding", "lossless compression", "gif", "tiff", "data compression", "image compression", "dictionary coding", "string compression"]
+        },
+        {
+          "topic": "discrete cosine transform",
+          "tags": ["dct", "discrete cosine transform", "lossy compression", "frequency domain", "spatial domain", "high-frequency components", "image compression", "transform coding", "jpeg", "signal processing"]
+        },
+        {
+          "topic": "jpeg compression",
+          "tags": ["jpeg", "lossy compression", "dct", "quantization", "huffman coding", "photographic images", "image compression", "standard", "compression format", "image format"]
+        },
+        {
+          "topic": "mpeg compression",
+          "tags": ["mpeg", "lossy compression", "video compression", "motion compensation", "dct", "i-frames", "p-frames", "b-frames", "video encoding", "multimedia"]
+        },
+        {
+          "topic": "video compression",
+          "tags": ["video compression", "temporal redundancy", "motion estimation", "motion compensation", "lossy compression", "video encoding", "multimedia", "frame prediction", "video streaming", "codec"]
+        }
+      ]
+    }
+  ]
+}

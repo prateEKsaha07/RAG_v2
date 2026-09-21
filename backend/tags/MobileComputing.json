@@ -1,0 +1,127 @@
+{
+  "subject": "Mobile Computing",
+  "units": [
+    {
+      "unit": 1,
+      "name": "Introduction to Wireless Technology",
+      "topics": [
+        {
+          "topic": "mobile and wireless communications",
+          "tags": ["wireless communication", "mobile communication", "radio waves", "microwaves", "infrared", "mobile devices", "wireless medium", "mobility", "wireless networks"]
+        },
+        {
+          "topic": "applications of wireless communication",
+          "tags": ["cellular networks", "wlan", "wifi", "bluetooth", "satellite communication", "infrared", "rfid", "wireless applications", "iot", "mobile services"]
+        },
+        {
+          "topic": "history market vision",
+          "tags": ["wireless history", "marconi", "cellular networks history", "1g", "2g", "3g", "4g", "5g", "market vision", "ubiquitous connectivity", "iot", "mobile broadband"]
+        },
+        {
+          "topic": "overview frequency of radio transmission",
+          "tags": ["radio spectrum", "frequency bands", "vhf", "uhf", "shf", "ehf", "wavelength", "frequency", "bandwidth", "radio transmission", "spectrum allocation"]
+        },
+        {
+          "topic": "signal antennas",
+          "tags": ["antennas", "transducer", "omnidirectional", "directional", "gain", "directivity", "polarization", "dipole antenna", "yagi-uda", "parabolic dish", "wireless communication"]
+        },
+        {
+          "topic": "signal propagation",
+          "tags": ["signal propagation", "ground wave", "sky wave", "line-of-sight", "los", "path loss", "fading", "interference", "shadowing", "multipath", "wireless communication"]
+        },
+        {
+          "topic": "multiplexing modulation spread spectrum",
+          "tags": ["multiplexing", "fdm", "tdm", "cdm", "modulation", "am", "fm", "pm", "qam", "spread spectrum", "fhss", "dsss", "wireless communication"]
+        },
+        {
+          "topic": "error detection parity crc block error correction",
+          "tags": ["error detection", "parity check", "crc", "cyclic redundancy check", "block error correction", "hamming code", "reed-solomon code", "error correction", "wireless communication"]
+        },
+        {
+          "topic": "bhc code reed-solomon code",
+          "tags": ["bch code", "bose-chaudhuri-hocquenghem", "reed-solomon code", "error-correcting codes", "cyclic codes", "burst errors", "satellite communication", "storage devices", "wireless communication"]
+        }
+      ]
+    },
+    {
+      "unit": 2,
+      "name": "Wireless Communication",
+      "topics": [
+        {
+          "topic": "cellular systems cdma fdma tdma csdma comparison",
+          "tags": ["cellular systems", "cdma", "fdma", "tdma", "csdma", "multiple access techniques", "frequency reuse", "cellular concept", "spectrum efficiency", "wireless communication"]
+        },
+        {
+          "topic": "generations of cellular networks 1g 2g 2.5g 3g 4g",
+          "tags": ["1g", "2g", "2.5g", "3g", "4g", "cellular generations", "analog", "digital", "gprs", "edge", "umts", "wcdma", "lte", "wimax", "mobile networks"]
+        }
+      ]
+    },
+    {
+      "unit": 3,
+      "name": "Wireless Lan",
+      "topics": [
+        {
+          "topic": "ieee 802.11 wifi",
+          "tags": ["ieee 802.11", "wifi", "wlan", "bss", "ess", "access point", "packet format", "fcs", "wireless lan", "wireless networking"]
+        },
+        {
+          "topic": "ieee 802.16 bluetooth packet format architecture",
+          "tags": ["ieee 802.16", "wimax", "bluetooth", "ieee 802.15.1", "wpan", "packet format", "access code", "header", "payload", "piconet", "scatternet", "wireless personal area network"]
+        },
+        {
+          "topic": "wimax standards architecture services",
+          "tags": ["wimax", "ieee 802.16e", "ieee 802.16d", "mobile wimax", "fixed wimax", "base station", "subscriber station", "asn", "csn", "broadband wireless", "wireless man"]
+        }
+      ]
+    },
+    {
+      "unit": 4,
+      "name": "Mobile Communication Systems",
+      "topics": [
+        {
+          "topic": "gsm mobile services architecture radio interface protocols localization handover security",
+          "tags": ["gsm", "global system for mobile communications", "mobile services", "system architecture", "mobile station", "base station subsystem", "network switching subsystem", "radio interface", "tdma", "fdma", "hlr", "vlr", "handover", "security", "a3 a8", "a5", "mobile communication"]
+        },
+        {
+          "topic": "dect system architecture protocol architecture",
+          "tags": ["dect", "digital enhanced cordless telecommunications", "system architecture", "fixed part", "portable part", "protocol architecture", "physical layer", "mac layer", "dlc layer", "network layer", "cordless phones"]
+        },
+        {
+          "topic": "tetra",
+          "tags": ["tetra", "terrestrial trunked radio", "professional mobile radio", "pmr", "group calls", "push-to-talk", "high security", "emergency services", "mobile communication"]
+        },
+        {
+          "topic": "umts system architecture",
+          "tags": ["umts", "universal mobile telecommunications system", "3g", "user equipment", "utran", "nodeb", "rnc", "core network", "circuit-switched", "packet-switched", "mobile communication"]
+        },
+        {
+          "topic": "mobile network layer mobile ip dhcp",
+          "tags": ["mobile ip", "mobile node", "home agent", "foreign agent", "dhcp", "dynamic host configuration protocol", "ip address assignment", "mobility management", "mobile network layer"]
+        },
+        {
+          "topic": "mobile ad hoc routing protocols multicast routing",
+          "tags": ["manet", "mobile ad hoc network", "routing protocols", "proactive", "reactive", "aodv", "dsr", "dsdv", "olsr", "zrp", "multicast routing", "maodv", "wireless networks"]
+        }
+      ]
+    },
+    {
+      "unit": 5,
+      "name": "Mobile Transport Layer",
+      "topics": [
+        {
+          "topic": "tcp over wireless networks indirect tcp snooping tcp mobile tcp fast retransmit fast recovery",
+          "tags": ["tcp over wireless", "indirect tcp", "snooping tcp", "mobile tcp", "fast retransmit", "fast recovery", "packet loss", "congestion control", "wireless networks", "mobile transport layer"]
+        },
+        {
+          "topic": "transmission timeout freezing selective retransmission transaction oriented tcp tcp over 2.5 3g",
+          "tags": ["transmission freezing", "timeout freezing", "selective retransmission", "transaction oriented tcp", "tcp over 2.5g", "tcp over 3g", "wireless networks", "mobile transport layer", "tcp optimization"]
+        },
+        {
+          "topic": "application layer wap architecture wdp wtls wtp wsp wae wml wml scripts wta imode syncml",
+          "tags": ["wap", "wireless application protocol", "wae", "wsp", "wtp", "wtls", "wdp", "wml", "wireless markup language", "wml scripts", "wta", "wireless telephony application", "imode", "syncml", "mobile application layer"]
+        }
+      ]
+    }
+  ]
+}

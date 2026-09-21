@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-// configuring pdf.js
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -31,20 +30,15 @@ import {
 
 function BookReader({ book, onBack }) {
   const [numPages, setNumPages] = useState(0);
-  const [pageNumber, setPageNumber] = useState(
-    book?.current_page || 1
-  );
+  const [pageNumber, setPageNumber] = useState(book?.current_page || 1);
   const [scale, setScale] = useState(0.9);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   function onDocumentLoadSuccess({ numPages }) {
-    console.log("PDF loaded");
-    console.log("Total pages:", numPages);
     setNumPages(numPages);
   }
 
-  // pdf navigation 
   const previousPage = async () => {
     if (pageNumber > 1) {
       const newPage = pageNumber - 1;
@@ -61,14 +55,10 @@ function BookReader({ book, onBack }) {
     }
   };
 
-  const zoomIn = () => {
-    setScale(scale + 0.2);
-  };
+  const zoomIn = () => setScale(scale + 0.2);
 
   const zoomOut = () => {
-    if (scale > 0.6) {
-      setScale(scale - 0.2);
-    }
+    if (scale > 0.6) setScale(scale - 0.2);
   };
 
   const toggleFullscreen = () => {
@@ -94,148 +84,135 @@ function BookReader({ book, onBack }) {
 
   const progress = numPages > 0 ? Math.round((pageNumber / numPages) * 100) : 0;
 
+  const c = isDarkMode
+    ? {
+        page: "bg-[#0d1117]",
+        chrome: "bg-[#161b22]",
+        panel: "bg-[#161b22]",
+        border: "border-[#30363d]",
+        text: "text-[#e6edf3]",
+        textMuted: "text-[#8b949e]",
+        textDim: "text-[#6e7681]",
+        accent: "text-[#e6edf3]",
+        accentBg: "bg-[#21262d]",
+        subtle: "bg-[#21262d]",
+        hover: "hover:bg-[#21262d]",
+        button: "bg-[#21262d] hover:bg-[#2d333b] text-[#e6edf3]",
+        buttonPrimary: "bg-[#e6edf3] text-[#0d1117] hover:bg-[#c9d1d9]",
+        buttonDisabled: "bg-[#21262d] text-[#6e7681] cursor-not-allowed",
+        bar: "bg-[#e6edf3]",
+        barTrack: "bg-[#21262d]",
+      }
+    : {
+        page: "bg-[#f7f3ee]",
+        chrome: "bg-[#faf7f3]",
+        panel: "bg-white",
+        border: "border-[#e8dfd3]",
+        text: "text-[#2a1f14]",
+        textMuted: "text-[#8a7965]",
+        textDim: "text-[#a89880]",
+        accent: "text-[#5c1a1a]",
+        accentBg: "bg-[#faf7f3]",
+        subtle: "bg-[#f0e9e0]",
+        hover: "hover:bg-[#f0e9e0]",
+        button: "bg-white border border-[#e8dfd3] text-[#5a4a3a] hover:border-[#5c1a1a]/40 hover:text-[#5c1a1a]",
+        buttonPrimary: "bg-[#5c1a1a] text-white hover:bg-[#4a1414]",
+        buttonDisabled: "bg-[#f0e9e0] text-[#a89880] cursor-not-allowed",
+        bar: "bg-[#5c1a1a]",
+        barTrack: "bg-[#f0e9e0]",
+      };
+
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
-      isDarkMode 
-        ? 'bg-slate-900' 
-        : 'bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-orange-50/40'
-    }`}>
-      
-      {/* Decorative warm elements - only in light mode */}
-      {!isDarkMode && (
-        <>
-          <div className="fixed top-0 right-0 w-96 h-96 bg-rose-200/20 rounded-full blur-3xl -z-10" />
-          <div className="fixed bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl -z-10" />
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-100/10 rounded-full blur-3xl -z-10" />
-        </>
-      )}
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${c.page}`}>
 
       {/* Header */}
-      <header className={`h-16 border-b flex items-center justify-between px-6 shadow-sm transition-colors duration-300 ${
-        isDarkMode 
-          ? 'bg-slate-800 border-slate-700' 
-          : 'bg-white/80 backdrop-blur-sm border-rose-200/30'
-      }`}>
-        <div className="flex items-center gap-4">
+      <header className={`h-16 border-b flex items-center justify-between px-4 sm:px-6 transition-colors duration-300 ${c.chrome} ${c.border}`}>
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onBack}
-            className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
-              isDarkMode 
-                ? 'hover:bg-slate-700 text-slate-300' 
-                : 'hover:bg-rose-50 text-rose-600'
-            }`}
+            aria-label="Back"
+            className={`w-9 h-9 rounded-md border flex items-center justify-center transition-colors flex-shrink-0 ${c.button}`}
           >
-            <ArrowLeft size={22} />
+            <ArrowLeft size={16} strokeWidth={1.8} />
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-xl ${
-              isDarkMode 
-                ? 'bg-slate-700' 
-                : 'bg-gradient-to-br from-rose-100 to-amber-100'
-            }`}>
-              <BookOpen className={`w-5 h-5 ${
-                isDarkMode ? 'text-slate-300' : 'text-rose-600'
-              }`} />
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`w-9 h-9 rounded-md border flex items-center justify-center flex-shrink-0 ${c.border} ${c.accentBg}`}>
+              <BookOpen size={15} strokeWidth={1.8} className={c.accent} />
             </div>
-            <div>
-              <h1 className={`font-semibold transition-colors duration-300 ${
-                isDarkMode ? 'text-slate-100' : 'text-slate-800'
-              }`}>
+            <div className="min-w-0">
+              <h1 className={`text-sm font-semibold truncate transition-colors duration-300 ${c.text}`}>
                 {book?.title}
               </h1>
-              <p className={`text-xs flex items-center gap-2 ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
-                <span className="inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+              <p className={`text-[11px] flex items-center gap-1.5 mt-0.5 transition-colors duration-300 ${c.textMuted}`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${isDarkMode ? "bg-[#e6edf3]" : "bg-[#5c1a1a]"}`} />
                 Study Reader
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Progress indicator */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {numPages > 0 && (
             <div className="hidden md:flex items-center gap-3 mr-2">
-              <div className={`w-24 h-1.5 rounded-full ${
-                isDarkMode ? 'bg-slate-700' : 'bg-rose-100'
-              }`}>
-                <div 
-                  className="h-1.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all duration-500"
+              <div className={`w-24 h-1 rounded-full overflow-hidden ${c.barTrack}`}>
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${c.bar}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <span className={`text-xs font-medium ${
-                isDarkMode ? 'text-slate-400' : 'text-rose-600'
-              }`}>
+              <span className={`text-[11px] font-medium tabular-nums ${c.textMuted}`}>
                 {progress}%
               </span>
             </div>
           )}
 
           <button
-            className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
-              isDarkMode 
-                ? 'hover:bg-slate-700 text-slate-300' 
-                : 'hover:bg-rose-50 text-rose-600'
-            }`}
+            aria-label="Search"
+            className={`w-9 h-9 rounded-md border flex items-center justify-center transition-colors ${c.button}`}
           >
-            <Search size={20} />
+            <Search size={15} strokeWidth={1.8} />
           </button>
 
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
-              isDarkMode 
-                ? 'hover:bg-slate-700 text-slate-300' 
-                : 'hover:bg-rose-50 text-rose-600'
-            }`}
+            aria-label={isDarkMode ? "Light mode" : "Dark mode"}
+            className={`w-9 h-9 rounded-md border flex items-center justify-center transition-colors ${c.button}`}
           >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            {isDarkMode
+              ? <Sun size={15} strokeWidth={1.8} />
+              : <Moon size={15} strokeWidth={1.8} />}
           </button>
 
           <button
             onClick={toggleFullscreen}
-            className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
-              isDarkMode 
-                ? 'hover:bg-slate-700 text-slate-300' 
-                : 'hover:bg-rose-50 text-rose-600'
-            }`}
+            aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            className={`w-9 h-9 rounded-md border flex items-center justify-center transition-colors ${c.button}`}
           >
-            {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+            {isFullscreen
+              ? <Minimize2 size={15} strokeWidth={1.8} />
+              : <Maximize2 size={15} strokeWidth={1.8} />}
           </button>
 
-          <button className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
-            isDarkMode 
-              ? 'hover:bg-slate-700 text-slate-300' 
-              : 'hover:bg-rose-50 text-rose-600'
-          }`}>
-            <MoreVertical size={20} />
+          <button
+            aria-label="More options"
+            className={`w-9 h-9 rounded-md border flex items-center justify-center transition-colors ${c.button}`}
+          >
+            <MoreVertical size={15} strokeWidth={1.8} />
           </button>
         </div>
       </header>
 
       {/* Reader */}
-      <main className={`flex-1 flex items-center justify-center p-6 overflow-hidden transition-colors duration-300 ${
-        isDarkMode ? 'bg-slate-900' : ''
-      }`}>
-        <div className={`relative overflow-auto rounded-2xl shadow-2xl border w-full max-w-5xl h-full flex items-center justify-center transition-colors duration-300 ${
-          isDarkMode 
-            ? 'bg-slate-800 border-slate-700' 
-            : 'bg-white/80 backdrop-blur-sm border-rose-200/30 shadow-rose-200/20'
-        }`}>
+      <main className={`flex-1 flex items-center justify-center p-4 sm:p-6 overflow-hidden transition-colors duration-300 ${c.page}`}>
+        <div className={`relative overflow-auto rounded-lg border w-full max-w-5xl h-full flex items-center justify-center transition-colors duration-300 ${c.panel} ${c.border}`}>
           <Document
             file={book.signed_url}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
               <div className="flex flex-col items-center justify-center p-12">
-                <div className="relative">
-                  <div className="w-12 h-12 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin" />
-                </div>
-                <p className={`mt-4 font-medium ${
-                  isDarkMode ? 'text-slate-400' : 'text-rose-600'
-                }`}>
+                <div className={`w-10 h-10 border-2 rounded-full animate-spin ${isDarkMode ? "border-[#30363d] border-t-[#e6edf3]" : "border-[#e8dfd3] border-t-[#5c1a1a]"}`} />
+                <p className={`mt-5 text-sm ${c.textMuted}`}>
                   Loading PDF...
                 </p>
               </div>
@@ -247,13 +224,11 @@ function BookReader({ book, onBack }) {
               scale={scale}
               renderTextLayer={false}
               renderAnnotationLayer={false}
-              className="shadow-lg rounded-lg"
+              className="shadow-sm"
               loading={
                 <div className="flex flex-col items-center justify-center p-8">
-                  <div className="w-8 h-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
-                  <p className={`mt-3 text-sm ${
-                    isDarkMode ? 'text-slate-400' : 'text-amber-600'
-                  }`}>
+                  <div className={`w-8 h-8 border-2 rounded-full animate-spin ${isDarkMode ? "border-[#30363d] border-t-[#e6edf3]" : "border-[#e8dfd3] border-t-[#5c1a1a]"}`} />
+                  <p className={`mt-3 text-xs ${c.textMuted}`}>
                     Loading page...
                   </p>
                 </div>
@@ -264,94 +239,61 @@ function BookReader({ book, onBack }) {
       </main>
 
       {/* Footer */}
-      <footer className={`relative z-50 h-20 border-t flex items-center justify-center transition-colors duration-300 ${
-        isDarkMode 
-          ? 'bg-slate-800 border-slate-700' 
-          : 'bg-white/80 backdrop-blur-sm border-rose-200/30'
-      }`}>
-        <div className="flex items-center gap-4 md:gap-6 flex-wrap justify-center px-4">
+      <footer className={`relative z-50 h-20 border-t flex items-center justify-center transition-colors duration-300 ${c.chrome} ${c.border}`}>
+        <div className="flex items-center gap-3 md:gap-5 flex-wrap justify-center px-4">
           <button
             onClick={previousPage}
             disabled={pageNumber <= 1}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${
-              pageNumber <= 1
-                ? isDarkMode 
-                  ? 'bg-slate-700 text-slate-500 cursor-not-allowed' 
-                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                : isDarkMode
-                  ? 'bg-slate-700 hover:bg-slate-600 text-slate-200 hover:scale-[1.02]'
-                  : 'bg-rose-50 hover:bg-rose-100 text-rose-600 hover:scale-[1.02]'
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+              pageNumber <= 1 ? c.buttonDisabled : c.button
             }`}
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={14} strokeWidth={1.8} />
             <span className="hidden sm:inline">Previous</span>
           </button>
 
-          <div className={`font-medium flex items-center gap-3 ${
-            isDarkMode ? 'text-slate-300' : 'text-slate-700'
-          }`}>
-            <span>Page</span>
-            <span className={`px-3 py-1 rounded-lg font-bold ${
-              isDarkMode 
-                ? 'bg-slate-700 text-slate-100' 
-                : 'bg-rose-50 text-rose-600'
-            }`}>
+          <div className={`text-sm font-medium flex items-center gap-2.5 ${c.textMuted}`}>
+            <span className="text-[11px] tracking-[0.08em] uppercase">Page</span>
+            <span className={`px-2.5 py-1 rounded-md text-sm font-semibold tabular-nums border ${c.border} ${c.accentBg} ${c.text}`}>
               {pageNumber}
             </span>
-            <span>of</span>
-            <span className="font-bold">{numPages || '...'}</span>
+            <span className="text-[11px] tracking-[0.08em] uppercase">of</span>
+            <span className={`font-semibold tabular-nums ${c.text}`}>{numPages || "…"}</span>
           </div>
 
           <button
-            onClick={() => {
-              alert("Next button clicked");
-              nextPage();
-            }}
+            onClick={nextPage}
             disabled={pageNumber >= numPages}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${
-              pageNumber >= numPages
-                ? isDarkMode 
-                  ? 'bg-slate-700 text-slate-500 cursor-not-allowed' 
-                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white hover:shadow-lg hover:shadow-rose-200/50 hover:scale-[1.02]'
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+              pageNumber >= numPages ? c.buttonDisabled : c.buttonPrimary
             }`}
           >
             <span className="hidden sm:inline">Next</span>
-            <ChevronRight size={18} />
+            <ChevronRight size={14} strokeWidth={1.8} />
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={zoomOut}
               disabled={scale <= 0.6}
-              className={`p-2.5 rounded-xl transition-all duration-200 ${
-                scale <= 0.6
-                  ? isDarkMode 
-                    ? 'bg-slate-700 text-slate-500 cursor-not-allowed' 
-                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                  : isDarkMode
-                    ? 'hover:bg-slate-700 text-slate-300 hover:scale-105'
-                    : 'hover:bg-rose-50 text-rose-600 hover:scale-105'
+              aria-label="Zoom out"
+              className={`w-9 h-9 rounded-md border flex items-center justify-center transition-colors ${
+                scale <= 0.6 ? c.buttonDisabled + " border-transparent" : c.button
               }`}
             >
-              <ZoomOut size={18} />
+              <ZoomOut size={14} strokeWidth={1.8} />
             </button>
 
-            <span className={`text-sm font-medium min-w-[60px] text-center ${
-              isDarkMode ? 'text-slate-300' : 'text-slate-600'
-            }`}>
+            <span className={`text-xs font-medium min-w-[52px] text-center tabular-nums ${c.textMuted}`}>
               {Math.round(scale * 100)}%
             </span>
 
             <button
               onClick={zoomIn}
-              className={`p-2.5 rounded-xl transition-all duration-200 ${
-                isDarkMode
-                  ? 'hover:bg-slate-700 text-slate-300 hover:scale-105'
-                  : 'hover:bg-rose-50 text-rose-600 hover:scale-105'
-              }`}
+              aria-label="Zoom in"
+              className={`w-9 h-9 rounded-md border flex items-center justify-center transition-colors ${c.button}`}
             >
-              <ZoomIn size={18} />
+              <ZoomIn size={14} strokeWidth={1.8} />
             </button>
           </div>
         </div>

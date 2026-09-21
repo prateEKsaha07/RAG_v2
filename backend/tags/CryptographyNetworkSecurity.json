@@ -1,0 +1,223 @@
+{
+  "subject": "Cryptography and Network Security",
+  "units": [
+    {
+      "unit": 1,
+      "name": "Foundation of Cryptography and Security",
+      "topics": [
+        {
+          "topic": "osi security architecture",
+          "tags": ["osi security architecture", "security attacks", "security mechanisms", "security services", "passive attacks", "active attacks", "eavesdropping", "traffic analysis", "masquerade", "replay", "message modification", "denial of service", "authentication", "access control", "data confidentiality", "data integrity", "non-repudiation", "encryption", "digital signatures"]
+        },
+        {
+          "topic": "model for network security",
+          "tags": ["network security model", "sender", "receiver", "communication channel", "trusted third party", "key distribution", "authentication", "secure transmission", "network security", "security model"]
+        },
+        {
+          "topic": "symmetric cipher model",
+          "tags": ["symmetric encryption", "single-key encryption", "conventional encryption", "substitution", "transposition", "secret key", "key distribution", "key management", "symmetric cipher", "encryption decryption"]
+        },
+        {
+          "topic": "substitution techniques",
+          "tags": ["substitution cipher", "caesar cipher", "monoalphabetic cipher", "vigenere cipher", "polyalphabetic cipher", "frequency analysis", "brute force attack", "keyspace", "cipher text", "plain text", "shift cipher", "classical encryption"]
+        },
+        {
+          "topic": "modular arithmetic",
+          "tags": ["modular arithmetic", "modulus", "modular exponentiation", "rsa", "cryptography math", "number theory", "remainder", "congruence", "modular inverse", "finite field"]
+        },
+        {
+          "topic": "euclids algorithm",
+          "tags": ["euclid algorithm", "gcd", "greatest common divisor", "modular inverse", "extended euclidean algorithm", "rsa key generation", "number theory", "cryptography math", "hcf", "gcd computation"]
+        },
+        {
+          "topic": "design principles of block ciphers",
+          "tags": ["block cipher design", "number of rounds", "function f", "confusion", "diffusion", "s-box", "p-box", "key schedule", "avalanche effect", "feistel structure", "subkey generation", "cryptanalysis"]
+        },
+        {
+          "topic": "feistel cipher",
+          "tags": ["feistel cipher", "feistel network", "block cipher", "left half", "right half", "round function", "round key", "encryption", "decryption", "des", "symmetric cipher", "design model"]
+        },
+        {
+          "topic": "data encryption standard des",
+          "tags": ["des", "data encryption standard", "block cipher", "64-bit block", "56-bit key", "feistel network", "16 rounds", "s-box", "p-box", "key schedule", "expansion", "permutation", "brute force", "federal standard"]
+        },
+        {
+          "topic": "triple des 3des",
+          "tags": ["triple des", "3des", "des variant", "multiple encryption", "key length", "legacy systems", "aes replacement", "symmetric cipher", "encryption standard", "security enhancement"]
+        },
+        {
+          "topic": "strength of des",
+          "tags": ["des strength", "56-bit key", "brute force attack", "linear cryptanalysis", "differential cryptanalysis", "key length weakness", "des security", "exhaustive key search", "cryptanalysis", "computing power"]
+        },
+        {
+          "topic": "modes of operation ecb",
+          "tags": ["ecb", "electronic code book", "block cipher mode", "independent encryption", "pattern leakage", "64-bit block", "parallel processing", "simple mode", "cipher mode", "encryption mode"]
+        },
+        {
+          "topic": "modes of operation cbc",
+          "tags": ["cbc", "cipher block chaining", "block cipher mode", "xor", "previous ciphertext", "initialization vector", "pattern hiding", "sequential processing", "encryption mode", "chaining"]
+        },
+        {
+          "topic": "modes of operation cfb",
+          "tags": ["cfb", "cipher feedback", "stream mode", "keystream", "xor", "real-time encryption", "block cipher mode", "feedback", "encryption mode", "stream cipher"]
+        },
+        {
+          "topic": "modes of operation ofb",
+          "tags": ["ofb", "output feedback", "stream mode", "keystream", "error propagation", "block cipher mode", "feedback", "encryption mode", "stream cipher", "independent keystream"]
+        }
+      ]
+    },
+    {
+      "unit": 2,
+      "name": "Public Key Cryptography",
+      "topics": [
+        {
+          "topic": "prime numbers and primality testing",
+          "tags": ["prime numbers", "primality testing", "rabin miller", "rsa", "large primes", "composite numbers", "low-level test", "high-level test", "probabilistic test", "number theory", "cryptography math", "key generation"]
+        },
+        {
+          "topic": "principles of public key cryptosystems",
+          "tags": ["public key cryptography", "asymmetric encryption", "public key", "private key", "key distribution", "encryption", "decryption", "rsa", "diffie-hellman", "public key infrastructure", "pki"]
+        },
+        {
+          "topic": "rsa algorithm",
+          "tags": ["rsa", "rivest shamir adleman", "asymmetric algorithm", "public key", "private key", "modulus", "euler totient", "encryption", "decryption", "factoring", "key generation", "digital signature", "cryptography"]
+        },
+        {
+          "topic": "diffie-hellman key exchange",
+          "tags": ["diffie-hellman", "key exchange", "shared secret", "public channel", "prime number", "base", "private key", "public value", "modular exponentiation", "key agreement", "cryptography", "secure communication"]
+        },
+        {
+          "topic": "hashes and message digests",
+          "tags": ["hash function", "message digest", "message integrity", "cryptographic hash", "fixed-length digest", "collision resistance", "preimage resistance", "md5", "sha", "hmac", "authentication"]
+        },
+        {
+          "topic": "message authentication codes mac",
+          "tags": ["mac", "message authentication code", "authentication", "falsification detection", "secret key", "integrity", "hmac", "cryptography", "message authentication", "data origin authentication"]
+        },
+        {
+          "topic": "md5 message digest algorithm",
+          "tags": ["md5", "message digest 5", "hash function", "128-bit hash", "padding", "512-bit blocks", "four rounds", "checksum", "data integrity", "collision vulnerability", "cryptographic hash"]
+        },
+        {
+          "topic": "sha-1 secure hash algorithm",
+          "tags": ["sha-1", "secure hash algorithm", "160-bit hash", "512-bit blocks", "80 rounds", "working variables", "collision attack", "insecure", "sha-256", "sha-3", "cryptographic hash"]
+        },
+        {
+          "topic": "hmac hash-based message authentication code",
+          "tags": ["hmac", "hash-based mac", "message authentication", "secret key", "cryptographic hash", "server verification", "client authentication", "integrity", "authenticity", "cryptography"]
+        }
+      ]
+    },
+    {
+      "unit": 3,
+      "name": "Digital Signatures, Certificates, and Standards",
+      "topics": [
+        {
+          "topic": "digital signature standard dss and rsa",
+          "tags": ["digital signature", "dss", "rsa signature", "authentication", "integrity", "non-repudiation", "private key signing", "public key verification", "cryptography", "electronic signature", "message signing"]
+        },
+        {
+          "topic": "authentication kerberos v4",
+          "tags": ["kerberos", "authentication protocol", "key distribution center", "kdc", "tickets", "client server authentication", "secret key cryptography", "trusted third party", "network authentication", "kerberos v4"]
+        },
+        {
+          "topic": "electronic mail security pgp",
+          "tags": ["pgp", "pretty good privacy", "email security", "hybrid cryptography", "symmetric key", "public key", "web of trust", "confidentiality", "integrity", "authentication", "digital signature", "encryption"]
+        },
+        {
+          "topic": "system security computer virus",
+          "tags": ["computer virus", "malicious software", "malware", "replication", "system security", "data corruption", "virus types", "boot sector virus", "file infector", "macro virus", "antivirus"]
+        },
+        {
+          "topic": "system security firewall",
+          "tags": ["firewall", "network security", "packet filtering", "stateful inspection", "proxy firewall", "trusted network", "untrusted network", "access control", "security rules", "barrier", "traffic monitoring"]
+        },
+        {
+          "topic": "electronic commerce security set",
+          "tags": ["set", "secure electronic transaction", "e-commerce security", "credit card transaction", "payment security", "confidentiality", "integrity", "authentication", "digital certificates", "online payment"]
+        }
+      ]
+    },
+    {
+      "unit": 4,
+      "name": "Cyber Security Fundamentals & Attacking Techniques",
+      "topics": [
+        {
+          "topic": "security concepts cyber crimes and criminals",
+          "tags": ["cyber crime", "cyber criminals", "hacking", "phishing", "identity theft", "malware", "cyber security", "security concepts", "criminal activities", "internet crime", "digital crime"]
+        },
+        {
+          "topic": "anti-forensics proxies and tunneling",
+          "tags": ["anti-forensics", "proxies", "tunneling", "digital forensics", "ip hiding", "protocol encapsulation", "security bypass", "anonymity", "investigation evasion", "cyber security"]
+        },
+        {
+          "topic": "fraud techniques phishing and malicious mobile code",
+          "tags": ["phishing", "fraud", "malicious mobile code", "java applets", "activex", "remote execution", "sensitive information", "social engineering", "email fraud", "cyber fraud"]
+        },
+        {
+          "topic": "rogue antivirus and click fraud",
+          "tags": ["rogue antivirus", "scareware", "fake software", "click fraud", "advertisement fraud", "ppc fraud", "malware", "cyber fraud", "online scam", "payment fraud"]
+        },
+        {
+          "topic": "threat infrastructure botnets",
+          "tags": ["botnet", "bots", "bot herder", "ddos", "distributed denial of service", "spam distribution", "data theft", "compromised computers", "command and control", "threat infrastructure"]
+        },
+        {
+          "topic": "fast flux and advanced fast flux",
+          "tags": ["fast flux", "advanced fast flux", "dns technique", "botnet", "phishing", "malware delivery", "compromised hosts", "double flux", "takedown resistance", "cyber security"]
+        }
+      ]
+    },
+    {
+      "unit": 5,
+      "name": "Cyber Security Policy Catalog",
+      "topics": [
+        {
+          "topic": "cyber governance issues",
+          "tags": ["cyber governance", "security policies", "procedures", "standards", "regulatory compliance", "business objectives", "cyber security", "governance framework", "risk management", "policy"]
+        },
+        {
+          "topic": "internet names and numbers",
+          "tags": ["internet names", "domain names", "dns", "ip addresses", "iana", "icann", "unique identifiers", "internet governance", "number allocation", "domain management"]
+        },
+        {
+          "topic": "copyrights and trademarks",
+          "tags": ["copyright", "trademark", "intellectual property", "legal protection", "original works", "software copyright", "digital content", "brand protection", "logo", "symbol"]
+        },
+        {
+          "topic": "email and messaging",
+          "tags": ["email security", "messaging", "electronic communications", "retention policies", "monitoring", "phishing", "spam", "email threats", "governance", "communication security"]
+        },
+        {
+          "topic": "cyber user issues",
+          "tags": ["cyber user issues", "user behavior", "privacy", "digital literacy", "cyberbullying", "online harassment", "misinformation", "user concerns", "cyberspace", "digital citizenship"]
+        },
+        {
+          "topic": "cyber crime",
+          "tags": ["cyber crime", "legal framework", "laws", "regulations", "cross-border investigation", "jurisdiction", "enforcement", "criminal activities", "internet crime", "prosecution"]
+        },
+        {
+          "topic": "geo-location",
+          "tags": ["geo-location", "geographic location", "ip geolocation", "law enforcement", "marketing", "security", "location tracking", "device location", "internet connected", "geolocation"]
+        },
+        {
+          "topic": "privacy",
+          "tags": ["privacy", "personal information", "data collection", "data use", "data disclosure", "gdpr", "ccpa", "privacy laws", "digital privacy", "user rights", "data protection"]
+        },
+        {
+          "topic": "cyber conflict issues",
+          "tags": ["cyber conflict", "cyber warfare", "state actors", "non-state actors", "critical infrastructure", "espionage", "hacktivism", "cyber attacks", "national security", "cyber defense"]
+        },
+        {
+          "topic": "intellectual property theft",
+          "tags": ["intellectual property theft", "copyright infringement", "trade secrets", "patented information", "economic loss", "national security", "ip theft", "unauthorized use", "digital piracy", "corporate espionage"]
+        },
+        {
+          "topic": "cyber espionage",
+          "tags": ["cyber espionage", "secrets", "cyber techniques", "government targets", "military targets", "corporate espionage", "intellectual property", "state-sponsored", "espionage", "cyber security"]
+        }
+      ]
+    }
+  ]
+}

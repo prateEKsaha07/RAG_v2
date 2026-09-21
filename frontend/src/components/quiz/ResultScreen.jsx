@@ -1,3 +1,4 @@
+import { useState } from "react"
 import {
   Trophy,
   Target,
@@ -11,9 +12,81 @@ import {
   ArrowRight,
   RotateCcw,
   GraduationCap,
-  Zap
+  Zap,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import ModuleNav from "../common/ModuleNav"
+
+function RecommendationItem({ rec }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="rounded-md border border-[#e8dfd3] bg-[#faf7f3] overflow-hidden">
+      {/* Header (clickable) */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-3 p-4 text-left hover:bg-[#f5efe6] transition-colors"
+      >
+        <div className="w-7 h-7 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center flex-shrink-0">
+          <BookOpen size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-[#2a1f14] truncate">
+            {rec.weak_topic}
+          </p>
+        </div>
+
+        <div className="flex-shrink-0 text-[#8a7965]">
+          {isOpen ? (
+            <ChevronUp size={16} strokeWidth={1.8} />
+          ) : (
+            <ChevronDown size={16} strokeWidth={1.8} />
+          )}
+        </div>
+      </button>
+
+      {/* Collapsible body */}
+      {isOpen && (
+        <div className="px-4 pb-4 pt-0 border-t border-[#e8dfd3]">
+          <div
+            className="text-xs text-[#6a5a48] leading-relaxed mt-3
+              [&_p]:mb-2 [&_p:last-child]:mb-0
+              [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ul]:space-y-0.5
+              [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2 [&_ol]:space-y-0.5
+              [&_li]:leading-relaxed [&_li]:text-[#6a5a48]
+              [&_strong]:font-semibold [&_strong]:text-[#2a1f14]
+              [&_em]:italic
+              [&_code]:bg-[#f0e9e0] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[11px] [&_code]:text-[#5c1a1a]
+              [&_a]:text-[#5c1a1a] [&_a]:underline [&_a]:hover:text-[#4a1414]
+              [&_h1]:text-sm [&_h1]:font-bold [&_h1]:text-[#2a1f14] [&_h1]:mb-1
+              [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-[#2a1f14] [&_h2]:mb-1
+              [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:text-[#2a1f14] [&_h3]:mb-1"
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                a: ({ node, ...props }) => (
+                  <a {...props} target="_blank" rel="noopener noreferrer" />
+                ),
+              }}
+            >
+              {rec.revise_this}
+            </ReactMarkdown>
+          </div>
+
+          <p className="text-[11px] text-[#8a7965] mt-3 flex items-center gap-1.5">
+            <Sparkles size={10} strokeWidth={1.8} />
+            {rec.source}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function ResultScreen({ results, onRestart, onBack, onLogout, user, subject, onStudy, onUpload, onNotes, onRoadmap, onAnalyticsV2 }) {
   if (!results) return (
@@ -101,24 +174,12 @@ function ResultScreen({ results, onRestart, onBack, onLogout, user, subject, onS
         <div className="bg-white border border-[#e8dfd3] rounded-lg p-8">
           <div className="flex flex-col md:flex-row items-center gap-8">
 
-            {/* Circular progress */}
             <div className="relative flex-shrink-0">
               <svg className="w-32 h-32 md:w-40 md:h-40 transform -rotate-90">
+                <circle cx="50%" cy="50%" r="45%" stroke="#f0e9e0" strokeWidth="8" fill="none" />
                 <circle
-                  cx="50%"
-                  cy="50%"
-                  r="45%"
-                  stroke="#f0e9e0"
-                  strokeWidth="8"
-                  fill="none"
-                />
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r="45%"
-                  stroke="#5c1a1a"
-                  strokeWidth="8"
-                  fill="none"
+                  cx="50%" cy="50%" r="45%"
+                  stroke="#5c1a1a" strokeWidth="8" fill="none"
                   strokeDasharray={`${percentage * 2.827} 282.7`}
                   strokeLinecap="round"
                   className="transition-all duration-1000 ease-out"
@@ -134,7 +195,6 @@ function ResultScreen({ results, onRestart, onBack, onLogout, user, subject, onS
               </div>
             </div>
 
-            {/* Score details */}
             <div className="flex-1 text-center md:text-left min-w-0">
               <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14] mb-2">
                 {performanceMessage}
@@ -216,10 +276,7 @@ function ResultScreen({ results, onRestart, onBack, onLogout, user, subject, onS
 
           <div className="space-y-3">
             {quizResults.map((item, index) => (
-              <div
-                key={index}
-                className="bg-white border border-[#e8dfd3] rounded-lg p-5"
-              >
+              <div key={index} className="bg-white border border-[#e8dfd3] rounded-lg p-5">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 mt-0.5">
                     {item.is_correct ? (
@@ -303,7 +360,7 @@ function ResultScreen({ results, onRestart, onBack, onLogout, user, subject, onS
           )}
         </div>
 
-        {/* Recommendations */}
+        {/* Recommendations — Drawer / Accordion */}
         <div className="bg-white border border-[#e8dfd3] rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center">
@@ -318,27 +375,7 @@ function ResultScreen({ results, onRestart, onBack, onLogout, user, subject, onS
           {recommendations && recommendations.length > 0 ? (
             <div className="space-y-2">
               {recommendations.map((rec, index) => (
-                <div
-                  key={index}
-                  className="p-4 rounded-md border border-[#e8dfd3] bg-[#faf7f3]"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center flex-shrink-0">
-                      <BookOpen size={12} strokeWidth={1.8} className="text-[#5c1a1a]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#2a1f14] mb-1">
-                        {rec.weak_topic}
-                      </p>
-                      <p className="text-xs text-[#6a5a48] leading-relaxed">{rec.revise_this}</p>
-                      <p className="text-[11px] text-[#8a7965] mt-2 flex items-center gap-1.5">
-                        <Sparkles size={10} strokeWidth={1.8} />
-                        {rec.source}
-                      </p>
-                    </div>
-                    <ArrowRight size={14} strokeWidth={1.8} className="text-[#8a7965] flex-shrink-0 mt-0.5" />
-                  </div>
-                </div>
+                <RecommendationItem key={index} rec={rec} />
               ))}
             </div>
           ) : (

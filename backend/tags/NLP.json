@@ -1,0 +1,239 @@
+{
+  "subject": "NLP",
+  "units": [
+    {
+      "unit": 1,
+      "name": "Grammars and Parsing",
+      "topics": [
+        {
+          "topic": "grammar and sentence structure",
+          "tags": ["grammar", "sentence structure", "phonology", "morphology", "syntax", "semantics", "pragmatics", "noun phrase", "verb phrase", "parse tree", "grammatical correctness", "natural language processing"]
+        },
+        {
+          "topic": "top-down and bottom-up chart parser",
+          "tags": ["parsing", "top-down parsing", "bottom-up parsing", "chart parser", "parse tree", "recursive descent", "left-recursive grammar", "chart", "partial parse", "nlp parsing"]
+        },
+        {
+          "topic": "transition network grammars",
+          "tags": ["transition network grammars", "recursive transition networks", "rtn", "states", "transitions", "start state", "final state", "parsing", "grammar representation", "nlp"]
+        },
+        {
+          "topic": "finite state models and morphological processing",
+          "tags": ["finite state models", "fsm", "dfa", "nfa", "morphological processing", "morphemes", "stemming", "lemmatization", "finite state transducers", "fst", "tokenization", "nlp"]
+        },
+        {
+          "topic": "grammar and logic programming",
+          "tags": ["logic programming", "prolog", "definite clause grammars", "dcg", "grammar rules", "logical variables", "constraints", "parsing", "natural language", "nlp"]
+        }
+      ]
+    },
+    {
+      "unit": 2,
+      "name": "Features and Unification",
+      "topics": [
+        {
+          "topic": "human preferences in parsing encoding uncertainty",
+          "tags": ["human parsing", "minimal attachment", "late closure", "garden path sentences", "ambiguity", "encoding uncertainty", "probabilistic grammars", "pcfg", "feature structures", "chart parsers", "nlp"]
+        },
+        {
+          "topic": "shift-reduce parsers",
+          "tags": ["shift-reduce parsing", "bottom-up parsing", "stack", "input buffer", "shift", "reduce", "conflict-free grammar", "shift-reduce conflict", "reduce-reduce conflict", "nlp parsing"]
+        },
+        {
+          "topic": "a deterministic parser",
+          "tags": ["deterministic parser", "ll(1)", "lr(1)", "backtracking", "grammar transformation", "parsing", "nlp", "deterministic grammar", "efficient parsing"]
+        },
+        {
+          "topic": "techniques for efficient encoding of ambiguity",
+          "tags": ["ambiguity", "shared packed parse forests", "chart parsing", "probabilistic parsing", "parse trees", "nlp", "efficient parsing", "ambiguity resolution"]
+        },
+        {
+          "topic": "semantics and logical form word senses and ambiguity",
+          "tags": ["semantics", "logical form", "word senses", "polysemy", "homonymy", "lexical ambiguity", "syntactic ambiguity", "semantic ambiguity", "nlp", "meaning representation"]
+        },
+        {
+          "topic": "partial parsing feature stems and augmented grammars",
+          "tags": ["partial parsing", "feature stems", "augmented grammars", "information extraction", "text mining", "features", "tense", "number", "gender", "nlp"]
+        },
+        {
+          "topic": "some basic feature systems for english",
+          "tags": ["feature systems", "english grammar", "number", "person", "tense", "gender", "case", "subject-verb agreement", "disambiguation", "nlp"]
+        },
+        {
+          "topic": "morphological analysis and the lexicon",
+          "tags": ["morphological analysis", "lexicon", "morphemes", "part of speech", "meaning", "pronunciation", "base forms", "features", "parsing", "nlp"]
+        },
+        {
+          "topic": "parsing with features augmented transition networks",
+          "tags": ["parsing with features", "augmented transition networks", "atn", "registers", "conditions", "agreement", "syntactic constraints", "nlp", "parsing"]
+        },
+        {
+          "topic": "definite clause grammars generalized feature systems unification grammars",
+          "tags": ["definite clause grammars", "dcg", "generalized feature systems", "unification grammars", "unification", "feature structures", "lfg", "hpsg", "nlp", "grammar formalisms"]
+        }
+      ]
+    },
+    {
+      "unit": 3,
+      "name": "Linking Syntax and Semantics",
+      "topics": [
+        {
+          "topic": "semantics and logical form word senses and ambiguity",
+          "tags": ["semantics", "logical form", "word senses", "polysemy", "homonymy", "ambiguity", "first-order logic", "lambda calculus", "nlp", "meaning representation"]
+        },
+        {
+          "topic": "the basic logical form language",
+          "tags": ["logical form language", "predicates", "variables", "quantifiers", "universal quantifier", "existential quantifier", "logical connectives", "first-order logic", "nlp", "meaning representation"]
+        },
+        {
+          "topic": "encoding ambiguity in the logical form",
+          "tags": ["encoding ambiguity", "logical form", "underspecification", "multiple logical forms", "probabilistic logical forms", "nlp", "ambiguity resolution", "meaning representation"]
+        },
+        {
+          "topic": "verbs and states in logical form thematic roles",
+          "tags": ["verbs", "states", "logical form", "thematic roles", "agent", "patient", "experiencer", "instrument", "goal", "source", "nlp", "semantic roles"]
+        },
+        {
+          "topic": "speech acts and embedded sentences",
+          "tags": ["speech acts", "assertives", "directives", "commissives", "expressives", "declarations", "embedded sentences", "logical form", "nlp", "pragmatics"]
+        },
+        {
+          "topic": "defining semantic structure model theory",
+          "tags": ["model theory", "semantic structure", "domain", "interpretation function", "logical languages", "nlp", "formal semantics", "meaning"]
+        },
+        {
+          "topic": "semantic interpretation and compositionality",
+          "tags": ["semantic interpretation", "compositionality", "syntactic structures", "logical forms", "nlp", "formal semantics", "meaning construction"]
+        },
+        {
+          "topic": "a simple grammar and lexicon with semantic interpretation",
+          "tags": ["grammar", "lexicon", "semantic interpretation", "syntactic rules", "logical forms", "lambda calculus", "nlp", "formal semantics"]
+        },
+        {
+          "topic": "prepositional phrases and verb phrases",
+          "tags": ["prepositional phrases", "pp", "verb phrases", "vp", "location", "time", "manner", "actions", "states", "nlp", "syntax"]
+        },
+        {
+          "topic": "lexicalized semantic interpretation and semantic roles",
+          "tags": ["lexicalized semantic interpretation", "semantic roles", "thematic roles", "verb arguments", "nlp", "formal semantics", "meaning"]
+        },
+        {
+          "topic": "semantics interpretation using feature unification",
+          "tags": ["feature unification", "semantic interpretation", "feature structures", "agreement", "ambiguity resolution", "nlp", "formal semantics"]
+        },
+        {
+          "topic": "generating sentences from logical form",
+          "tags": ["natural language generation", "logical form", "sentence generation", "grammar rules", "surface realization", "nlp", "nlg"]
+        }
+      ]
+    },
+    {
+      "unit": 4,
+      "name": "Strategies for Semantic Interpretation",
+      "topics": [
+        {
+          "topic": "selection restrictions",
+          "tags": ["selection restrictions", "verb arguments", "predicate constraints", "semantic anomaly", "disambiguation", "nlp", "semantics"]
+        },
+        {
+          "topic": "semantic filtering using selection restrictions",
+          "tags": ["semantic filtering", "selection restrictions", "invalid interpretations", "parsing", "disambiguation", "nlp", "semantics"]
+        },
+        {
+          "topic": "semantic networks",
+          "tags": ["semantic networks", "knowledge representation", "nodes", "edges", "is-a relationship", "part-of relationship", "conceptual graphs", "nlp", "semantics"]
+        },
+        {
+          "topic": "statistical word sense disambiguation",
+          "tags": ["word sense disambiguation", "wsd", "statistical methods", "supervised", "unsupervised", "knowledge-based", "wordnet", "nlp", "semantics"]
+        },
+        {
+          "topic": "statistical semantic preferences",
+          "tags": ["statistical semantic preferences", "statistical patterns", "semantic interpretation", "nlp", "semantics", "disambiguation"]
+        },
+        {
+          "topic": "combining approaches to disambiguation",
+          "tags": ["disambiguation", "syntactic", "semantic", "statistical", "combining approaches", "nlp", "semantics"]
+        },
+        {
+          "topic": "grammatical relations semantic grammars",
+          "tags": ["grammatical relations", "subject", "object", "indirect object", "semantic grammars", "semantic information", "nlp", "syntax semantics interface"]
+        },
+        {
+          "topic": "template matching semantically driven parsing techniques",
+          "tags": ["template matching", "information extraction", "question answering", "semantically driven parsing", "semantic constraints", "nlp", "parsing"]
+        },
+        {
+          "topic": "scooping phenomena descriptions and scooping scooping with parsing",
+          "tags": ["scooping", "quantifier scope", "definite descriptions", "scope resolution", "parsing", "nlp", "semantics"]
+        },
+        {
+          "topic": "co-reference and binding constraints",
+          "tags": ["co-reference", "binding constraints", "pronouns", "antecedents", "agreement", "nlp", "discourse"]
+        },
+        {
+          "topic": "adjective phrases relational nouns and nominalizations",
+          "tags": ["adjective phrases", "relational nouns", "nominalizations", "semantic roles", "nlp", "syntax semantics interface"]
+        }
+      ]
+    },
+    {
+      "unit": 5,
+      "name": "Natural Language Generation and Translation",
+      "topics": [
+        {
+          "topic": "introduction to language generation",
+          "tags": ["natural language generation", "nlg", "text generation", "logical form", "knowledge base", "fluent text", "coherent text", "nlp"]
+        },
+        {
+          "topic": "architecture for generation",
+          "tags": ["nlg architecture", "content determination", "discourse planning", "sentence planning", "surface realization", "nlp", "text generation"]
+        },
+        {
+          "topic": "surface realization",
+          "tags": ["surface realization", "inflection", "agreement", "word order", "nlg", "text generation", "nlp"]
+        },
+        {
+          "topic": "systemic grammar",
+          "tags": ["systemic grammar", "network of systems", "choices", "syntax", "semantics", "nlg", "nlp"]
+        },
+        {
+          "topic": "functional unification grammar",
+          "tags": ["functional unification grammar", "fug", "unification", "feature structures", "nlg", "text generation", "nlp"]
+        },
+        {
+          "topic": "discourse planning text schemata rhetorical relations",
+          "tags": ["discourse planning", "text schemata", "rhetorical relations", "elaboration", "contrast", "cause-effect", "nlg", "nlp"]
+        },
+        {
+          "topic": "micro planning lexical selection",
+          "tags": ["micro planning", "lexical selection", "sentence level", "word choice", "nlg", "text generation", "nlp"]
+        },
+        {
+          "topic": "evolution generation stems generating speech",
+          "tags": ["evolution generation stems", "generating speech", "text to speech", "tts", "nlg", "nlp", "speech synthesis"]
+        },
+        {
+          "topic": "language similarities and differences the transfer metaphor",
+          "tags": ["language similarities", "language differences", "transfer metaphor", "machine translation", "source language", "target language", "nlp"]
+        },
+        {
+          "topic": "syntactic transformations lexical transfer",
+          "tags": ["syntactic transformations", "lexical transfer", "machine translation", "syntax", "word mapping", "nlp"]
+        },
+        {
+          "topic": "the interlingua idea direct translation",
+          "tags": ["interlingua", "direct translation", "machine translation", "language-independent representation", "word-for-word translation", "nlp"]
+        },
+        {
+          "topic": "statistical techniques quantifying fluency quantifying faithfulness",
+          "tags": ["statistical machine translation", "smt", "nmt", "fluency", "faithfulness", "machine translation", "nlp", "evaluation metrics"]
+        },
+        {
+          "topic": "usability and system development",
+          "tags": ["usability", "system development", "translation systems", "machine translation", "nlp", "evaluation"]
+        }
+      ]
+    }
+  ]
+}
