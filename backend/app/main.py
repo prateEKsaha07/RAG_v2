@@ -25,10 +25,7 @@ notes_db = None
 
 from contextlib import asynccontextmanager
 
-
-# ---------------------------------------------------------------------------
 # Subject key normalization — canonical form for matching across files/DB
-# ---------------------------------------------------------------------------
 def normalize_subject_key(subject: str) -> str:
     """
     'Computer-Graphics', 'Computer Graphics', 'computer_graphics'
@@ -37,9 +34,7 @@ def normalize_subject_key(subject: str) -> str:
     return re.sub(r"[\s\-_]+", "", subject).lower()
 
 
-# ---------------------------------------------------------------------------
 # Safe FAISS loader — won't crash if index is missing
-# ---------------------------------------------------------------------------
 def _load_faiss_safe(path: str):
     """
     Load a FAISS index if it exists, otherwise return None.
@@ -96,63 +91,48 @@ async def lifespan(app: FastAPI):
 
     print("Shutting down...")
 
-
 app = FastAPI(lifespan=lifespan)
 
-
-# ---------------------------------------------------------------------------
 # Request models
-# ---------------------------------------------------------------------------
 class QuizRequest(BaseModel):
     subject: str
     unit_number: int | None = None
-
 class EvaluateRequest(BaseModel):
     quiz: list[Any]
     answers: list[Any]
     subject: str
-
 class AskRequest(BaseModel):
     question: str
-    subject: str | None = None   # NEW: optional subject scope
-
+    subject: str | None = None 
 class GenerateTagsRequest(BaseModel):
     note_content: str
     subject: str
-
 class SubjectTagsRequest(BaseModel):
     subject: str
-
 class FetchURLRequest(BaseModel):
     url: str
-
 class UpdateNoteRequest(BaseModel):
     title: str
     content: str
     tags: List[str]
     urls: List[Any] = []
-
 class CreateNoteRequest(BaseModel):
     subject: str
     title: str
     content: str
     tags: List[str]
     urls: List[Any] = []
-
 class RoadmapRequest(BaseModel):
     subject: str
     hours_per_day: int
     target_date: str
     scope: str
     unit_number: int | None = None
-
 class ExtendDateRequest(BaseModel):
     new_target_date: str
-
 class CompleteTopicRequest(BaseModel):
     week: int
     topic_name: str
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -160,7 +140,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/")
 def home():
@@ -176,9 +155,7 @@ def health():
     }
 
 
-# ---------------------------------------------------------------------------
 # Unit-wise metadata endpoint
-# ---------------------------------------------------------------------------
 @app.get("/subjects/{subject}/units")
 def get_subject_units(subject: str):
     """
@@ -214,7 +191,6 @@ def get_subject_units(subject: str):
         "subject_key": needle,
         "units": sorted(units.values(), key=lambda u: u["unit_number"]),
     }
-
 
 # Quiz
 @app.post("/generate-quiz")
@@ -286,10 +262,7 @@ def ingestion(file: UploadFile = File(...)):
         "vector_store_ready": vectorStoreDB is not None,
     }
 
-
-# ---------------------------------------------------------------------------
 # Q&A — upgraded to accept optional subject scope
-# ---------------------------------------------------------------------------
 @app.post("/ask")
 def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
     from app.modules.Qa.query import get_answer
@@ -299,26 +272,21 @@ def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
         uploads_db=vectorStoreDB,
         user_id=user.id,
         embeddings=embeddings,
-        subject=request.subject,   # NEW: pass through if provided
+        subject=request.subject,
     )
     return response
 
-
-# ---------------------------------------------------------------------------
 # Notes — specific routes MUST come before /notes/{filename}
-# ---------------------------------------------------------------------------
 @app.post("/notes/generate-tags")
 def generate_tags_endpoint(request: GenerateTagsRequest):
     from app.modules.Notes.notes import generate_tags
     tags = generate_tags(request.note_content, request.subject, llm)
     return {"tags": tags}
 
-
 @app.post("/notes/fetch-url")
 def fetch_url_endpoint(request: FetchURLRequest):
     from app.modules.Notes.notes import fetch_url_title
     return {"title": fetch_url_title(request.url)}
-
 
 @app.post("/notes/subject-tags")
 def get_subject_tags_endpoint(request: SubjectTagsRequest):
@@ -328,7 +296,6 @@ def get_subject_tags_endpoint(request: SubjectTagsRequest):
     """
     from app.modules.Notes.notes import load_tags
     return {"tags": load_tags(request.subject)}
-
 
 @app.post("/notes/ingest")
 async def ingest_notes_endpoint(user=Depends(get_current_user)):
@@ -348,7 +315,6 @@ async def ingest_notes_endpoint(user=Depends(get_current_user)):
     )
     return result
 
-
 @app.post("/notes")
 def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_user)):
     from app.modules.Notes.notes import create_note
@@ -360,7 +326,6 @@ def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_us
         urls=request.urls,
         user_id=user.id,
     )
-
 
 @app.get("/notes")
 def get_notes_endpoint(subject: str = None, tags: str = None, user=Depends(get_current_user)):
@@ -394,15 +359,11 @@ def delete_note_endpoint(filename: str, user=Depends(get_current_user)):
     from app.modules.Notes.notes import delete_note
     return delete_note(filename, user_id=user.id)
 
-
-# ---------------------------------------------------------------------------
 # Subjects & uploads
-# ---------------------------------------------------------------------------
 @app.get("/subjects")
 def get_subjects_endpoint():
     from app.modules.Notes.notes import get_subjects
     return {"subjects": get_subjects()}
-
 
 @app.get("/uploads/{subject}")
 def get_upload_content(subject: str):
@@ -446,7 +407,6 @@ def get_uploaded_subjects():
         files.append(file.stem)
     return sorted(files)
 
-
 # Roadmap
 @app.post("/roadmap")
 def generate_roadmap_endpoint(request: RoadmapRequest, user=Depends(get_current_user)):
@@ -470,7 +430,6 @@ def generate_roadmap_endpoint(request: RoadmapRequest, user=Depends(get_current_
     )
     return result
 
-
 @app.get("/roadmap/{subject}")
 def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
     from app.modules.Roadmap.roadmap import load_roadmap
@@ -478,7 +437,6 @@ def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
     if not roadmap:
         return {"error": "No roadmap found"}
     return roadmap
-
 
 @app.delete("/roadmap/{subject}")
 def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
@@ -490,7 +448,6 @@ def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
         .eq("subject_key", needle)\
         .execute()
     return {"success": True, "message": f"Roadmap for {subject} deleted"}
-
 
 @app.put("/roadmap/{subject}/extend")
 def extend_roadmap_endpoint(subject: str, request: ExtendDateRequest, user=Depends(get_current_user)):
@@ -506,7 +463,6 @@ def extend_roadmap_endpoint(subject: str, request: ExtendDateRequest, user=Depen
     }).eq("id", roadmap["id"]).execute()
 
     return {"success": True, "new_target_date": request.new_target_date}
-
 
 @app.put("/roadmap/{subject}/complete-topic")
 def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=Depends(get_current_user)):
@@ -535,7 +491,6 @@ def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=De
     }).eq("id", roadmap["id"]).execute()
 
     return {"success": True}
-
 
 # Sub-routers
 from app.modules.books.router import router as books_router
