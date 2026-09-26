@@ -8,6 +8,7 @@ import QAInput from "./QAInput"
 import QAEmptyState from "./QAEmptyState"
 import QAMessage from "./QAMessage"
 import QALoadingBlock from "./QALoadingBlock"
+import QANotice from "./QANotice"   // ← NEW
 
 function QAScreen({
   subject,
@@ -27,6 +28,7 @@ function QAScreen({
   const [scopedToSubject, setScopedToSubject] = useState(Boolean(subject))
   const [generalKnowledge, setGeneralKnowledge] = useState(false)
   const [pendingQuestion, setPendingQuestion] = useState(null)
+  const [showNotice, setShowNotice] = useState(true)   // ← NEW
 
   const bottomRef = useRef(null)
 
@@ -36,25 +38,23 @@ function QAScreen({
     }
   }, [history.length])
 
-  const handleAsk = async () => {
-    if (!question.trim() || loading) return
+  const askQuestion = async (text) => {
+    if (!text.trim() || loading) return
 
     const token = localStorage.getItem("access_token")
-    const asked = question.trim()
 
     setLoading(true)
     setError("")
-    setQuestion("")
-    setPendingQuestion(asked)
+    setPendingQuestion(text)
 
     try {
-      const payload = { question: asked }
+      const payload = { question: text }
       if (scopedToSubject && subject) {
         payload.subject = subject
       }
       if (generalKnowledge) {
-  payload.general_knowledge = true
-}
+        payload.general_knowledge = true
+      }
 
       const response = await axios.post(
         import.meta.env.VITE_API_URL + "/ask",
@@ -65,7 +65,7 @@ function QAScreen({
       setHistory((prev) => [
         ...prev,
         {
-          question: asked,
+          question: text,
           answer: response.data.answer,
           sources: response.data.sources || [],
           confidence: response.data.confidence || "medium",
@@ -84,6 +84,15 @@ function QAScreen({
     }
   }
 
+  const handleAsk = () => {
+    const asked = question.trim()
+    if (!asked) return
+    setQuestion("")
+    askQuestion(asked)
+  }
+
+  const handleExport = () => askQuestion("export chat")
+
   return (
     <div className="min-h-screen bg-[#f7f3ee] text-[#2a1f14]">
       <ModuleNav
@@ -98,6 +107,9 @@ function QAScreen({
         user={user}
       />
 
+      {/* ← NEW: floating popup notice */}
+      {showNotice && <QANotice onClose={() => setShowNotice(false)} />}
+
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Header */}
         <QAHeader
@@ -106,6 +118,7 @@ function QAScreen({
           setScopedToSubject={setScopedToSubject}
           generalKnowledge={generalKnowledge}
           setGeneralKnowledge={setGeneralKnowledge}
+          onExport={handleExport}
         />
 
         {/* Input — stacked on mobile, side-by-side on desktop */}

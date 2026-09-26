@@ -19,12 +19,13 @@ NOTES_ONLY_RULE = (
     "\"I don't have enough information in your notes to answer that.\" "
     "Do not guess, do not fill gaps with outside knowledge, do not explain that you know the answer elsewhere."
 )
-
 GENERAL_KNOWLEDGE_RULE = (
     "Answer using the context below if it's relevant. You may also use your own general "
     "knowledge to answer fully. If you go beyond the provided notes, briefly mention that "
     "this part is from general knowledge, not the student's notes."
 )
+
+EXPORT_TRIGGERS = ["export chat", "export conversation", "give me context", "/export"]
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -109,6 +110,19 @@ def _save_turn(session_id, role, content, max_store_len=300):
         content = content[:max_store_len] + "..."
     chat_histories.setdefault(session_id, []).append({"role": role, "content": content})
 
+def _export_context(session_id):
+    history = chat_histories.get(session_id, [])
+    if not history:
+        return {"answer": "No conversation yet to export.", "sources": [], "context_used": 0, "confidence": "low"}
+
+    lines = ["Here is our conversation so far:\n"]
+    for turn in history:
+        lines.append(f"{turn['role'].capitalize()}: {turn['content']}")
+    lines.append("\nPlease continue this conversation from where it left off.")
+    text = "\n".join(lines)
+
+    return {"answer": text, "sources": [], "context_used": 0, "confidence": "high"}
+
 # ---------------------------------------------------------------------------
 # Main QA function
 # ---------------------------------------------------------------------------
@@ -138,6 +152,7 @@ def get_answer(
     Returns:
         dict with answer, sources, context_used, confidence
     """
+
     if not question or not question.strip():
         return {
             "answer": "Please ask a question.",
@@ -145,6 +160,9 @@ def get_answer(
             "context_used": 0,
             "confidence": "low",
         }
+
+    if question.strip().lower() in EXPORT_TRIGGERS:
+        return _export_context(session_id)
 
     notes_docs = []
     uploads_docs = []
