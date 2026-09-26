@@ -6,6 +6,9 @@ from langchain_community.vectorstores import FAISS
 
 load_dotenv()
 
+# memory management
+MAX_TURNS = 6
+chat_histories = {}
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -13,7 +16,6 @@ load_dotenv()
 def normalize_subject_key(subject: str) -> str:
     """Canonical form for subject matching."""
     return re.sub(r"[\s\-_]+", "", subject).lower()
-
 
 def _dedupe_docs(docs, key_fn=None):
     """Remove duplicate docs based on a key function (default: source + first 100 chars)."""
@@ -30,7 +32,6 @@ def _dedupe_docs(docs, key_fn=None):
             seen.add(k)
             out.append(d)
     return out
-
 
 def _format_context(docs):
     """Format retrieved docs with metadata labels for the LLM."""
@@ -57,7 +58,6 @@ def _format_context(docs):
 
     return "\n\n---\n\n".join(parts)
 
-
 def _build_sources(docs):
     """Produce structured source list with unit/chapter info."""
     sources = []
@@ -77,7 +77,21 @@ def _build_sources(docs):
             "topic": meta.get("topic", ""),
         })
     return sources
+# new 
+def _format_history(session_id, n = MAX_TURNS):
+    """Returns last turns as plain text for the prompt."""
+    history = chat_histories.get(session_id,[])
+    recent = history[-n:]
+    if not recent:
+        return ""
+    lines = [f"{turn['role'].capitalize()}: {turn['content']}"for turn in recent]
+    return "\n".join(lines)
 
+def _save_turn(session_id, role, content, max_store_len=300):
+    """Append a turn to full history. Truncate long assistant answers before storing."""
+    if role == "assistant" and len(content) > max_store_len:
+        content = content[:max_store_len] + "..."
+    chat_histories.setdefault(session_id, []).append({"role": role, "content": content})
 
 # ---------------------------------------------------------------------------
 # Main QA function
@@ -88,6 +102,7 @@ def get_answer(
     uploads_db,
     user_id,
     embeddings,
+    session_id = str,
     subject: str | None = None,
     k: int = 5,
 ):
@@ -134,7 +149,6 @@ def get_answer(
         except Exception as e:
             print(f"Notes FAISS load/search failed: {e}")
             notes_docs = []
-
     # -----------------------------------------------------------------------
     # 2. Retrieve from shared uploads FAISS
     # -----------------------------------------------------------------------
@@ -177,6 +191,7 @@ def get_answer(
     # 4. Build context with labels
     # -----------------------------------------------------------------------
     context = _format_context(all_docs)
+    history_text = _format_history(session_id)
 
     # -----------------------------------------------------------------------
     # 5. Build prompt
@@ -191,6 +206,9 @@ RULES:
 - If the answer cannot be found in the context, respond exactly: "I don't have enough information in your notes to answer that."
 - Do NOT invent facts. Do NOT use outside knowledge.
 - Do NOT repeat the question.
+
+chat history:
+{history_text if history_text else "(none)"}
 
 Context:
 {context}
@@ -207,6 +225,7 @@ Answer:"""
         answer = response.content.strip()
     except Exception as e:
         print(f"LLM invoke failed: {e}")
+        
         return {
             "answer": "Sorry, I couldn't generate an answer right now. Please try again.",
             "sources": _build_sources(all_docs),
@@ -223,6 +242,11 @@ Answer:"""
         confidence = "high"
     else:
         confidence = "medium"
+
+# saving responses 
+    _save_turn(session_id,"user",question)
+    _save_turn(session_id,"assistant",answer)
+    print(chat_histories)
 
     return {
         "answer": answer,

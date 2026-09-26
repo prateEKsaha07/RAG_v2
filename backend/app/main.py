@@ -273,6 +273,7 @@ def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
         user_id=user.id,
         embeddings=embeddings,
         subject=request.subject,
+        session_id=user.id # using user id as session as no session is implemented right now
     )
     return response
 
