@@ -9,6 +9,22 @@ load_dotenv()
 # memory management
 MAX_TURNS = 6
 chat_histories = {}
+NOTES_ONLY_RULE = (
+    "You must answer using ONLY the information present in the context below. "
+    "Even if you know the answer from your own training knowledge, you are NOT allowed to use it here. "
+    "This restriction applies to ALL questions, including general facts, current events, people, dates, or definitions — "
+    "not just topics related to the student's subject. "
+    "Before answering, check: is this fact explicitly present in the context? "
+    "If it is not clearly present in the context, you MUST respond exactly: "
+    "\"I don't have enough information in your notes to answer that.\" "
+    "Do not guess, do not fill gaps with outside knowledge, do not explain that you know the answer elsewhere."
+)
+
+GENERAL_KNOWLEDGE_RULE = (
+    "Answer using the context below if it's relevant. You may also use your own general "
+    "knowledge to answer fully. If you go beyond the provided notes, briefly mention that "
+    "this part is from general knowledge, not the student's notes."
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -104,6 +120,7 @@ def get_answer(
     embeddings,
     session_id = str,
     subject: str | None = None,
+    general_knowledge: bool = False,
     k: int = 5,
 ):
     """
@@ -196,18 +213,20 @@ def get_answer(
     # -----------------------------------------------------------------------
     # 5. Build prompt
     # -----------------------------------------------------------------------
+
+    rule = GENERAL_KNOWLEDGE_RULE if general_knowledge else NOTES_ONLY_RULE
+
     prompt = f"""You are a helpful study assistant for a student.
-Answer the question using ONLY the context provided below.
+{rule}
 
 RULES:
 - Keep the answer to 2-4 sentences.
 - Paraphrase in your own words — no bullet points, no headers, no markdown.
 - If the context contains references to specific algorithms, formulas, or definitions, mention them precisely.
-- If the answer cannot be found in the context, respond exactly: "I don't have enough information in your notes to answer that."
-- Do NOT invent facts. Do NOT use outside knowledge.
 - Do NOT repeat the question.
+- Use chat history only to resolve references (e.g. "it", "that"). Do not answer from history alone.
 
-chat history:
+Chat history:
 {history_text if history_text else "(none)"}
 
 Context:
@@ -215,7 +234,8 @@ Context:
 
 Question: {question}
 
-Answer:"""
+Answer:
+"""
 
     # -----------------------------------------------------------------------
     # 6. Invoke LLM

@@ -104,6 +104,7 @@ class EvaluateRequest(BaseModel):
 class AskRequest(BaseModel):
     question: str
     subject: str | None = None 
+    general_knowledge: bool = False
 class GenerateTagsRequest(BaseModel):
     note_content: str
     subject: str
@@ -273,6 +274,7 @@ def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
         user_id=user.id,
         embeddings=embeddings,
         subject=request.subject,
+        general_knowledge=request.subject,
         session_id=user.id # using user id as session as no session is implemented right now
     )
     return response

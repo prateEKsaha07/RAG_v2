@@ -170,6 +170,7 @@ function QAScreen({
   const [error, setError] = useState("")
   const [history, setHistory] = useState([])
   const [scopedToSubject, setScopedToSubject] = useState(Boolean(subject))
+  const [generalKnowledge, setGeneralKnowledge] = useState(false)
   const [pendingQuestion, setPendingQuestion] = useState(null)
 
   const bottomRef = useRef(null)
@@ -196,6 +197,9 @@ function QAScreen({
       if (scopedToSubject && subject) {
         payload.subject = subject
       }
+      if (generalKnowledge) {
+  payload.general_knowledge = true
+}
 
       const response = await axios.post(
         import.meta.env.VITE_API_URL + "/ask",
@@ -261,26 +265,54 @@ function QAScreen({
             </p>
           </div>
 
-          <button
-            onClick={() => setScopedToSubject((v) => !v)}
-            disabled={!subject}
-            className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-md border transition-all duration-200 self-start sm:self-auto min-h-[40px] ${
-              scopedToSubject && subject
-                ? "border-[#5c1a1a]/40 bg-white text-[#5c1a1a]"
-                : "border-[#e8dfd3] bg-white text-[#8a7965]"
-            } ${!subject ? "opacity-60 cursor-not-allowed" : "hover:border-[#5c1a1a]/40 sm:hover:scale-[1.02] active:scale-[0.98]"}`}
-            title={subject ? "Toggle subject-scoped search" : "No subject available"}
-          >
-            <BookOpen size={13} strokeWidth={1.8} />
-            <span className="text-xs">
-              {scopedToSubject && subject ? "Scoped:" : "All subjects"}
-            </span>
-            {subject && (
-              <span className="text-xs font-medium truncate max-w-[100px] sm:max-w-none">
-                {subject}
-              </span>
-            )}
-          </button>
+          <div className="inline-flex items-center rounded-md border border-[#e8dfd3] bg-white overflow-hidden self-start sm:self-auto">
+  <button
+    onClick={() => setScopedToSubject((v) => !v)}
+    disabled={!subject}
+    className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 min-h-[40px] transition-all duration-200 ${
+      scopedToSubject && subject
+        ? "bg-white text-[#5c1a1a]"
+        : "bg-white text-[#8a7965]"
+    } ${!subject ? "opacity-60 cursor-not-allowed" : "hover:bg-[#faf7f3] active:scale-[0.98]"}`}
+    title={subject ? "Toggle subject-scoped search" : "No subject available"}
+  >
+    <span
+      className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+        scopedToSubject && subject ? "bg-[#5c1a1a]" : "bg-[#e8dfd3]"
+      }`}
+    />
+    <BookOpen size={13} strokeWidth={1.8} />
+    <span className="text-xs whitespace-nowrap">
+      {scopedToSubject && subject ? "Scoped:" : "All subjects"}
+    </span>
+    {subject && (
+      <span className="text-xs font-medium truncate max-w-[100px] sm:max-w-none">
+        {subject}
+      </span>
+    )}
+  </button>
+
+  <div className="w-px self-stretch bg-[#e8dfd3]" />
+
+  <button
+    onClick={() => setGeneralKnowledge((v) => !v)}
+    className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 min-h-[40px] transition-all duration-200 ${
+      generalKnowledge ? "bg-white text-[#5c1a1a]" : "bg-white text-[#8a7965]"
+    } hover:bg-[#faf7f3] active:scale-[0.98]`}
+    title="Allow answers beyond your notes"
+  >
+    <span
+      className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+        generalKnowledge ? "bg-[#5c1a1a]" : "bg-[#e8dfd3]"
+      }`}
+    />
+    <Sparkles size={13} strokeWidth={1.8} />
+    <span className="text-xs whitespace-nowrap">
+      {generalKnowledge ? "Web knowledge: On" : "Notes only"}
+    </span>
+  </button>
+</div>
+
         </div>
 
         {/* Input — stacked on mobile, side-by-side on desktop */}
