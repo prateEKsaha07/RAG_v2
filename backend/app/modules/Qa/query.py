@@ -284,7 +284,7 @@ Answer:
 # saving responses 
     _save_turn(session_id,"user",question)
     _save_turn(session_id,"assistant",answer)
-    print(chat_histories)
+    # print(chat_histories)
 
     return {
         "answer": answer,
