@@ -19,9 +19,13 @@ import {
   Upload,
   Award,
   Clock,
+  Info,
 } from "lucide-react";
 
-/* ---------- Full-screen section wrapper ---------- */
+import {
+  wake_backend
+} from  "../../api/client"
+
 const FullScreenSection = ({
   id,
   children,
@@ -48,7 +52,7 @@ const FullScreenSection = ({
   );
 };
 
-/* ---------- Typewriter ---------- */
+// Typewriter
 function Typewriter({ text = "RAG_V2", speed = 90, delay = 400, reduceMotion = false }) {
   const [displayed, setDisplayed] = useState(reduceMotion ? text : "");
   const [done, setDone] = useState(reduceMotion);
@@ -95,6 +99,7 @@ function Typewriter({ text = "RAG_V2", speed = 90, delay = 400, reduceMotion = f
 function LandingPage({ onGetStarted, onHome }) {
   const reduceMotion = useReducedMotion();
   const [activeSection, setActiveSection] = useState("home");
+  const [wakeBackend, setWakebackend] = useState("idle");
 
   const features = [
     { icon: Upload,         title: "Smart Notes Upload",      desc: "Upload markdown notes and turn them into AI searchable knowledge." },
@@ -133,11 +138,30 @@ function LandingPage({ onGetStarted, onHome }) {
     }
   };
 
+  const handleWakebackend = async() => {
+    setWakebackend("Waking")
+    try{
+      const data  = await wake_backend()
+      if (data.ready){
+        setWakebackend("ready")
+      }else{
+        setWakebackend("starting")
+      }
+    }catch(error){
+      console.log("there was a error",error)
+      setWakebackend("error")
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#f7f3ee] text-[#2a1f14] overflow-x-hidden relative">
 
       {/* NAVBAR */}
-      <Navbar onHome={onHome} onGetStarted={onGetStarted} showGetStarted={true} />
+      <Navbar 
+        onHome={onHome} 
+        onGetStarted={onGetStarted} 
+        showGetStarted={true}
+        wakeBackend ={wakeBackend} />
       <NoticePopup />
 
       {/* ================= HERO ================= */}
@@ -180,13 +204,31 @@ function LandingPage({ onGetStarted, onHome }) {
             transition={{ delay: 0.45, duration: 0.6 }}
             className="flex flex-wrap justify-center gap-3 mt-10"
           >
-            <button
-              onClick={onGetStarted}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
-            >
-              Start Learning
-              <ArrowRight size={15} strokeWidth={1.8} />
-            </button>
+            <div className="relative inline-flex items-center gap-2">
+  <button
+    onClick={onGetStarted}
+    disabled={wakeBackend !== "ready"}
+    className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    Start Learning
+    <ArrowRight size={15} strokeWidth={1.8} />
+  </button>
+
+  {wakeBackend !== "ready" && (
+    <span className="relative inline-flex items-center group">
+      <Info
+        size={17}
+        strokeWidth={1.8}
+        className="text-[#5c1a1a] cursor-help"
+      />
+
+      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-max max-w-48 rounded-lg bg-[#2a1f14] px-3 py-2 text-xs font-medium text-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+        Wake backend first
+        <span className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#2a1f14]" />
+      </span>
+    </span>
+  )}
+</div>
 
             <button
               onClick={() => scrollToSection("features")}
@@ -194,6 +236,19 @@ function LandingPage({ onGetStarted, onHome }) {
             >
               Explore Features
             </button>
+
+            <button
+    onClick={handleWakebackend}
+    disabled={wakeBackend === "waking"}
+    className="inline-flex items-center gap-2 px-6 py-3 rounded-md border border-[#e8dfd3] bg-white text-[#2a1f14] text-sm font-medium hover:bg-[#faf7f3] transition-colors"
+>
+    {wakeBackend === "waking" && "Waking Backend..."}
+    {wakeBackend === "starting" && "Backend Starting..."}
+    {wakeBackend === "ready" && "Backend Ready"}
+    {wakeBackend === "error" && "Retry Backend"}
+    {wakeBackend === "idle" && "Wake Backend"}
+</button>
+
           </motion.div>
         </div>
       </FullScreenSection>

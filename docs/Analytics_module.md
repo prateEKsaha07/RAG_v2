@@ -31,28 +31,72 @@ The core architecture leverages a decoupled frontend/backend framework designed 
 
 ## 3. Data Architecture & Schema Dependencies
 
-The Analytics Module operates read-only actions against four core Supabase tables. Data is compiled using a pull-model when the dashboard endpoint is invoked.
+The backend persists application records in four Supabase/PostgreSQL tables. Analytics reads these tables when the dashboard endpoint is invoked; the books, notes, quiz, and roadmap modules also write to them.
 
 ```
-┌────────────────────────────────────────────────────────┐
-│                    SUPABASE LAYER                      │
-│                                                        │
-│  ┌───────────────┐ ┌───────────────┐ ┌──────────────┐  │
-│  │     books     │ │     notes     │ │ quiz_history │  │
-│  └───────┬───────┘ └───────┬───────┘ └──────┬───────┘  │
-│          │                 │                │          │
-│          └─────────────────┼────────────────┘          │
-│                            ▼                           │
-└────────────────────────────────────────────────────────┘
-
+Supabase / PostgreSQL
+├── books          ── PDF metadata; file bytes live in Supabase Storage
+├── notes          ── note metadata; Markdown files live in Supabase Storage
+├── quiz_history   ── quiz attempt results
+└── roadmaps       ── study plans and their nested weekly schedule
 ```
 
-| Source Table | Monitored Attributes / Fields | Derived Analytics Metrics |
-| --- | --- | --- |
-| **`books`** | `id`, `user_id`, `last_opened_at`, `progress_percent`, `status` | Total uploaded books, currently reading, recently opened books, completion rates. |
-| **`notes`** | `id`, `user_id`, `updated_at`, `title` | Total notes created, recent modifications for timeline injection. |
-| **`quiz_history`** | `id`, `user_id`, `score`, `total_questions`, `topic_tags`, `created_at` | Total attempts, average score, maximum score, latest score, failure rate, weak topic mapping. |
-| **`roadmaps`** | `id`, `user_id`, `status`, `target_date`, `subject_name`, `progress` | Active/completed roadmaps, schedule variance, milestone deadlines. |
+### 3.1 Application-Facing Table Schema
+
+The following is the complete set of columns read or written by the backend in these four tables. Types below describe the values the application sends or expects; they are not a substitute for the deployed database DDL.
+
+| Table | Column | Application-level type | Usage |
+| --- | --- | --- | --- |
+| `books` | `id` | Identifier (string in the API) | Read and used to select or delete a book. |
+| `books` | `user_id` | User identifier (string) | Owner filter on book and analytics queries. |
+| `books` | `title` | String | Original filename stem; displayed in book and activity views. |
+| `books` | `filename` | String | Original uploaded PDF filename. |
+| `books` | `storage_path` | String | Path to the PDF in the `books` Storage bucket. |
+| `books` | `file_size` | Integer; nullable in the API response | Uploaded PDF size in bytes. |
+| `books` | `current_page` | Integer | Current reading position; initialized to `1` and updated by the progress endpoint. |
+| `books` | `total_pages` | Integer | PDF page count. |
+| `books` | `favorite` | Boolean | Initialized to `false`; returned by the book response model. |
+| `books` | `archived` | Boolean | Initialized to `false`; returned by the book response model. |
+| `books` | `uploaded_at` | Timestamp | Upload time, supplied by the backend. |
+| `books` | `last_opened` | Timestamp | Used for recent-book ordering and activity/streak calculations; supplied on upload. |
+| `books` | `cover_image` | Optional value (read-only here) | Read by analytics for the currently-reading book; this backend does not write it. |
+| `notes` | `id` | Identifier | Selected when resolving a note by owner and filename. |
+| `notes` | `user_id` | User identifier (string) | Owner filter on note and analytics queries. |
+| `notes` | `filename` | String | Storage filename and note lookup key. |
+| `notes` | `subject` | String | Display subject; also embedded in the stored Markdown file. |
+| `notes` | `subject_key` | String | Normalized subject key used for filtering. |
+| `notes` | `title` | String | Note title. |
+| `notes` | `tags` | Array of strings | Note tags supplied on create and update. |
+| `notes` | `urls` | Array | Referenced URLs supplied on create and update. |
+| `notes` | `word_count` | Integer | Word count calculated from note content. |
+| `notes` | `ingested` | Boolean | Set to `false` on create/update and `true` after ingestion. |
+| `notes` | `last_edited` | Timestamp | Set on update; used for analytics activity and weekly counts. |
+| `quiz_history` | `user_id` | User identifier (string) | Owner filter on quiz and analytics queries. |
+| `quiz_history` | `subject` | String | Quiz subject. |
+| `quiz_history` | `score` | Integer | Number of correct answers. |
+| `quiz_history` | `total` | Integer | Number of questions in the attempt. |
+| `quiz_history` | `weak_topics` | Array of strings | Topics missed in the attempt. |
+| `quiz_history` | `created_at` | Timestamp | Used to order attempts and calculate activity; quiz inserts omit it, so the database must supply it. |
+| `roadmaps` | `id` | Identifier | Selected when checking for an existing roadmap. |
+| `roadmaps` | `user_id` | User identifier (string) | Owner filter on roadmap and analytics queries. |
+| `roadmaps` | `subject` | String | Display subject. |
+| `roadmaps` | `subject_key` | String | Normalized subject key used to find a user's active roadmap. |
+| `roadmaps` | `scope` | String | Generation scope, such as a subject or unit. |
+| `roadmaps` | `unit_number` | Integer or null | Unit number when generation is unit-scoped. |
+| `roadmaps` | `hours_per_day` | Integer | Daily study-hours input used to generate the schedule. |
+| `roadmaps` | `target_date` | Date | Deadline; updated by the extend-date endpoint. |
+| `roadmaps` | `created_at` | Timestamp | Creation time, supplied by the backend and used in recent activity. |
+| `roadmaps` | `status` | String | Inserted as `active`; analytics also recognizes `completed`. |
+| `roadmaps` | `weeks` | Array of schedule objects | Generated schedule; its nested shape is described below. |
+| `roadmaps` | `weak_topics` | Array of strings | Weak topics used when generating the plan. |
+
+**Roadmap `weeks` value:** an array of week objects containing `week` (integer), `start_date` and `end_date` (date strings), and `topics` (array). Each topic entry contains `unit` (integer), `unit_name` (string), and a nested `topic` object. The nested topic includes `name`, `hours`, `days_needed`, `status` (`not_started` or `completed` in the current code), and `completed_date` (null or a date string); the generated structure may also include `is_weak`.
+
+The source repository contains no Supabase migration or SQL schema definition. Consequently, physical PostgreSQL types, primary/foreign-key declarations, indexes, nullability, and database defaults cannot be verified here. In particular, `quiz_history.created_at` must be populated by the deployed database because the backend insert does not supply it. `user_id` comes from the authenticated Supabase user, but an `auth.users` foreign-key constraint is not declared in this repository.
+
+### 3.2 Other Backend Persistence
+
+Supabase Storage has `books` and `notes` buckets: book PDFs are stored under `<user_id>/<generated_filename>`, and note Markdown files under `<user_id>/<note_filename>`. These are object-storage paths, not database tables. The backend also uses local FAISS indexes and JSON files (including `analytics/quiz_history.json`) for ingestion and a separate quiz-history endpoint; they are file-based persistence, not additional Supabase tables.
 
 ---
 

@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { Menu, X, LogOut, ChevronRight } from "lucide-react";
+import { Menu, X, LogOut, ChevronRight, ArrowRight, Info } from "lucide-react";
 
-function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
+function Navbar({ 
+  onGetStarted, 
+  showGetStarted = true, 
+  onHome, 
+  onLogout,
+  wakeBackend,
+ }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [scrolled, setScrolled] = useState(false);
@@ -117,12 +123,23 @@ function Navbar({ onGetStarted, showGetStarted = true, onHome, onLogout }) {
         <div className="hidden md:flex items-center gap-3">
           {showGetStarted && (
             <button
-              onClick={onGetStarted}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
-            >
-              Get Started
-              <ChevronRight size={14} strokeWidth={1.8} />
-            </button>
+    onClick={onGetStarted}
+    disabled={wakeBackend !== "ready"}
+    className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+>
+    Start Learning
+
+    {wakeBackend !== "ready" && (
+        <span
+            title="Wake backend first"
+            className="inline-flex items-center"
+        >
+            <Info size={15} strokeWidth={1.8} />
+        </span>
+    )}
+
+    <ArrowRight size={15} strokeWidth={1.8} />
+</button>
           )}
 
           {onLogout && (
