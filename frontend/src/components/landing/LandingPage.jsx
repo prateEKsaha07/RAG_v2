@@ -238,15 +238,19 @@ function LandingPage({ onGetStarted, onHome }) {
             </button>
 
             <button
-    onClick={handleWakebackend}
-    disabled={wakeBackend === "waking"}
-    className="inline-flex items-center gap-2 px-6 py-3 rounded-md border border-[#e8dfd3] bg-white text-[#2a1f14] text-sm font-medium hover:bg-[#faf7f3] transition-colors"
+  onClick={handleWakebackend}
+  disabled={
+    wakeBackend === "starting" ||
+    wakeBackend === "waking" ||
+    wakeBackend === "ready"
+  }
+  className="inline-flex items-center gap-2 px-6 py-3 rounded-md border border-[#e8dfd3] bg-white text-[#2a1f14] text-sm font-medium hover:bg-[#faf7f3] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
 >
-    {wakeBackend === "waking" && "Waking Backend..."}
-    {wakeBackend === "starting" && "Backend Starting..."}
-    {wakeBackend === "ready" && "Backend Ready"}
-    {wakeBackend === "error" && "Retry Backend"}
-    {wakeBackend === "idle" && "Wake Backend"}
+  {wakeBackend === "starting" && "Backend Starting..."}
+  {wakeBackend === "waking" && "Waking Backend..."}
+  {wakeBackend === "ready" && "Backend Ready"}
+  {wakeBackend === "error" && "Retry Backend"}
+  {wakeBackend === "idle" && "Wake Backend"}
 </button>
 
           </motion.div>
