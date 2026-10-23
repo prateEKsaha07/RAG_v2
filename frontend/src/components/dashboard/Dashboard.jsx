@@ -15,7 +15,9 @@ function Dashboard({
   onLogout,
   user,
   onAnalyticsV2,
-  onStudy
+  onStudy,
+  onProfile,
+  profile
 }) {
   const [isBlocked, setIsBlocked] = useState(!subject);
 
@@ -32,16 +34,18 @@ function Dashboard({
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-rose-100/10 rounded-full blur-3xl -z-10" />
 
       <ModuleNav
-        active="dashboard"
-        onDashboard={() => {}}
-        onStudy={onStudy}
-        onUpload={onUpload}
-        onNotes={onNotes}
-        onRoadmap={onRoadmap}
-        onAnalyticsV2={onAnalyticsV2}
-        onLogout={onLogout}
-        user={user}
-      />
+  active="dashboard"
+  onDashboard={() => {}}
+  onStudy={onStudy}
+  onUpload={onUpload}
+  onNotes={onNotes}
+  onRoadmap={onRoadmap}
+  onAnalyticsV2={onAnalyticsV2}
+  onLogout={onLogout}
+  onProfile={onProfile}
+  user={user}
+  profile={profile}
+/>
 
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-10 space-y-8 relative">
 

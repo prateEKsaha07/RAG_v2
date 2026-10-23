@@ -16,6 +16,9 @@ import { supabase } from "./supabaseClient"
 import StudyScreen from "./components/study/StudyScreen";
 import BookReader from "./components/study/BookReader";
 import AnalyticsDashboard from "./components/analytics/AnalyticsDashboard";
+import ProfileScreen from "./components/profiles/ProfileScreen"
+import ModuleNav from "./components/common/ModuleNav"
+import { fetchMyProfile } from "./api/profiles"   // ← ADJUST to your real file + export
 
 function App() {
   const [user, setUser] = useState(null)
@@ -27,6 +30,11 @@ function App() {
   const [editingNote, setEditingNote] = useState(null)
   const [roadmapSubject, setRoadmapSubject] = useState("")
   const [selectedBook, setSelectedBook] = useState(null);
+
+  // profile state — owned here, populated from the separate data file
+  const [profile, setProfile] = useState(null)
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [profileError, setProfileError] = useState(null)
 
   const handleGetStarted = () => setScreen("upload")
 
@@ -45,6 +53,27 @@ function App() {
     )
     return () => subscription.unsubscribe()
   }, [])
+
+  // load profile whenever the signed-in user changes
+  useEffect(() => {
+    if (!user) {
+      setProfile(null)
+      setProfileError(null)
+      setProfileLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setProfileLoading(true)
+    setProfileError(null)
+
+    fetchMyProfile()
+      .then((data) => { if (!cancelled) setProfile(data) })
+      .catch((err) => { if (!cancelled) setProfileError(err.message || String(err)) })
+      .finally(() => { if (!cancelled) setProfileLoading(false) })
+
+    return () => { cancelled = true }
+  }, [user])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -114,6 +143,7 @@ function App() {
         <Dashboard
           subject={subject}
           user={user}
+          profile={profile}
           onStudy={() => setScreen("study")}
           onUpload={() => setScreen("upload")}
           onNotes={() => setScreen("notes")}
@@ -123,6 +153,7 @@ function App() {
           onHome={() => setScreen("landing")}
           onAnalyticsV2={() => setScreen("analytics-v2")}
           onLogout={handleLogout}
+          onProfile={() => setScreen("profile")}
         />
       )}
 
@@ -131,6 +162,29 @@ function App() {
           subject={subject}
           onSubmit={handleQuizSubmit}
         />
+      )}
+
+      {screen === "profile" && (
+        <>
+          <ModuleNav
+            active="profile"
+            onDashboard={() => setScreen("dashboard")}
+            onStudy={() => setScreen("study")}
+            onUpload={() => setScreen("upload")}
+            onNotes={() => setScreen("notes")}
+            onRoadmap={() => setScreen("goal-setup")}
+            onAnalyticsV2={() => setScreen("analytics-v2")}
+            onLogout={handleLogout}
+            onProfile={() => {}}
+            user={user}
+            profile={profile}
+          />
+          <ProfileScreen
+            profile={profile}
+            loading={profileLoading}
+            error={profileError}
+          />
+        </>
       )}
 
       {screen === "results" && (

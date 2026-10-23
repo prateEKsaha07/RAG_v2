@@ -1,30 +1,42 @@
+
 from app.core.supabase_client import supabase
 from fastapi import HTTPException, Header
 from typing import Optional
-from fastapi import Request
 
-print("AUTH MODULE LOADED")
 
 async def get_current_user(
-    request: Request,
     authorization: Optional[str] = Header(None)
 ):
-    print("Authorization:", authorization)
-
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated"
+        )
 
-    token = authorization.replace("Bearer ", "")
+    token = authorization[len("Bearer "):].strip()
 
-    print("TOKEN START:", token[:30])
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated"
+        )
 
     try:
         response = supabase.auth.get_user(token)
 
-        print("SUPABASE RESPONSE:", response)
+        if response.user is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token"
+            )
 
         return response.user
 
-    except Exception as e:
-        print("AUTH ERROR:", repr(e))
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except HTTPException:
+        raise
+
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )

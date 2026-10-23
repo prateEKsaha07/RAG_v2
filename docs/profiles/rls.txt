@@ -1,0 +1,13 @@
+create policy "anyone can create profiles"
+  on public.profiles
+    for insert
+      with check(auth.uid() = id);
+create policy "users can only update their own profiles"
+  on public.profiles
+    for update
+      using(auth.uid() = id)
+      with check(auth.uid() = id);
+CREATE POLICY "Allow public read access" 
+    ON public.profiles 
+        FOR SELECT 
+            USING (true);
