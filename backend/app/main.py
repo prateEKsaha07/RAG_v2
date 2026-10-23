@@ -501,3 +501,6 @@ app.include_router(books_router)
 
 from app.modules.Analytics.router import router as analytics_router
 app.include_router(analytics_router)
+
+from app.modules.profile.router import router as profile_router
+app.include_router(profile_router)
