@@ -12,10 +12,10 @@ class profileResponse(BaseModel):
     updated_at: datetime 
 
 class profileUpdate(BaseModel):
-    display_name: str
-    username: str
-    avater_url: str | None
-    bio: str
+    display_name: str | None = None
+    username: str | None =  None
+    avater_url: str | None = None
+    bio: str | None = None
 
 class Config:        
     from_attributes = True 

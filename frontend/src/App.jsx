@@ -18,7 +18,8 @@ import BookReader from "./components/study/BookReader";
 import AnalyticsDashboard from "./components/analytics/AnalyticsDashboard";
 import ProfileScreen from "./components/profiles/ProfileScreen"
 import ModuleNav from "./components/common/ModuleNav"
-import { fetchMyProfile } from "./api/profiles"   // ← ADJUST to your real file + export
+import { getMyProfile } from "./api/profiles";
+import UpdateScreen from "./components/profiles/UpdateScreen"
 
 function App() {
   const [user, setUser] = useState(null)
@@ -67,7 +68,7 @@ function App() {
     setProfileLoading(true)
     setProfileError(null)
 
-    fetchMyProfile()
+    getMyProfile()
       .then((data) => { if (!cancelled) setProfile(data) })
       .catch((err) => { if (!cancelled) setProfileError(err.message || String(err)) })
       .finally(() => { if (!cancelled) setProfileLoading(false) })
@@ -183,9 +184,34 @@ function App() {
             profile={profile}
             loading={profileLoading}
             error={profileError}
+            onEditProfile={() => setScreen("update-profile")}
           />
         </>
       )}
+
+      {screen === "update-profile" && (
+  <>
+    <ModuleNav
+      active="profile"
+      onDashboard={() => setScreen("dashboard")}
+      onStudy={() => setScreen("study")}
+      onUpload={() => setScreen("upload")}
+      onNotes={() => setScreen("notes")}
+      onRoadmap={() => setScreen("goal-setup")}
+      onAnalyticsV2={() => setScreen("analytics-v2")}
+      onLogout={handleLogout}
+      onProfile={() => setScreen("profile")}
+      user={user}
+      profile={profile}
+    />
+    <UpdateScreen
+      profile={profile}
+      setProfile={setProfile}
+      onBack={() => setScreen("profile")}
+    />
+  </>
+)}
+
 
       {screen === "results" && (
         <ResultScreen
