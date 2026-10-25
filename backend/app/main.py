@@ -1,3 +1,4 @@
+# app/main.py
 import os
 import json
 import shutil
@@ -146,26 +147,6 @@ def get_quiz_history(subject: str = None):
             if normalize_subject_key(h.get("subject", "")) == needle
         ]
     return {"history": history}
-
-
-# Ingestion
-@app.post("/ingest")
-def ingestion(file: UploadFile = File(...)):
-    from app.modules.Ingestion.ingestion import run_ingestion
-
-    file_path = f"data/uploads/{file.filename}"
-    with open(file_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-
-    chunk_count = run_ingestion()
-
-    reload_vector_store()
-
-    return {
-        "message": f"{file.filename} ingested successfully",
-        "chunks_created": chunk_count,
-        "vector_store_ready": rag.vector_store_db is not None,
-    }
 
 
 # Notes — specific routes MUST come before /notes/{filename}
@@ -393,6 +374,9 @@ app.include_router(quiz_router)
 
 from app.modules.Qa.router import router as qa_router
 app.include_router(qa_router)
+
+from app.modules.Ingestion.router import router as ingestion_router
+app.include_router(ingestion_router)
 
 from app.modules.books.router import router as books_router
 app.include_router(books_router)

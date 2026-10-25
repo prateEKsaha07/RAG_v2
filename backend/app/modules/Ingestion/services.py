@@ -1,34 +1,24 @@
+import os
+import re
+from collections import Counter
+
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_cohere import CohereEmbeddings
-from dotenv import load_dotenv
-import os
-import re
 
+from app.core.rag import rag
+from app.core.text_utils import normalize_subject_key
 
-def normalize_subject_key(subject: str) -> str:
+def extract_subject_from_filename(filepath: str) -> str:
     """
-    Canonical form for subject matching.
-    'Computer-Graphics', 'Computer Graphics', 'computer_graphics'
-      -> 'computergraphics'
-    """
-    return re.sub(r"[\s\-_]+", "", subject).lower()
-
-
-def extract_subject_from_filename(filepath):
-    """
-    Extract display-name subject from filename.
     'data/uploads/Computer-Graphics.md' -> 'Computer Graphics'
     """
     filename = os.path.basename(filepath).replace(".md", "")
     subject = filename.replace("-", " ").replace("_", " ").strip()
     return subject.title()
 
-
-def extract_unit_info(unit_header):
+def extract_unit_info(unit_header: str):
     """
-    Extract unit number and name from header.
     'Unit I: Fundamentals of Computer Graphics' -> (1, 'Fundamentals of Computer Graphics')
     Returns (None, None) if no match.
     """
@@ -37,7 +27,7 @@ def extract_unit_info(unit_header):
 
     roman_map = {
         "I": 1, "II": 2, "III": 3, "IV": 4, "V": 5,
-        "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10
+        "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10,
     }
 
     match = re.match(r"Unit\s+([IVX]+)\s*:?\s*(.*)", unit_header, re.IGNORECASE)
@@ -49,20 +39,23 @@ def extract_unit_info(unit_header):
 
     return None, None
 
-
-def run_ingestion():
-    load_dotenv()
-
-    embeddings = CohereEmbeddings(
-        model="embed-english-light-v3.0",
-        cohere_api_key=os.getenv("COHERE_API_KEY")
-    )
+def run_ingestion(embeddings=None) -> int:
+    """
+    Load all .md files from data/uploads/, chunk them, embed, and merge into
+    the shared FAISS index at faiss_index/. Returns the number of chunks added.
+    """
+    if embeddings is None:
+        embeddings = rag.embeddings
+    if embeddings is None:
+        raise RuntimeError(
+            "Embeddings not initialised. Call load_rag() before running ingestion."
+        )
 
     loader = DirectoryLoader(
         "data/uploads/",
         glob="**/*.md",
         loader_cls=TextLoader,
-        loader_kwargs={"encoding": "utf-8"}
+        loader_kwargs={"encoding": "utf-8"},
     )
     documents = loader.load()
     print(f"Loaded {len(documents)} files.")
@@ -85,10 +78,8 @@ def run_ingestion():
             md_chunks = markdown_splitter.split_text(doc.page_content)
 
             for chunk in md_chunks:
-                # Preserve original metadata (backward compat)
                 chunk.metadata.update(doc.metadata)
 
-                # --- Structured unit-wise metadata ---
                 unit_header = chunk.metadata.get("Header 1", "")
                 unit_number, unit_name = extract_unit_info(unit_header)
 
@@ -100,13 +91,13 @@ def run_ingestion():
                 chunk.metadata["chapter"] = chunk.metadata.get("Header 2", "")
                 chunk.metadata["topic"] = chunk.metadata.get("Header 3", "")
 
-            # Split into smaller chunks (metadata carried over)
             final_chunks = text_splitter.split_documents(md_chunks)
 
-            # Add header prefix to EVERY sub-chunk
             for chunk in final_chunks:
                 header_context = " > ".join(
-                    [chunk.metadata.get(h, "") for h in ["Header 1", "Header 2", "Header 3"] if chunk.metadata.get(h)]
+                    chunk.metadata.get(h, "")
+                    for h in ["Header 1", "Header 2", "Header 3"]
+                    if chunk.metadata.get(h)
                 )
                 if header_context:
                     chunk.page_content = f"{header_context}\n\n{chunk.page_content}"
@@ -125,33 +116,30 @@ def run_ingestion():
             unique_chunks.append(chunk)
     all_chunks = unique_chunks
 
-    # ------------------------------------------------------------------
-    # Incremental indexing — check for index.faiss, not just folder
-    # ------------------------------------------------------------------
+    # Incremental indexing
     index_file = os.path.join("faiss_index", "index.faiss")
 
     if os.path.exists(index_file):
         print("Existing FAISS index found. Appending new chunks...")
-        vectorStores = FAISS.load_local(
+        vector_store = FAISS.load_local(
             "faiss_index",
             embeddings,
             allow_dangerous_deserialization=True,
         )
-        vectorStores.add_documents(all_chunks)
+        vector_store.add_documents(all_chunks)
     else:
         print("No existing FAISS index. Creating a new one...")
-        vectorStores = FAISS.from_documents(all_chunks, embeddings)
+        vector_store = FAISS.from_documents(all_chunks, embeddings)
 
-    vectorStores.save_local("faiss_index")
+    vector_store.save_local("faiss_index")
     print(f"Saved {len(all_chunks)} chunks to FAISS.")
 
-    # Per-subject / per-unit summary
     try:
-        from collections import Counter
         subject_counts = Counter(c.metadata.get("subject") for c in all_chunks)
         unit_counts = Counter(
             f"{c.metadata.get('subject')} — Unit {c.metadata.get('unit_number')}"
-            for c in all_chunks if c.metadata.get("unit_number")
+            for c in all_chunks
+            if c.metadata.get("unit_number")
         )
         print("Chunks per subject:", dict(subject_counts))
         print("Chunks per unit:", dict(unit_counts))
@@ -159,7 +147,3 @@ def run_ingestion():
         print(f"Summary failed: {e}")
 
     return len(all_chunks)
-
-
-if __name__ == "__main__":
-    run_ingestion()

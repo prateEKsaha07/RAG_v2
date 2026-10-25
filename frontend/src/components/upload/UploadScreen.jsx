@@ -67,8 +67,13 @@ function UploadScreen({
       formData.append("file", file);
       formData.append("subject", subject.trim().toLowerCase());
 
-      const response = await axios.post(`${API_URL}/ingest`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const token = localStorage.getItem("access_token");
+
+      const response = await axios.post(`${API_URL}/ingestion/ingest`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
       setMessage(`${response.data.chunks_created || 0} chunks created successfully`);
