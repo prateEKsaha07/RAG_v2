@@ -1,24 +1,14 @@
 import json
 import os
 import math
-import re
 from datetime import datetime, timedelta
+
+from app.core.text_utils import normalize_subject_key, parse_json_response
 
 ANALYTICS_DIR = "analytics/"
 
 
-def normalize_subject_key(subject: str) -> str:
-    """
-    Canonical form for subject matching.
-    'Computer-Graphics', 'Computer Graphics', 'computer_graphics'
-      -> 'computergraphics'
-    """
-    return re.sub(r"[\s\-_]+", "", subject).lower()
-
-
-# ---------------------------------------------------------------------------
 # Unit loading — pulls directly from FAISS metadata
-# ---------------------------------------------------------------------------
 def load_subject_units_from_faiss(subject, vectorStoreDB):
     """
     Extract unique units + topics for a subject from FAISS metadata.
@@ -33,7 +23,6 @@ def load_subject_units_from_faiss(subject, vectorStoreDB):
     for doc in all_docs:
         meta = doc.metadata
 
-        # Match on canonical key (preferred), fall back to normalized subject
         haystack = meta.get("subject_key") or normalize_subject_key(meta.get("subject", ""))
         if haystack != needle:
             continue
@@ -57,15 +46,12 @@ def load_subject_units_from_faiss(subject, vectorStoreDB):
         {
             "unit": u["unit"],
             "name": u["name"],
-            "topics": [{"name": t} for t in sorted(u["topics"])]
+            "topics": [{"name": t} for t in sorted(u["topics"])],
         }
         for u in sorted(units.values(), key=lambda x: x["unit"])
     ]
 
-
-# ---------------------------------------------------------------------------
 # Weak topics from quiz history
-# ---------------------------------------------------------------------------
 def load_weak_topics(subject):
     history_file = os.path.join(ANALYTICS_DIR, "quiz_history.json")
     if not os.path.exists(history_file):
@@ -90,10 +76,7 @@ def load_weak_topics(subject):
     sorted_topics = sorted(topic_count.items(), key=lambda x: x[1], reverse=True)
     return [topic for topic, _ in sorted_topics]
 
-
-# ---------------------------------------------------------------------------
 # LLM roadmap structure
-# ---------------------------------------------------------------------------
 def get_roadmap_structure(units, weak_topics, llm):
     prompt = f"""You are a study planner.
 Given these subject units and topics, estimate study hours per topic.
@@ -122,7 +105,6 @@ Return format:
 ]"""
 
     response = llm.invoke(prompt)
-    from app.modules.Quiz.quiz import parse_json_response
     return parse_json_response(response.content)
 
 
@@ -148,10 +130,7 @@ def validate_roadmap_structure(structure, original_units):
 
     return True
 
-
-# ---------------------------------------------------------------------------
 # Weekly schedule builder
-# ---------------------------------------------------------------------------
 def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
     weeks = []
     current_week = 1
@@ -171,12 +150,11 @@ def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
             week_topics.append({
                 "unit": unit["unit"],
                 "unit_name": unit["name"],
-                "topic": topic
+                "topic": topic,
             })
 
             current_day += days_needed
 
-            # Flush all completed weeks
             while current_day >= 7 * current_week:
                 week_start = start + timedelta(days=(current_week - 1) * 7)
                 week_end = week_start + timedelta(days=6)
@@ -185,12 +163,11 @@ def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
                     "week": current_week,
                     "start_date": week_start.strftime("%Y-%m-%d"),
                     "end_date": week_end.strftime("%Y-%m-%d"),
-                    "topics": week_topics.copy()
+                    "topics": week_topics.copy(),
                 })
                 week_topics = []
                 current_week += 1
 
-    # Remaining topics
     if week_topics:
         week_start = start + timedelta(days=(current_week - 1) * 7)
         week_end = week_start + timedelta(days=6)
@@ -198,18 +175,22 @@ def build_weekly_schedule(roadmap_structure, hours_per_day, start_date):
             "week": current_week,
             "start_date": week_start.strftime("%Y-%m-%d"),
             "end_date": week_end.strftime("%Y-%m-%d"),
-            "topics": week_topics
+            "topics": week_topics,
         })
 
     return weeks
 
-
-# ---------------------------------------------------------------------------
 # Roadmap generation
-# ---------------------------------------------------------------------------
-def generate_roadmap(subject, hours_per_day, target_date, scope,
-                     unit_number=None, llm=None, user_id=None,
-                     vectorStoreDB=None):
+def generate_roadmap(
+    subject,
+    hours_per_day,
+    target_date,
+    scope,
+    unit_number=None,
+    llm=None,
+    user_id=None,
+    vectorStoreDB=None,
+):
     from app.core.supabase_client import supabase
 
     if vectorStoreDB is None:
@@ -235,7 +216,7 @@ def generate_roadmap(subject, hours_per_day, target_date, scope,
 
     response = supabase.table("roadmaps").insert({
         "subject": subject,
-        "subject_key": normalize_subject_key(subject),   # canonical
+        "subject_key": normalize_subject_key(subject),
         "scope": scope,
         "unit_number": unit_number,
         "hours_per_day": hours_per_day,
@@ -249,10 +230,7 @@ def generate_roadmap(subject, hours_per_day, target_date, scope,
 
     return response.data[0] if response.data else {"error": "Failed to create roadmap"}
 
-
-# ---------------------------------------------------------------------------
 # Supabase loaders
-# ---------------------------------------------------------------------------
 def load_roadmap(subject, user_id=None):
     from app.core.supabase_client import supabase
     needle = normalize_subject_key(subject)
