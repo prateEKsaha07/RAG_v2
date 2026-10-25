@@ -33,11 +33,18 @@ export default function ProfileScreen({ profile, loading, error, onEditProfile }
       />
 
       <ul>
-        <li><strong>ID:</strong> <code>{profile.id}</code></li>
-        <li><strong>Display name:</strong> {profile.display_name}</li>
-        <li><strong>Username:</strong> {profile.username}</li>
-        <li><strong>Bio:</strong> {profile.bio || "No bio added"}</li>
-        <li><strong>Avatar URL:</strong> {profile.avatar_url || "Not set"}</li>
+        <li><strong>ID: </strong> <code>{profile.id}</code></li>
+        <li><strong>Display name: </strong> {profile.display_name}</li>
+        <li><strong>Username: </strong> {profile.username}</li>
+        <li><strong>Bio: </strong> {profile.bio || "No bio added"}</li>
+        <li><strong>Avatar URL: </strong> {profile.avatar_url || "Not set"}</li>
+        <li><strong>Education Level: </strong> {profile.education_level || "Not set"}</li>
+        <li><strong>Field of study: </strong>{profile.field_of_study || "Not Set"}</li>
+        <li><strong>Current Curse:  </strong>{profile.current_course || "Not Set"}</li>
+        <li><strong>Preferred Language: </strong>{profile.preferred_language || "Not Set"}</li>
+        <li><strong>Difficulty Preference: </strong> {profile.difficulty_preference || "Not Set"}</li>
+        <li><strong>Theme Preference: </strong> {profile.theme_preference || "Not Set"}</li>
+        <li><strong>Explaination Style:</strong> {profile.explanation_style || "Not Set"}</li>
         <li><strong>Created at:</strong> {profile.created_at}</li>
         <li><strong>Updated at:</strong> {profile.updated_at}</li>
       </ul>
