@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { updateMyProfile } from "../../api/profiles";
 
@@ -6,6 +7,17 @@ const educationOptions = [
   { value: "undergraduate", label: "Undergraduate" },
   { value: "postgraduate", label: "Postgraduate" },
   { value: "other", label: "Other" },
+];
+
+const avatarOptions = [
+  "/Avatar/avatar-1.png",
+  "/Avatar/avatar-2.png",
+  "/Avatar/avatar-3.png",
+  "/Avatar/avatar-4.png",
+  "/Avatar/avatar-5.png",
+  "/Avatar/avatar-6.png",
+  "/Avatar/avatar-7.png",
+  "/Avatar/avatar-8.png",
 ];
 
 const explanationOptions = [
@@ -60,6 +72,10 @@ export default function UpdateScreen({ profile, setProfile, onBack }) {
     profile?.theme_preference || "system"
   );
 
+  const [avatarUrl, setAvatarUrl] = useState(
+    profile?.avatar_url || ""
+  );
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -72,6 +88,7 @@ export default function UpdateScreen({ profile, setProfile, onBack }) {
       display_name: displayName,
       username,
       bio,
+      avatar_url: avatarUrl || null,
       education_level: educationLevel,
       field_of_study: fieldOfStudy,
       current_course: currentCourse,
@@ -112,9 +129,7 @@ export default function UpdateScreen({ profile, setProfile, onBack }) {
 
   const renderSelect = (label, value, setValue, options) => (
     <div style={fieldStyle}>
-      <label style={labelStyle}>
-        {label}
-      </label>
+      <label style={labelStyle}>{label}</label>
       <select
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -177,6 +192,74 @@ export default function UpdateScreen({ profile, setProfile, onBack }) {
           />
         </div>
 
+        {/* Avatar Selection */}
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Choose Your Avatar</label>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fill, minmax(76px, 1fr))",
+              gap: "12px",
+              marginTop: "12px",
+            }}
+          >
+            {avatarOptions.map((avatar) => (
+              <button
+                key={avatar}
+                type="button"
+                onClick={() => setAvatarUrl(avatar)}
+                disabled={loading}
+                aria-label={`Select ${avatar.split("/").pop()}`}
+                aria-pressed={avatarUrl === avatar}
+                style={{
+                  padding: "4px",
+                  border:
+                    avatarUrl === avatar
+                      ? "3px solid #2563eb"
+                      : "2px solid #d1d5db",
+                  borderRadius: "50%",
+                  background: "transparent",
+                  cursor: loading ? "not-allowed" : "pointer",
+                  aspectRatio: "1 / 1",
+                  overflow: "hidden",
+                }}
+              >
+                <img
+                  src={avatar}
+                  alt=""
+                  loading="lazy"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+
+          {avatarUrl && (
+            <button
+              type="button"
+              onClick={() => setAvatarUrl("")}
+              disabled={loading}
+              style={{ marginTop: "10px" }}
+            >
+              Remove selected avatar
+            </button>
+          )}
+
+          {!avatarUrl && (
+            <p style={{ fontSize: "13px", color: "#666" }}>
+              No avatar selected.
+            </p>
+          )}
+        </div>
+
         <h2>Education</h2>
 
         {renderSelect(
@@ -199,7 +282,9 @@ export default function UpdateScreen({ profile, setProfile, onBack }) {
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Current Course / Subject</label>
+          <label style={labelStyle}>
+            Current Course / Subject
+          </label>
           <input
             type="text"
             value={currentCourse}

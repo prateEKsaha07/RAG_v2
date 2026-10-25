@@ -54,6 +54,7 @@ function Dashboard({
           <div className="absolute -top-20 -left-20 w-64 h-64 bg-amber-300/10 rounded-full blur-2xl -z-10" />
           <HeroSection
             user={user}
+            profile={profile}
             subject={subject}
             onUpload={onUpload}
           />

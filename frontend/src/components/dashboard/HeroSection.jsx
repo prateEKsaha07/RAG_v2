@@ -7,7 +7,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-function HeroSection({ user, subject, onUpload }) {
+function HeroSection({ user, subject, onUpload, profile }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -15,7 +15,7 @@ function HeroSection({ user, subject, onUpload }) {
     return () => clearTimeout(t);
   }, []);
 
-  const username = user?.email?.split("@")[0] || "there";
+  const username = profile?.display_name || "";
 
   return (
     <section
