@@ -57,7 +57,7 @@ function QAScreen({
       }
 
       const response = await axios.post(
-        import.meta.env.VITE_API_URL + "/ask",
+        import.meta.env.VITE_API_URL + "/qa/ask",
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       )

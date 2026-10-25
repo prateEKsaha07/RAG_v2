@@ -1,4 +1,3 @@
-# app/main.py
 import os
 import json
 import shutil
@@ -30,13 +29,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Request models (ones still living in main.py — will move to modules later)
-
-class AskRequest(BaseModel):
-    question: str
-    subject: str | None = None
-    general_knowledge: bool = False
-
+# Request models (still living in main.py — will move to modules later)
 
 class GenerateTagsRequest(BaseModel):
     note_content: str
@@ -108,10 +101,6 @@ def health():
 # Unit-wise metadata endpoint
 @app.get("/subjects/{subject}/units")
 def get_subject_units(subject: str):
-    """
-    Return the list of units available for a subject, based on the ingested
-    FAISS metadata. Tolerates subject name variations.
-    """
     if rag.vector_store_db is None:
         return {"error": "Vector store not ready"}
 
@@ -170,7 +159,6 @@ def ingestion(file: UploadFile = File(...)):
 
     chunk_count = run_ingestion()
 
-    # Reload FAISS after ingestion
     reload_vector_store()
 
     return {
@@ -178,23 +166,6 @@ def ingestion(file: UploadFile = File(...)):
         "chunks_created": chunk_count,
         "vector_store_ready": rag.vector_store_db is not None,
     }
-
-
-# Q&A
-@app.post("/ask")
-def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
-    from app.modules.Qa.query import get_answer
-    response = get_answer(
-        question=request.question,
-        llm=rag.llm,
-        uploads_db=rag.vector_store_db,
-        user_id=user.id,
-        embeddings=rag.embeddings,
-        subject=request.subject,
-        general_knowledge=request.general_knowledge,  # fixed bug: was request.subject
-        session_id=user.id,
-    )
-    return response
 
 
 # Notes — specific routes MUST come before /notes/{filename}
@@ -227,7 +198,7 @@ async def ingest_notes_endpoint(user=Depends(get_current_user)):
     if "error" in result:
         return result
 
-    rag.notes_db = FAISS.load_local(
+    rag.notes_dbs[user.id] = FAISS.load_local(
         get_notes_faiss_path(user.id),
         rag.embeddings,
         allow_dangerous_deserialization=True,
@@ -419,6 +390,9 @@ def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=De
 # Sub-routers
 from app.modules.Quiz.router import router as quiz_router
 app.include_router(quiz_router)
+
+from app.modules.Qa.router import router as qa_router
+app.include_router(qa_router)
 
 from app.modules.books.router import router as books_router
 app.include_router(books_router)

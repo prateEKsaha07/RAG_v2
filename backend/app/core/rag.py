@@ -7,7 +7,8 @@ class RagState:
     embeddings = None
     vector_store_db = None
     llm = None
-    notes_db = None
+    notes_dbs: dict = {} 
+    chat_histories: dict = {}  
 
 rag = RagState()
 
