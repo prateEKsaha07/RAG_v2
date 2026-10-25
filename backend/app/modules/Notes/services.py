@@ -1,28 +1,18 @@
-from datetime import datetime
 import os
 import json
 import re
-
-NOTES_DIR = "data/notes/"
+from datetime import datetime
+from app.core.text_utils import normalize_subject_key, parse_json_response
 TAGS_DIR = "tags/"
 METADATA_FILE = "notes_metadata.json"
 
-
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
-def normalize_subject_key(subject: str) -> str:
-    """Canonical subject key: 'Computer Graphics' -> 'computergraphics'."""
-    return re.sub(r"[\s\-_]+", "", subject).lower()
-
-
-def get_notes_faiss_path(user_id):
+def get_notes_faiss_path(user_id) -> str:
     return os.path.join("notes_faiss_index", str(user_id))
 
 
-def generate_filename(subject):
+def generate_filename(subject: str) -> str:
     now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    # Sanitize subject for safe storage paths
     safe_subject = re.sub(r"[^\w\-]+", "-", subject).strip("-")
     return f"{now}_{safe_subject}.md"
 
@@ -42,17 +32,11 @@ def save_metadata(metadata):
 def load_tags(subject):
     """
     Return a flat list of tag strings for a subject.
-
-    Handles two JSON shapes:
-      1. { "tags": ["a", "b"] }
-      2. { "units": [ { "topics": [ {"topic": "X", "tags": ["a","b"]} ] } ] }
-
-    Also tolerates filename variations (Computer-Graphics.json vs ComputerGraphics.json)
-    via normalize_subject_key.
+    Handles both {tags:[...]} and {units:[{topics:[...]}]} shapes,
+    with filename normalization and a default.json fallback.
     """
     tag_file = os.path.join(TAGS_DIR, f"{subject}.json")
 
-    # Case-insensitive, separator-insensitive file lookup
     if not os.path.exists(tag_file) and os.path.exists(TAGS_DIR):
         needle = normalize_subject_key(subject)
         for fname in os.listdir(TAGS_DIR):
@@ -62,7 +46,6 @@ def load_tags(subject):
                 tag_file = os.path.join(TAGS_DIR, fname)
                 break
 
-    # Fallback to default.json
     if not os.path.exists(tag_file):
         default_file = os.path.join(TAGS_DIR, "default.json")
         if os.path.exists(default_file):
@@ -75,31 +58,26 @@ def load_tags(subject):
 
     flat = set()
 
-    # Shape 1: top-level "tags": [...]
     for t in data.get("tags", []) or []:
         if isinstance(t, str):
             flat.add(t)
 
-    # Shape 2: "units" -> [ { "topics": [...] } ]
     for unit in data.get("units", []) or []:
         for entry in unit.get("topics", []) or []:
             if isinstance(entry, str):
                 flat.add(entry)
             elif isinstance(entry, dict):
-                # Prefer explicit tags array
                 for tag in entry.get("tags", []) or []:
                     if isinstance(tag, str):
                         flat.add(tag)
-                # Fallback: use topic name if no tags listed
                 if not entry.get("tags") and isinstance(entry.get("topic"), str):
                     flat.add(entry["topic"])
 
     return sorted(flat)
 
 
-# ---------------------------------------------------------------------------
+
 # Supabase: create
-# ---------------------------------------------------------------------------
 def create_note(subject, title, content, tags, urls=None, user_id=None):
     from app.core.supabase_client import supabase
 
@@ -148,16 +126,13 @@ referenced_urls: {', '.join(urls)}
             "ingested": False,
         }).execute()
     except Exception as e:
-        # Roll back storage upload if DB insert fails
         supabase.storage.from_("notes").remove([f"{user_id}/{filename}"])
         return {"error": f"DB insert failed: {e}"}
 
     return {"success": True, "filename": filename}
 
 
-# ---------------------------------------------------------------------------
 # Supabase: read
-# ---------------------------------------------------------------------------
 def get_all_notes(subject=None, tags=None, user_id=None):
     from app.core.supabase_client import supabase
 
@@ -202,9 +177,7 @@ def get_note_content(filename, user_id=None):
         return {"error": "File not found in storage"}
 
 
-# ---------------------------------------------------------------------------
 # Supabase: update
-# ---------------------------------------------------------------------------
 def update_note(filename, title, content, tags, urls=None, user_id=None):
     from app.core.supabase_client import supabase
 
@@ -239,7 +212,6 @@ referenced_urls: {', '.join(map(str, urls))}
 """
     markdown_content = frontmatter + content
 
-    # Upload with upsert=True — avoids destructive delete-then-upload
     try:
         supabase.storage.from_("notes").upload(
             path=f"{user_id}/{filename}",
@@ -267,9 +239,8 @@ referenced_urls: {', '.join(map(str, urls))}
     return {"success": True}
 
 
-# ---------------------------------------------------------------------------
+
 # Supabase: delete
-# ---------------------------------------------------------------------------
 def delete_note(filename, user_id=None):
     from app.core.supabase_client import supabase
 
@@ -292,11 +263,8 @@ def delete_note(filename, user_id=None):
     return {"success": True}
 
 
-# ---------------------------------------------------------------------------
 # Subjects list
-# ---------------------------------------------------------------------------
 def get_subjects():
-    """Return available subjects from tags/ folder."""
     if not os.path.exists(TAGS_DIR):
         return []
     return sorted([
@@ -305,10 +273,7 @@ def get_subjects():
         if file.endswith(".json") and file != "default.json"
     ])
 
-
-# ---------------------------------------------------------------------------
 # Tag generation
-# ---------------------------------------------------------------------------
 def generate_tags(note_content, subject, llm):
     subject_tags = load_tags(subject)
     if not subject_tags:
@@ -335,9 +300,7 @@ Return format: ["tag1", "tag2", "tag3"]"""
     response = llm.invoke(prompt)
 
     try:
-        from app.modules.Quiz.quiz import parse_json_response
         tags = parse_json_response(response.content)
-        # Guard: ensure tags is a list of strings
         if not isinstance(tags, list):
             tags = []
         tags = [t for t in tags if isinstance(t, str)]
@@ -354,9 +317,7 @@ Return format: ["tag1", "tag2", "tag3"]"""
         return subject_tags[:3]
 
 
-# ---------------------------------------------------------------------------
 # URL title fetcher
-# ---------------------------------------------------------------------------
 def fetch_url_title(url):
     try:
         import requests
@@ -369,16 +330,14 @@ def fetch_url_title(url):
         return url
 
 
-# ---------------------------------------------------------------------------
-# Notes ingestion (per user)
-# ---------------------------------------------------------------------------
-async def ingest_notes(embeddings, user_id=None):
+
+# Notes ingestion (per user) — SYNC now (was async with no awaits)
+def ingest_notes(embeddings, user_id):
     from langchain_core.documents import Document
     from langchain_text_splitters import MarkdownHeaderTextSplitter
     from langchain_community.vectorstores import FAISS
     from app.core.supabase_client import supabase
 
-    # Fetch only notes that need ingestion
     results = (
         supabase.table("notes")
         .select("*")
@@ -427,7 +386,6 @@ async def ingest_notes(embeddings, user_id=None):
     os.makedirs(faiss_path, exist_ok=True)
     index_file = os.path.join(faiss_path, "index.faiss")
 
-    # Incremental: append if index exists
     if os.path.exists(index_file):
         vectorstore = FAISS.load_local(
             faiss_path,
@@ -440,7 +398,6 @@ async def ingest_notes(embeddings, user_id=None):
 
     vectorstore.save_local(faiss_path)
 
-    # Mark only the ingested notes as True
     ingested_filenames = [n["filename"] for n in notes]
     supabase.table("notes").update({"ingested": True}) \
         .eq("user_id", user_id) \

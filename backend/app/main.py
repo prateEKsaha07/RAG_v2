@@ -32,34 +32,6 @@ app = FastAPI(lifespan=lifespan)
 
 # Request models (still living in main.py — will move to modules later)
 
-class GenerateTagsRequest(BaseModel):
-    note_content: str
-    subject: str
-
-
-class SubjectTagsRequest(BaseModel):
-    subject: str
-
-
-class FetchURLRequest(BaseModel):
-    url: str
-
-
-class UpdateNoteRequest(BaseModel):
-    title: str
-    content: str
-    tags: List[str]
-    urls: List[Any] = []
-
-
-class CreateNoteRequest(BaseModel):
-    subject: str
-    title: str
-    content: str
-    tags: List[str]
-    urls: List[Any] = []
-
-
 class RoadmapRequest(BaseModel):
     subject: str
     hours_per_day: int
@@ -92,7 +64,6 @@ def home():
 
 @app.get("/health")
 def health():
-    """Responds instantly, even before the RAG stack finishes loading."""
     return {
         "status": "ok",
         "ready": rag.vector_store_db is not None,
@@ -149,97 +120,14 @@ def get_quiz_history(subject: str = None):
     return {"history": history}
 
 
-# Notes — specific routes MUST come before /notes/{filename}
-@app.post("/notes/generate-tags")
-def generate_tags_endpoint(request: GenerateTagsRequest):
-    from app.modules.Notes.notes import generate_tags
-    tags = generate_tags(request.note_content, request.subject, rag.llm)
-    return {"tags": tags}
-
-
-@app.post("/notes/fetch-url")
-def fetch_url_endpoint(request: FetchURLRequest):
-    from app.modules.Notes.notes import fetch_url_title
-    return {"title": fetch_url_title(request.url)}
-
-
-@app.post("/notes/subject-tags")
-def get_subject_tags_endpoint(request: SubjectTagsRequest):
-    from app.modules.Notes.notes import load_tags
-    return {"tags": load_tags(request.subject)}
-
-
-@app.post("/notes/ingest")
-async def ingest_notes_endpoint(user=Depends(get_current_user)):
-    from app.modules.Notes.notes import ingest_notes, get_notes_faiss_path
-    from langchain_community.vectorstores import FAISS
-
-    result = await ingest_notes(rag.embeddings, user.id)
-
-    if "error" in result:
-        return result
-
-    rag.notes_dbs[user.id] = FAISS.load_local(
-        get_notes_faiss_path(user.id),
-        rag.embeddings,
-        allow_dangerous_deserialization=True,
-    )
-    return result
-
-
-@app.post("/notes")
-def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_user)):
-    from app.modules.Notes.notes import create_note
-    return create_note(
-        subject=request.subject,
-        title=request.title,
-        content=request.content,
-        tags=request.tags,
-        urls=request.urls,
-        user_id=user.id,
-    )
-
-
-@app.get("/notes")
-def get_notes_endpoint(subject: str = None, tags: str = None, user=Depends(get_current_user)):
-    from app.modules.Notes.notes import get_all_notes
-    tag_list = tags.split(",") if tags else None
-    notes = get_all_notes(subject, tag_list, user_id=user.id)
-    return {"notes": notes}
-
-
-@app.get("/notes/{filename}")
-def get_note_content_endpoint(filename: str, user=Depends(get_current_user)):
-    from app.modules.Notes.notes import get_note_content
-    return get_note_content(filename, user_id=user.id)
-
-
-@app.put("/notes/{filename}")
-def update_note_endpoint(filename: str, request: UpdateNoteRequest, user=Depends(get_current_user)):
-    from app.modules.Notes.notes import update_note
-    return update_note(
-        filename=filename,
-        title=request.title,
-        content=request.content,
-        tags=request.tags,
-        urls=request.urls,
-        user_id=user.id,
-    )
-
-
-@app.delete("/notes/{filename}")
-def delete_note_endpoint(filename: str, user=Depends(get_current_user)):
-    from app.modules.Notes.notes import delete_note
-    return delete_note(filename, user_id=user.id)
-
-
-# Subjects & uploads
+# Subjects (uses Notes services for tag list)
 @app.get("/subjects")
 def get_subjects_endpoint():
-    from app.modules.Notes.notes import get_subjects
+    from app.modules.Notes.services import get_subjects
     return {"subjects": get_subjects()}
 
 
+# Uploads
 @app.get("/uploads/{subject}")
 def get_upload_content(subject: str):
     needle = normalize_subject_key(subject)
@@ -377,6 +265,9 @@ app.include_router(qa_router)
 
 from app.modules.Ingestion.router import router as ingestion_router
 app.include_router(ingestion_router)
+
+from app.modules.Notes.router import router as notes_router
+app.include_router(notes_router)
 
 from app.modules.books.router import router as books_router
 app.include_router(books_router)
