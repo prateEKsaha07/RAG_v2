@@ -15,12 +15,12 @@ const getHeaders = async () => {
 // Quiz
 export const generateQuiz = async (subject) => {
   const headers = await getHeaders()
-  return axios.post(`${API_URL}/generate-quiz`, { subject }, { headers })
+  return axios.post(`${API_URL}/quiz/generate-quiz`, { subject }, { headers })
 }
 
 export const evaluateAnswers = async (quiz, answers, subject) => {
   const headers = await getHeaders()
-  return axios.post(`${API_URL}/evaluate`, { quiz, answers, subject }, { headers })
+  return axios.post(`${API_URL}/quiz/evaluate`, { quiz, answers, subject }, { headers })
 }
 
 // Q&A

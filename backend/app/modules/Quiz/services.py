@@ -1,38 +1,9 @@
-from datetime import datetime
-import os
-import re
 import random
-import json
 from collections import defaultdict
-from langchain_cohere import ChatCohere, CohereEmbeddings
-from langchain_community.vectorstores import FAISS
-from dotenv import load_dotenv
 
-load_dotenv()
+from app.core.text_utils import normalize_subject_key, parse_json_response
 
-
-def normalize_subject_key(subject: str) -> str:
-    """
-    Canonical form for subject matching.
-    'Computer-Graphics', 'Computer Graphics', 'computer_graphics'
-      -> 'computergraphics'
-    """
-    return re.sub(r"[\s\-_]+", "", subject).lower()
-
-
-def parse_json_response(text):
-    text = re.sub(r'```json|```', '', text).strip()
-    try:
-        match = re.search(r'\[.*\]', text, re.DOTALL)
-        if match:
-            return json.loads(match.group())
-        return json.loads(text)
-    except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}\nRaw text: {text[:200]}")
-        return []
-
-
-def validate_question(q):
+def validate_question(q) -> bool:
     if not isinstance(q, dict):
         return False
     if not all(k in q for k in ["question", "options", "correct"]):
@@ -43,18 +14,10 @@ def validate_question(q):
         return False
     return True
 
-
-def get_chunks_by_subject(subject_file, vectorStoreDB, unit_number=None):
-    """
-    Return a diverse sample of chunks for a subject.
-
-    - Matches by canonical subject_key first, falls back to normalized comparison.
-    - If unit_number is provided, filters to only that unit.
-    """
+def get_chunks_by_subject(subject_file, vector_store, unit_number=None):
     needle = normalize_subject_key(subject_file)
-    all_documents = list(vectorStoreDB.docstore._dict.values())
+    all_documents = list(vector_store.docstore._dict.values())
 
-    # Match by subject_key (preferred), subject, or source — all normalized
     subject_chunks = [
         doc for doc in all_documents
         if doc.metadata.get("subject_key") == needle
@@ -62,7 +25,6 @@ def get_chunks_by_subject(subject_file, vectorStoreDB, unit_number=None):
         or needle in normalize_subject_key(doc.metadata.get("source", ""))
     ]
 
-    # Optional unit filter
     if unit_number is not None:
         subject_chunks = [
             doc for doc in subject_chunks
@@ -73,22 +35,20 @@ def get_chunks_by_subject(subject_file, vectorStoreDB, unit_number=None):
         print(f"No chunks found for subject='{subject_file}', unit={unit_number}")
         return []
 
-    # Group by Header 1 (unit header) so we get diversity across units
     groups = defaultdict(list)
     for chunk in subject_chunks:
         groups[chunk.metadata.get("Header 1", "Unknown")].append(chunk)
 
-    # Sample up to 3 groups, then 1 chunk from each
     selected = []
     num_groups = min(3, len(groups))
-    for header, chunks in random.sample(list(groups.items()), num_groups):
+    for _, chunks in random.sample(list(groups.items()), num_groups):
         selected.append(random.choice(chunks))
 
     return selected
 
 
-def generate_quiz(subject_file, llm, vectorStoreDB, unit_number=None):
-    chunks = get_chunks_by_subject(subject_file, vectorStoreDB, unit_number=unit_number)
+def generate_quiz(subject_file, llm, vector_store, unit_number=None):
+    chunks = get_chunks_by_subject(subject_file, vector_store, unit_number=unit_number)
     all_questions = []
 
     for chunk in chunks:
@@ -117,14 +77,16 @@ Study material:
         for q in questions:
             if not validate_question(q):
                 continue
-
-            # Prefer LLM's own topic; fall back to metadata
-            q['topic'] = q.get('topic') or chunk.metadata.get('topic') or chunk.metadata.get('Header 1', 'Unknown')
-            q['header'] = chunk.metadata.get('Header 1', 'Unknown')
-            q['chapter'] = chunk.metadata.get('Header 2', '')
-            q['unit_number'] = chunk.metadata.get('unit_number')
-            q['unit_name'] = chunk.metadata.get('unit_name', '')
-            q['source'] = chunk.metadata.get('source', '')
+            q["topic"] = (
+                q.get("topic")
+                or chunk.metadata.get("topic")
+                or chunk.metadata.get("Header 1", "Unknown")
+            )
+            q["header"] = chunk.metadata.get("Header 1", "Unknown")
+            q["chapter"] = chunk.metadata.get("Header 2", "")
+            q["unit_number"] = chunk.metadata.get("unit_number")
+            q["unit_name"] = chunk.metadata.get("unit_name", "")
+            q["source"] = chunk.metadata.get("source", "")
             all_questions.append(q)
 
     if len(all_questions) < 5:
@@ -139,22 +101,22 @@ def evaluate_answers(quiz, student_answers, subject, user_id=None):
 
     for i, question in enumerate(quiz):
         student_answer = student_answers[i] if i < len(student_answers) else None
-        is_correct = student_answer == question['correct']
+        is_correct = student_answer == question["correct"]
 
         if not is_correct:
             topic_entry = {
                 "topic": question["topic"],
-                "source": question.get("source", "")
+                "source": question.get("source", ""),
             }
             if topic_entry not in weak_topics:
                 weak_topics.append(topic_entry)
 
         results.append({
-            'question': question['question'],
-            'your_answer': student_answer,
-            'correct_answer': question['correct'],
-            'is_correct': is_correct,
-            'topic': question['topic']
+            "question": question["question"],
+            "your_answer": student_answer,
+            "correct_answer": question["correct"],
+            "is_correct": is_correct,
+            "topic": question["topic"],
         })
 
     save_quiz_history(subject, results, weak_topics[:10], user_id)
@@ -172,30 +134,26 @@ def save_quiz_history(subject, results, weak_topics, user_id=None):
             "subject": subject,
             "score": sum(1 for r in results if r["is_correct"]),
             "total": len(results),
-            "weak_topics": [t["topic"] for t in weak_topics]
+            "weak_topics": [t["topic"] for t in weak_topics],
         }).execute()
     except Exception as e:
         print(f"Failed to save quiz history: {e}")
 
 
-def get_recommendations(weak_topics, vectorStoreDB):
-    """
-    Fetch a compact revision snippet for each weak topic.
-    Returns the raw chunk content — the frontend renders it in an accordion.
-    """
+def get_recommendations(weak_topics, vector_store):
     recommendations = []
     for topic in weak_topics:
         query = f"{topic['topic']} {topic.get('source', '')}".strip()
         try:
-            results = vectorStoreDB.similarity_search(query, k=1)
+            results = vector_store.similarity_search(query, k=1)
             if results:
                 meta = results[0].metadata
                 recommendations.append({
-                    'weak_topic': topic['topic'],
-                    'revise_this': results[0].page_content,
-                    'source': meta.get('source', ''),
-                    'unit': f"Unit {meta.get('unit_number', '?')}: {meta.get('unit_name', '')}".strip(": "),
-                    'chapter': meta.get('chapter', ''),
+                    "weak_topic": topic["topic"],
+                    "revise_this": results[0].page_content,
+                    "source": meta.get("source", ""),
+                    "unit": f"Unit {meta.get('unit_number', '?')}: {meta.get('unit_name', '')}".strip(": "),
+                    "chapter": meta.get("chapter", ""),
                 })
         except Exception as e:
             print(f"Recommendation error for {topic['topic']}: {e}")

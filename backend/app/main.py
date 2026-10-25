@@ -1,10 +1,11 @@
-from datetime import datetime
-import json
+# app/main.py
 import os
-import re
-from pathlib import Path
-from typing import List, Any
+import json
 import shutil
+from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any, List
+from datetime import datetime
 
 from dotenv import load_dotenv
 
@@ -13,127 +14,74 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.core.auth import get_current_user
+from app.core.rag import rag, load_rag, reload_vector_store
+from app.core.text_utils import normalize_subject_key
 
 load_dotenv()
-
-# Heavy objects start as None and get populated in lifespan() after the
-# server is already accepting connections. This keeps cold start fast.
-embeddings = None
-vectorStoreDB = None
-llm = None
-notes_db = None
-
-from contextlib import asynccontextmanager
-
-# Subject key normalization — canonical form for matching across files/DB
-def normalize_subject_key(subject: str) -> str:
-    """
-    'Computer-Graphics', 'Computer Graphics', 'computer_graphics'
-      -> 'computergraphics'
-    """
-    return re.sub(r"[\s\-_]+", "", subject).lower()
-
-
-# Safe FAISS loader — won't crash if index is missing
-def _load_faiss_safe(path: str):
-    """
-    Load a FAISS index if it exists, otherwise return None.
-    Prevents startup crash when faiss_index/ hasn't been built yet.
-    """
-    from langchain_community.vectorstores import FAISS
-
-    index_file = os.path.join(path, "index.faiss")
-    if not os.path.exists(index_file):
-        print(f"FAISS index not found at '{path}'. Skipping load.")
-        return None
-
-    try:
-        db = FAISS.load_local(
-            path,
-            embeddings,
-            allow_dangerous_deserialization=True,
-        )
-        print(f"FAISS index loaded from '{path}'.")
-        return db
-    except Exception as e:
-        print(f"Failed to load FAISS from '{path}': {e}")
-        return None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Runs after uvicorn has opened the socket. /health can respond immediately
-    while the RAG stack loads in the background.
-    """
-    global embeddings, vectorStoreDB, llm, notes_db
-
     print("Starting server...")
-    print("API Key exists:", bool(os.getenv("COHERE_API_KEY")))
-
-    from langchain_cohere import CohereEmbeddings, ChatCohere
-
-    embeddings = CohereEmbeddings(
-        model="embed-english-light-v3.0",
-        cohere_api_key=os.getenv("COHERE_API_KEY"),
-    )
-
-    vectorStoreDB = _load_faiss_safe("faiss_index")
-
-    llm = ChatCohere(
-        model="command-r7b-12-2024",
-        cohere_api_key=os.getenv("COHERE_API_KEY"),
-    )
-
-    print("RAG stack loaded")
-
+    load_rag()
     yield
-
     print("Shutting down...")
+
 
 app = FastAPI(lifespan=lifespan)
 
-# Request models
-class QuizRequest(BaseModel):
-    subject: str
-    unit_number: int | None = None
-class EvaluateRequest(BaseModel):
-    quiz: list[Any]
-    answers: list[Any]
-    subject: str
+# Request models (ones still living in main.py — will move to modules later)
+
 class AskRequest(BaseModel):
     question: str
-    subject: str | None = None 
+    subject: str | None = None
     general_knowledge: bool = False
+
+
 class GenerateTagsRequest(BaseModel):
     note_content: str
     subject: str
+
+
 class SubjectTagsRequest(BaseModel):
     subject: str
+
+
 class FetchURLRequest(BaseModel):
     url: str
+
+
 class UpdateNoteRequest(BaseModel):
     title: str
     content: str
     tags: List[str]
     urls: List[Any] = []
+
+
 class CreateNoteRequest(BaseModel):
     subject: str
     title: str
     content: str
     tags: List[str]
     urls: List[Any] = []
+
+
 class RoadmapRequest(BaseModel):
     subject: str
     hours_per_day: int
     target_date: str
     scope: str
     unit_number: int | None = None
+
+
 class ExtendDateRequest(BaseModel):
     new_target_date: str
+
+
 class CompleteTopicRequest(BaseModel):
     week: int
     topic_name: str
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -141,6 +89,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 def home():
@@ -152,7 +101,7 @@ def health():
     """Responds instantly, even before the RAG stack finishes loading."""
     return {
         "status": "ok",
-        "ready": vectorStoreDB is not None,
+        "ready": rag.vector_store_db is not None,
     }
 
 
@@ -163,11 +112,11 @@ def get_subject_units(subject: str):
     Return the list of units available for a subject, based on the ingested
     FAISS metadata. Tolerates subject name variations.
     """
-    if vectorStoreDB is None:
+    if rag.vector_store_db is None:
         return {"error": "Vector store not ready"}
 
     needle = normalize_subject_key(subject)
-    all_docs = list(vectorStoreDB.docstore._dict.values())
+    all_docs = list(rag.vector_store_db.docstore._dict.values())
     units = {}
     canonical_name = None
 
@@ -191,38 +140,6 @@ def get_subject_units(subject: str):
         "subject": canonical_name or subject,
         "subject_key": needle,
         "units": sorted(units.values(), key=lambda u: u["unit_number"]),
-    }
-
-# Quiz
-@app.post("/generate-quiz")
-def generateQuiz(request: QuizRequest, user=Depends(get_current_user)):
-    from app.modules.Quiz.quiz import generate_quiz
-    if vectorStoreDB is None:
-        return {"error": "Vector store not ready. Please ingest documents first."}
-
-    quiz = generate_quiz(
-        request.subject,
-        llm,
-        vectorStoreDB,
-        unit_number=request.unit_number,
-    )
-    return {"quiz": quiz}
-
-
-@app.post("/evaluate")
-async def evaluate_endpoint(request: EvaluateRequest, user=Depends(get_current_user)):
-    from app.modules.Quiz.quiz import evaluate_answers, get_recommendations
-    results, weak_topics = evaluate_answers(
-        request.quiz,
-        request.answers,
-        request.subject,
-        user_id=user.id,
-    )
-    recommendations = get_recommendations(weak_topics, vectorStoreDB)
-    return {
-        "results": results,
-        "weak_topics": weak_topics,
-        "recommendations": recommendations,
     }
 
 
@@ -254,69 +171,69 @@ def ingestion(file: UploadFile = File(...)):
     chunk_count = run_ingestion()
 
     # Reload FAISS after ingestion
-    global vectorStoreDB
-    vectorStoreDB = _load_faiss_safe("faiss_index")
+    reload_vector_store()
 
     return {
         "message": f"{file.filename} ingested successfully",
         "chunks_created": chunk_count,
-        "vector_store_ready": vectorStoreDB is not None,
+        "vector_store_ready": rag.vector_store_db is not None,
     }
 
-# Q&A — upgraded to accept optional subject scope
+
+# Q&A
 @app.post("/ask")
 def ask_endpoint(request: AskRequest, user=Depends(get_current_user)):
     from app.modules.Qa.query import get_answer
     response = get_answer(
         question=request.question,
-        llm=llm,
-        uploads_db=vectorStoreDB,
+        llm=rag.llm,
+        uploads_db=rag.vector_store_db,
         user_id=user.id,
-        embeddings=embeddings,
+        embeddings=rag.embeddings,
         subject=request.subject,
-        general_knowledge=request.subject,
-        session_id=user.id # using user id as session as no session is implemented right now
+        general_knowledge=request.general_knowledge,  # fixed bug: was request.subject
+        session_id=user.id,
     )
     return response
+
 
 # Notes — specific routes MUST come before /notes/{filename}
 @app.post("/notes/generate-tags")
 def generate_tags_endpoint(request: GenerateTagsRequest):
     from app.modules.Notes.notes import generate_tags
-    tags = generate_tags(request.note_content, request.subject, llm)
+    tags = generate_tags(request.note_content, request.subject, rag.llm)
     return {"tags": tags}
+
 
 @app.post("/notes/fetch-url")
 def fetch_url_endpoint(request: FetchURLRequest):
     from app.modules.Notes.notes import fetch_url_title
     return {"title": fetch_url_title(request.url)}
 
+
 @app.post("/notes/subject-tags")
 def get_subject_tags_endpoint(request: SubjectTagsRequest):
-    """
-    Return the full tag pool for a subject WITHOUT calling the LLM.
-    Reads from tags/<subject>.json (or default.json fallback).
-    """
     from app.modules.Notes.notes import load_tags
     return {"tags": load_tags(request.subject)}
+
 
 @app.post("/notes/ingest")
 async def ingest_notes_endpoint(user=Depends(get_current_user)):
     from app.modules.Notes.notes import ingest_notes, get_notes_faiss_path
     from langchain_community.vectorstores import FAISS
 
-    result = await ingest_notes(embeddings, user.id)
+    result = await ingest_notes(rag.embeddings, user.id)
 
     if "error" in result:
         return result
 
-    global notes_db
-    notes_db = FAISS.load_local(
+    rag.notes_db = FAISS.load_local(
         get_notes_faiss_path(user.id),
-        embeddings,
+        rag.embeddings,
         allow_dangerous_deserialization=True,
     )
     return result
+
 
 @app.post("/notes")
 def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_user)):
@@ -329,6 +246,7 @@ def create_note_endpoint(request: CreateNoteRequest, user=Depends(get_current_us
         urls=request.urls,
         user_id=user.id,
     )
+
 
 @app.get("/notes")
 def get_notes_endpoint(subject: str = None, tags: str = None, user=Depends(get_current_user)):
@@ -362,19 +280,16 @@ def delete_note_endpoint(filename: str, user=Depends(get_current_user)):
     from app.modules.Notes.notes import delete_note
     return delete_note(filename, user_id=user.id)
 
+
 # Subjects & uploads
 @app.get("/subjects")
 def get_subjects_endpoint():
     from app.modules.Notes.notes import get_subjects
     return {"subjects": get_subjects()}
 
+
 @app.get("/uploads/{subject}")
 def get_upload_content(subject: str):
-    """
-    Return the content of the uploaded .md file for a subject.
-    Tolerates subject name variations (Computer-Graphics = Computer Graphics).
-    Also returns filename, size, and uploaded_at for UI display.
-    """
     needle = normalize_subject_key(subject)
     uploads_dir = Path("data/uploads")
 
@@ -410,12 +325,13 @@ def get_uploaded_subjects():
         files.append(file.stem)
     return sorted(files)
 
+
 # Roadmap
 @app.post("/roadmap")
 def generate_roadmap_endpoint(request: RoadmapRequest, user=Depends(get_current_user)):
     from app.modules.Roadmap.roadmap import generate_roadmap, check_existing_roadmap
 
-    if vectorStoreDB is None:
+    if rag.vector_store_db is None:
         return {"error": "Vector store not ready. Please ingest documents first."}
 
     if check_existing_roadmap(request.subject, user_id=user.id):
@@ -427,11 +343,12 @@ def generate_roadmap_endpoint(request: RoadmapRequest, user=Depends(get_current_
         target_date=request.target_date,
         scope=request.scope,
         unit_number=request.unit_number,
-        llm=llm,
+        llm=rag.llm,
         user_id=user.id,
-        vectorStoreDB=vectorStoreDB,
+        vectorStoreDB=rag.vector_store_db,
     )
     return result
+
 
 @app.get("/roadmap/{subject}")
 def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
@@ -440,6 +357,7 @@ def get_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
     if not roadmap:
         return {"error": "No roadmap found"}
     return roadmap
+
 
 @app.delete("/roadmap/{subject}")
 def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
@@ -451,6 +369,7 @@ def delete_roadmap_endpoint(subject: str, user=Depends(get_current_user)):
         .eq("subject_key", needle)\
         .execute()
     return {"success": True, "message": f"Roadmap for {subject} deleted"}
+
 
 @app.put("/roadmap/{subject}/extend")
 def extend_roadmap_endpoint(subject: str, request: ExtendDateRequest, user=Depends(get_current_user)):
@@ -466,6 +385,7 @@ def extend_roadmap_endpoint(subject: str, request: ExtendDateRequest, user=Depen
     }).eq("id", roadmap["id"]).execute()
 
     return {"success": True, "new_target_date": request.new_target_date}
+
 
 @app.put("/roadmap/{subject}/complete-topic")
 def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=Depends(get_current_user)):
@@ -495,7 +415,11 @@ def complete_topic_endpoint(subject: str, request: CompleteTopicRequest, user=De
 
     return {"success": True}
 
+
 # Sub-routers
+from app.modules.Quiz.router import router as quiz_router
+app.include_router(quiz_router)
+
 from app.modules.books.router import router as books_router
 app.include_router(books_router)
 
