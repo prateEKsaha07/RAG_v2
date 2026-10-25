@@ -71,55 +71,157 @@ User -> Frontend -> FastAPI Backend -> FAISS / Embeddings / LLM -> Response / Qu
 
 ## 5. Project Structure
 
+The outline below summarizes the current source and project layout; feature-folder contents are collapsed to keep it readable. Generated dependencies and caches (`.git`, `venv`, `node_modules`, and `__pycache__`) are omitted. Environment files are also omitted; configure them locally rather than copying secrets into documentation.
+
 ```bash
 RAG_v2/
-├── backend/
-│   ├── app/
-│   │   ├── core/
-│   │   │   ├── auth.py
-│   │   │   ├── config.py
-│   │   │   └── supabase_client.py
-│   │   ├── modules/
-│   │   │   ├── Analytics/
-│   │   │   ├── books/
-│   │   │   ├── Ingestion/
-│   │   │   ├── Notes/
-│   │   │   ├── Qa/
-│   │   │   ├── Quiz/
-│   │   │   └── Roadmap/
-│   │   └── main.py
-│   ├── data/
-│   │   └── uploads/
-│   ├── faiss_index/
-│   ├── notes_faiss_index/
-│   ├── requirements.txt
-│   └── render.yaml
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── api/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── styles/
-│   │   ├── utils/
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── supabaseClient.js
-│   ├── package.json
-│   ├── vite.config.js
-│   └── tailwind.config.js
-├── docs/
-├── LICENSE
-└── README.md
+|-- backend/
+|   |-- analytics/
+|   |   |-- roadmaps/
+|   |   |   `-- roadmap_Java.json
+|   |   `-- quiz_history.json
+|   |-- app/
+|   |   |-- core/
+|   |   |   |-- __init__.py
+|   |   |   |-- auth.py
+|   |   |   |-- config.py
+|   |   |   |-- deps.py
+|   |   |   |-- rag.py
+|   |   |   |-- supabase_client.py
+|   |   |   `-- text_utils.py
+|   |   |-- modules/
+|   |   |   |-- Analytics/
+|   |   |   |-- books/
+|   |   |   |-- Ingestion/
+|   |   |   |-- Notes/
+|   |   |   |-- profile/
+|   |   |   |-- Qa/
+|   |   |   |-- Quiz/
+|   |   |   |-- QuizHistory/
+|   |   |   |-- Roadmap/
+|   |   |   |-- Subjects/
+|   |   |   |-- Uploads/
+|   |   |   `-- __init__.py
+|   |   |-- shared/
+|   |   |   `-- __init__.py
+|   |   |-- __init__.py
+|   |   `-- main.py
+|   |-- data/
+|   |   |-- uploads/
+|   |   |   |-- AI.md
+|   |   |   `-- Computer-Graphics.md
+|   |   `-- __init__.py
+|   |-- faiss_index/
+|   |   |-- index.faiss
+|   |   `-- index.pkl
+|   |-- notes_faiss_index/
+|   |-- tags/
+|   |   |-- AI.json
+|   |   |-- ComputerGraphics.json
+|   |   |-- ComputerNetworks.json
+|   |   |-- CryptographyNetworkSecurity.json
+|   |   |-- DataScience.json
+|   |   |-- default.json
+|   |   |-- ERP.json
+|   |   |-- Java.json
+|   |   |-- MobileComputing.json
+|   |   |-- NLP.json
+|   |   `-- Unix.json
+|   |-- .gitattributes
+|   |-- render.yaml
+|   |-- requirements.txt
+|   `-- runtime.txt
+|-- docs/
+|   |-- collaboration/
+|   |   `-- process_doc.md
+|   |-- profiles/
+|   |   |-- apis.txt
+|   |   |-- RAG_v2_Profile_Module_Documentation.md
+|   |   `-- rls.txt
+|   |-- Analytics_module.md
+|   |-- currently-doing.md
+|   |-- Frontend_redesign.md
+|   |-- Landing_page_design_handoff.md
+|   |-- optimization-guide.md
+|   |-- Project_module_flow.md
+|   |-- Roadmap_module.md
+|   `-- study_module.md
+|-- frontend/
+|   |-- public/
+|   |   |-- Avatar/
+|   |   |   |-- avatar-1.png
+|   |   |   |-- avatar-2.png
+|   |   |   |-- avatar-3.png
+|   |   |   |-- avatar-4.png
+|   |   |   |-- avatar-5.png
+|   |   |   |-- avatar-6.png
+|   |   |   |-- avatar-7.png
+|   |   |   `-- avatar-8.png
+|   |   |-- favicon.svg
+|   |   |-- icons.svg
+|   |   `-- logo.svg
+|   |-- src/
+|   |   |-- api/
+|   |   |   |-- analyticsApi.js
+|   |   |   |-- bookApi.js
+|   |   |   |-- client.js
+|   |   |   |-- profiles.js
+|   |   |   `-- roadmapApi.js
+|   |   |-- assets/
+|   |   |   |-- hero.png
+|   |   |   `-- vite.svg
+|   |   |-- components/
+|   |   |   |-- analytics/
+|   |   |   |   |-- charts/
+|   |   |   |   |-- components/
+|   |   |   |   |-- pages/
+|   |   |   |   |-- widgets/
+|   |   |   |   `-- AnalyticsDashboard.jsx
+|   |   |   |-- auth/
+|   |   |   |-- common/
+|   |   |   |-- dashboard/
+|   |   |   |-- landing/
+|   |   |   |-- notes/
+|   |   |   |-- profiles/
+|   |   |   |-- qa/
+|   |   |   |-- quiz/
+|   |   |   |-- roadmap/
+|   |   |   |-- study/
+|   |   |   `-- upload/
+|   |   |-- context/
+|   |   |-- hooks/
+|   |   |-- services/
+|   |   |   `-- roadmapService.js
+|   |   |-- styles/
+|   |   |-- utils/
+|   |   |   |-- analyticsHelpers.js
+|   |   |   `-- roadmapStats.js
+|   |   |-- api.js
+|   |   |-- App.jsx
+|   |   |-- index.css
+|   |   |-- main.jsx
+|   |   `-- supabaseClient.js
+|   |-- .gitignore
+|   |-- .python-version
+|   |-- eslint.config.js
+|   |-- index.html
+|   |-- package.json
+|   |-- postcss.config.js
+|   |-- requirements.txt
+|   |-- tailwind.config.js
+|   `-- vite.config.js
+|-- .gitignore
+|-- AI Study AssistantF.pptx
+|-- LICENSE
+|-- README.md
+`-- runtime.txt
 ```
 
 ---
 
 ## 6. Backend Modules
 
-The backend is organized into feature-oriented modules under the app/modules directory. Each module is designed to represent a specific responsibility in the learning workflow, keeping the application easier to maintain and scale as new features are added.
+The backend is organized into feature-oriented modules under `backend/app/modules/`. The current modules are Analytics, Books, Ingestion, Notes, Profile, QA, Quiz, Quiz History, Roadmap, Subjects, and Uploads. Each module represents a responsibility in the learning workflow and keeps related API and service code together.
 
 ### 6.1 Analytics Module
 
