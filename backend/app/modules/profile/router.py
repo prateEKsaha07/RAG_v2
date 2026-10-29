@@ -18,34 +18,44 @@ def test_auth(
         "user" : user
     }
 
-@router.get("/me")
+@router.get("/me", response_model=profileResponse)
 async def user_profile(
-    user = Depends(get_current_user),
-    profileResponse = profileResponse
+    user=Depends(get_current_user),
 ):
-    # print("USER:",user);
-    res = supabase.table("profiles").select("*").eq("id",user.id).execute()
+    res = (
+        supabase.table("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .execute()
+    )
     if not res.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile not found for this user."
+            detail="Profile not found for this user.",
         )
-    return res.data
+    return res.data[0]
 
-@router.patch("/me")
+
+@router.patch("/me", response_model=profileResponse)
 async def update_profile(
-    user = Depends(get_current_user),
-    update_data: profileUpdate = None
+    update_data: profileUpdate,
+    user=Depends(get_current_user),
 ):
-    print("user:", user)
-    # skipping emppty spaces
-    payload = update_data.model_dump(exclude_unset=True) if update_data else {} 
-
+    payload = update_data.model_dump(exclude_unset=True)
     if not payload:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="update data not found!"
+            detail="Update data not found!",
         )
-
-    res = supabase.table("profiles").update(payload).eq("id",user.id).execute();
-    return res.data
+    res = (
+        supabase.table("profiles")
+        .update(payload)
+        .eq("id", user.id)
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found for this user.",
+        )
+    return res.data[0]

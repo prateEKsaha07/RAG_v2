@@ -169,3 +169,239 @@ USING (
           AND wm.user_id = (SELECT auth.uid())
     )
 );
+
+
+
+
+CREATE OR REPLACE FUNCTION public.create_workspace_with_owner(
+    p_name TEXT,
+    p_description TEXT,
+    p_owner_id UUID
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    new_workspace public.workspaces%ROWTYPE;
+BEGIN
+    IF p_name IS NULL OR char_length(trim(p_name)) NOT BETWEEN 1 AND 100 THEN
+        RAISE EXCEPTION 'Workspace name must be between 1 and 100 characters';
+    END IF;
+
+    IF p_description IS NOT NULL AND char_length(p_description) > 2000 THEN
+        RAISE EXCEPTION 'Workspace description is too long';
+    END IF;
+
+    INSERT INTO public.workspaces (
+        name,
+        description,
+        owner_id
+    )
+    VALUES (
+        trim(p_name),
+        COALESCE(p_description, ''),
+        p_owner_id
+    )
+    RETURNING * INTO new_workspace;
+
+    INSERT INTO public.workspace_members (
+        workspace_id,
+        user_id,
+        role
+    )
+    VALUES (
+        new_workspace.id,
+        p_owner_id,
+        'owner'
+    );
+
+    RETURN to_jsonb(new_workspace);
+END;
+$$;
+
+-- Only the backend service role should call this function.
+REVOKE ALL ON FUNCTION public.create_workspace_with_owner(TEXT, TEXT, UUID)
+FROM PUBLIC, anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION public.create_workspace_with_owner(TEXT, TEXT, UUID)
+TO service_role;
+
+
+database func
+
+
+-- Invite an existing registered user.
+CREATE OR REPLACE FUNCTION public.invite_registered_user(
+    p_workspace_id UUID,
+    p_invited_email TEXT,
+    p_inviter_id UUID
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    recipient_id UUID;
+    normalized_email TEXT;
+    new_invitation public.workspace_invitations%ROWTYPE;
+BEGIN
+    normalized_email := lower(trim(p_invited_email));
+
+    IF normalized_email IS NULL OR normalized_email = '' THEN
+        RAISE EXCEPTION 'Email is required';
+    END IF;
+
+    -- Only workspace owners and admins can invite.
+    IF NOT EXISTS (
+        SELECT 1
+        FROM public.workspace_members wm
+        WHERE wm.workspace_id = p_workspace_id
+          AND wm.user_id = p_inviter_id
+          AND wm.role IN ('owner', 'admin')
+    ) THEN
+        RAISE EXCEPTION 'Not authorized to invite users';
+    END IF;
+
+    -- Resolve an existing Supabase Auth account.
+    SELECT u.id
+    INTO recipient_id
+    FROM auth.users u
+    WHERE lower(u.email) = normalized_email
+    LIMIT 1;
+
+    IF recipient_id IS NULL THEN
+        RAISE EXCEPTION 'No registered user found for this email';
+    END IF;
+
+    IF recipient_id = p_inviter_id THEN
+        RAISE EXCEPTION 'You cannot invite yourself';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM public.workspace_members wm
+        WHERE wm.workspace_id = p_workspace_id
+          AND wm.user_id = recipient_id
+    ) THEN
+        RAISE EXCEPTION 'User is already a workspace member';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM public.workspace_invitations wi
+        WHERE wi.workspace_id = p_workspace_id
+          AND lower(wi.invited_email) = normalized_email
+          AND wi.status = 'pending'
+    ) THEN
+        RAISE EXCEPTION 'A pending invitation already exists';
+    END IF;
+
+    INSERT INTO public.workspace_invitations (
+        workspace_id,
+        invited_by,
+        invited_email,
+        invited_user_id,
+        status
+    )
+    VALUES (
+        p_workspace_id,
+        p_inviter_id,
+        normalized_email,
+        recipient_id,
+        'pending'
+    )
+    RETURNING * INTO new_invitation;
+
+    RETURN to_jsonb(new_invitation);
+END;
+$$;
+
+
+-- Accept or reject an invitation atomically.
+CREATE OR REPLACE FUNCTION public.respond_to_workspace_invitation(
+    p_invitation_id UUID,
+    p_actor_id UUID,
+    p_action TEXT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    invitation public.workspace_invitations%ROWTYPE;
+BEGIN
+    IF p_action NOT IN ('accepted', 'rejected') THEN
+        RAISE EXCEPTION 'Invalid invitation action';
+    END IF;
+
+    SELECT *
+    INTO invitation
+    FROM public.workspace_invitations wi
+    WHERE wi.id = p_invitation_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Invitation not found';
+    END IF;
+
+    IF invitation.invited_user_id IS DISTINCT FROM p_actor_id THEN
+        RAISE EXCEPTION 'Not authorized to respond to this invitation';
+    END IF;
+
+    IF invitation.status <> 'pending' THEN
+        RAISE EXCEPTION 'Invitation is no longer pending';
+    END IF;
+
+    IF invitation.expires_at <= now() THEN
+        UPDATE public.workspace_invitations
+        SET status = 'expired'
+        WHERE id = p_invitation_id;
+
+        RETURN jsonb_build_object(
+            'id', p_invitation_id,
+            'status', 'expired'
+        );
+    END IF;
+
+    IF p_action = 'accepted' THEN
+        INSERT INTO public.workspace_members (
+            workspace_id,
+            user_id,
+            role
+        )
+        VALUES (
+            invitation.workspace_id,
+            p_actor_id,
+            'member'
+        )
+        ON CONFLICT (workspace_id, user_id) DO NOTHING;
+    END IF;
+
+    UPDATE public.workspace_invitations
+    SET status = p_action,
+        responded_at = now()
+    WHERE id = p_invitation_id
+    RETURNING * INTO invitation;
+
+    RETURN to_jsonb(invitation);
+END;
+$$;
+
+
+-- Only the trusted backend service role may execute these functions.
+REVOKE ALL ON FUNCTION public.invite_registered_user(UUID, TEXT, UUID)
+FROM PUBLIC, anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.respond_to_workspace_invitation(UUID, UUID, TEXT)
+FROM PUBLIC, anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION public.invite_registered_user(UUID, TEXT, UUID)
+TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.respond_to_workspace_invitation(UUID, UUID, TEXT)
+TO service_role;
+

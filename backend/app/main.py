@@ -66,3 +66,6 @@ app.include_router(analytics_router)
 
 from app.modules.profile.router import router as profile_router
 app.include_router(profile_router)
+
+from app.modules.Collaboration.router import router as collaboration_router
+app.include_router(collaboration_router)
