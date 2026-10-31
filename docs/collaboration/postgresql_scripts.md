@@ -405,3 +405,76 @@ TO service_role;
 GRANT EXECUTE ON FUNCTION public.respond_to_workspace_invitation(UUID, UUID, TEXT)
 TO service_role;
 
+atomicity
+
+CREATE OR REPLACE FUNCTION public.remove_workspace_member(
+    p_workspace_id UUID,
+    p_target_user_id UUID,
+    p_actor_id UUID
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    actor_role TEXT;
+    target_role TEXT;
+BEGIN
+    -- Check the actor's workspace role
+    SELECT wm.role INTO actor_role
+    FROM public.workspace_members wm
+    WHERE wm.workspace_id = p_workspace_id
+      AND wm.user_id = p_actor_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Actor is not a workspace member';
+    END IF;
+
+    -- Check the target member's role
+    SELECT wm.role INTO target_role
+    FROM public.workspace_members wm
+    WHERE wm.workspace_id = p_workspace_id
+      AND wm.user_id = p_target_user_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Target workspace member not found';
+    END IF;
+
+    -- Owner cannot be removed
+    IF target_role = 'owner' THEN
+        RAISE EXCEPTION 'Workspace owner cannot be removed';
+    END IF;
+
+    -- Only owner or admin can remove members
+    IF actor_role NOT IN ('owner', 'admin') THEN
+        RAISE EXCEPTION 'Not authorized to remove workspace members';
+    END IF;
+
+    -- Admins cannot remove other admins
+    IF actor_role = 'admin' AND target_role = 'admin' THEN
+        RAISE EXCEPTION 'Admins cannot remove other admins';
+    END IF;
+
+    -- Remove membership
+    DELETE FROM public.workspace_members
+    WHERE workspace_id = p_workspace_id
+      AND user_id = p_target_user_id;
+
+    RETURN jsonb_build_object(
+        'workspace_id', p_workspace_id,
+        'removed_user_id', p_target_user_id,
+        'removed_role', target_role,
+        'removed_by', p_actor_id
+    );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.remove_workspace_member(UUID, UUID, UUID)
+FROM PUBLIC, anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION public.remove_workspace_member(UUID, UUID, UUID)
+TO service_role;
+
