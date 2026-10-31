@@ -10,21 +10,59 @@ def _rpc_error(exc: Exception):
     message = str(exc)
     lowered = message.lower()
 
+    # Authorization errors
     if "not authorized" in lowered:
-        raise HTTPException(status_code=403, detail="You are not allowed to perform this action.")
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to perform this action."
+        )
+
+    # Not found errors
     if "not found" in lowered:
-        raise HTTPException(status_code=404, detail=message)
+        raise HTTPException(
+            status_code=404,
+            detail=message
+        )
+
+    # Poll validation errors
+    if any(term in lowered for term in (
+        "poll is closed",
+        "poll has expired",
+        "no longer accepts votes",
+        "option does not belong to poll",
+        "invalid poll options",
+        "question must",
+        "options must",
+        "poll expiration",
+    )):
+        raise HTTPException(
+            status_code=400,
+            detail=message
+        )
+
+    # Conflict errors
     if any(term in lowered for term in (
         "already exists",
         "already a workspace member",
         "cannot invite yourself",
         "pending invitation already exists",
-        "no registered user found",
     )):
-        raise HTTPException(status_code=409, detail=message)
+        raise HTTPException(
+            status_code=409,
+            detail=message
+        )
+
+    # Missing registered user
     if "no registered user found" in lowered:
-        raise HTTPException(status_code=404, detail=message)
-    raise HTTPException(status_code=500, detail="Collaboration operation failed.")
+        raise HTTPException(
+            status_code=404,
+            detail=message
+        )
+
+    raise HTTPException(
+        status_code=500,
+        detail="Collaboration operation failed."
+    )
 
 
 def create_workspace(payload: WorkspaceCreate, user_id: str):
@@ -387,3 +425,390 @@ def share_workspace_note(
             status_code=500,
             detail="Unable to share note.",
         )
+
+def list_workspace_resources(workspace_id: str, user_id: str):
+    try:
+        # Verify workspace membership
+        membership = (
+            supabase.table("workspace_members")
+            .select("role")
+            .eq("workspace_id", workspace_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        if not membership.data:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not a member of this workspace.",
+            )
+
+        # Retrieve active shared resources
+        response = (
+            supabase.table("workspace_resources")
+            .select("*")
+            .eq("workspace_id", workspace_id)
+            .is_("revoked_at", "null")
+            .order("created_at", desc=True)
+            .execute()
+        )
+
+        resources = response.data or []
+
+        # Verify that referenced notes still exist
+        note_ids = [
+            resource["resource_id"]
+            for resource in resources
+            if resource["resource_type"] == "note"
+        ]
+
+        if not note_ids:
+            return resources
+
+        notes_response = (
+            supabase.table("notes")
+            .select("id")
+            .in_("id", note_ids)
+            .execute()
+        )
+
+        existing_note_ids = {
+            str(note["id"])
+            for note in (notes_response.data or [])
+        }
+
+        return [
+            resource
+            for resource in resources
+            if resource["resource_type"] != "note"
+            or resource["resource_id"] in existing_note_ids
+        ]
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve workspace resources.",
+        )
+
+
+def revoke_workspace_resource(
+    workspace_id: str,
+    resource_id: str,
+    actor_id: str,
+):
+    try:
+        response = supabase.rpc(
+            "revoke_workspace_resource",
+            {
+                "p_workspace_id": workspace_id,
+                "p_resource_id": resource_id,
+                "p_actor_id": actor_id,
+            },
+        ).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Resource revocation returned no data.",
+            )
+
+        return response.data
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        message = str(exc).lower()
+
+        if "not a workspace member" in message:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not a member of this workspace.",
+            )
+
+        if "not found" in message:
+            raise HTTPException(
+                status_code=404,
+                detail="Active workspace resource not found.",
+            )
+
+        if "not authorized" in message:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not allowed to revoke this resource.",
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to revoke workspace resource.",
+        )
+
+
+# message function
+
+def send_workspace_message(
+    workspace_id: str,
+    sender_id: str,
+    content: str,
+):
+    try:
+        response = supabase.rpc(
+            "send_workspace_message",
+            {
+                "p_workspace_id": workspace_id,
+                "p_sender_id": sender_id,
+                "p_content": content,
+            },
+        ).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Message sending returned no data.",
+            )
+
+        return response.data
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        message = str(exc).lower()
+
+        if "not a workspace member" in message:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not a member of this workspace.",
+            )
+
+        if "message must contain" in message:
+            raise HTTPException(
+                status_code=400,
+                detail="Message must contain between 1 and 4000 characters.",
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to send workspace message.",
+        )
+
+def get_workspace_messages(
+    workspace_id: str,
+    user_id: str,
+    limit: int = 50,
+    before: str | None = None,
+):
+    try:
+        response = supabase.rpc(
+            "get_workspace_messages",
+            {
+                "p_workspace_id": workspace_id,
+                "p_user_id": user_id,
+                "p_limit": limit,
+                "p_before": before,
+            },
+        ).execute()
+
+        return response.data or []
+
+    except Exception as exc:
+        message = str(exc).lower()
+
+        if "not a workspace member" in message:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not a member of this workspace.",
+            )
+
+        if "invalid message limit" in message:
+            raise HTTPException(
+                status_code=400,
+                detail="Message limit must be between 1 and 100.",
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve workspace messages.",
+        )
+
+
+def get_workspace_updates(
+    workspace_id: str,
+    user_id: str,
+    limit: int = 50,
+    after: str | None = None
+):
+    try:
+        response = supabase.rpc(
+            "get_workspace_updates",
+            {
+                "p_workspace_id": workspace_id,
+                "p_user_id": user_id,
+                "p_limit": limit,
+                "p_after": after
+            }
+        ).execute()
+
+        return response.data
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch workspace updates: {str(e)}"
+        )
+
+def create_workspace_poll(
+    workspace_id: str,
+    user_id: str,
+    payload
+):
+    try:
+        response = supabase.rpc(
+            "create_workspace_poll",
+            {
+                "p_workspace_id": workspace_id,
+                "p_user_id": user_id,
+                "p_question": payload.question,
+                "p_options": payload.options,
+                "p_description": payload.description,
+                "p_resource_id": payload.resource_id,
+                "p_expires_at": (
+                    payload.expires_at.isoformat()
+                    if payload.expires_at else None
+                ),
+            },
+        ).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Poll creation returned no data."
+            )
+
+        return response.data
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        _rpc_error(exc)
+
+
+def list_workspace_polls(
+    workspace_id: str,
+    user_id: str
+):
+    try:
+        response = supabase.rpc(
+            "get_workspace_polls",
+            {
+                "p_workspace_id": workspace_id,
+                "p_user_id": user_id,
+            },
+        ).execute()
+
+        return response.data or []
+
+    except Exception as exc:
+        _rpc_error(exc)
+
+
+def get_workspace_poll_details(
+    poll_id: str,
+    user_id: str
+):
+    try:
+        response = supabase.rpc(
+            "get_workspace_poll_details",
+            {
+                "p_poll_id": poll_id,
+                "p_user_id": user_id,
+            },
+        ).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Poll not found."
+            )
+
+        return response.data
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        _rpc_error(exc)
+
+
+def cast_workspace_poll_vote(
+    poll_id: str,
+    option_id: str,
+    user_id: str
+):
+    try:
+        response = supabase.rpc(
+            "cast_workspace_poll_vote",
+            {
+                "p_poll_id": poll_id,
+                "p_option_id": option_id,
+                "p_user_id": user_id,
+            },
+        ).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Vote submission returned no data."
+            )
+
+        return response.data
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        _rpc_error(exc)
+
+
+def close_workspace_poll(
+    poll_id: str,
+    user_id: str
+):
+    try:
+        response = supabase.rpc(
+            "close_workspace_poll",
+            {
+                "p_poll_id": poll_id,
+                "p_user_id": user_id,
+            },
+        ).execute()
+
+        return response.data
+
+    except Exception as exc:
+        _rpc_error(exc)
+
+
+def set_workspace_poll_pin(
+    poll_id: str,
+    user_id: str,
+    is_pinned: bool
+):
+    try:
+        response = supabase.rpc(
+            "set_workspace_poll_pin",
+            {
+                "p_poll_id": poll_id,
+                "p_user_id": user_id,
+                "p_is_pinned": is_pinned,
+            },
+        ).execute()
+
+        return response.data
+
+    except Exception as exc:
+        _rpc_error(exc)

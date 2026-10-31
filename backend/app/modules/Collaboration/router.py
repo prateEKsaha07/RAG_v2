@@ -1,13 +1,18 @@
 
-from fastapi import APIRouter, Depends, status
-
+from fastapi import APIRouter, Depends, status, Query
+from datetime import datetime
 from app.core.auth import get_current_user
 from app.modules.Collaboration.schemas import (
     WorkspaceCreate,
     WorkspaceInvite,
     WorkspaceMemberResponse,
     WorkspaceRoleUpdate,
-    
+    WorkspaceNoteShare,
+    WorkspaceMessageCreate,
+    WorkspaceUpdateResponse,
+    CreatePollRequest,
+    CastPollVoteRequest,
+    PinPollRequest
 )
 from app.modules.Collaboration.service import (
     create_workspace,
@@ -18,7 +23,20 @@ from app.modules.Collaboration.service import (
     list_workspace_members,
     update_workspace_member_role,
     remove_workspace_member,
-)
+    share_workspace_note,
+    list_workspace_resources,
+    revoke_workspace_resource,
+    send_workspace_message,
+    get_workspace_messages,
+    get_workspace_updates,
+    create_workspace_poll,
+    list_workspace_polls,
+    get_workspace_poll_details,
+    cast_workspace_poll_vote,
+    close_workspace_poll,
+    set_workspace_poll_pin,
+) 
+
 router = APIRouter(
     prefix="/collaboration",
     tags=["Collaboration"],
@@ -130,4 +148,165 @@ def remove_workspace_member_endpoint(
         workspace_id=workspace_id,
         target_user_id=user_id,
         actor_id=str(current_user.id),
+    )
+
+@router.post(
+    "/workspaces/{workspace_id}/resources/notes",
+    status_code=status.HTTP_201_CREATED,
+)
+def share_workspace_note_endpoint(
+    workspace_id: str,
+    payload: WorkspaceNoteShare,
+    current_user=Depends(get_current_user),
+):
+    return share_workspace_note(
+        workspace_id=workspace_id,
+        note_id=str(payload.note_id),
+        actor_id=str(current_user.id),
+    )
+
+@router.get("/workspaces/{workspace_id}/resources")
+def list_workspace_resources_endpoint(
+    workspace_id: str,
+    current_user=Depends(get_current_user),
+):
+    return list_workspace_resources(
+        workspace_id=workspace_id,
+        user_id=str(current_user.id),
+    )
+
+@router.delete(
+    "/workspaces/{workspace_id}/resources/{resource_id}"
+)
+def revoke_workspace_resource_endpoint(
+    workspace_id: str,
+    resource_id: str,
+    current_user=Depends(get_current_user),
+):
+    return revoke_workspace_resource(
+        workspace_id=workspace_id,
+        resource_id=resource_id,
+        actor_id=str(current_user.id),
+    )
+
+@router.post(
+    "/workspaces/{workspace_id}/messages",
+    status_code=status.HTTP_201_CREATED,
+)
+def send_workspace_message_endpoint(
+    workspace_id: str,
+    payload: WorkspaceMessageCreate,
+    current_user=Depends(get_current_user),
+):
+    return send_workspace_message(
+        workspace_id=workspace_id,
+        sender_id=str(current_user.id),
+        content=payload.content,
+    )
+
+@router.get("/workspaces/{workspace_id}/messages")
+def get_workspace_messages_endpoint(
+    workspace_id: str,
+    limit: int = 50,
+    before: str | None = None,
+    current_user=Depends(get_current_user),
+):
+    return get_workspace_messages(
+        workspace_id=workspace_id,
+        user_id=str(current_user.id),
+        limit=limit,
+        before=before,
+    )
+
+@router.get(
+    "/workspaces/{workspace_id}/updates",
+    response_model=WorkspaceUpdateResponse
+)
+def get_workspace_updates_route(
+    workspace_id: str,
+    limit: int = Query(default=50, ge=1, le=100),
+    after: datetime | None = None,
+    current_user=Depends(get_current_user)
+):
+    result = get_workspace_updates(
+        workspace_id=workspace_id,
+        user_id=str(current_user.id),
+        limit=limit,
+        after=after.isoformat() if after else None
+    )
+
+    return result
+
+@router.post(
+    "/workspaces/{workspace_id}/polls",
+    status_code=status.HTTP_201_CREATED,
+)
+def create_workspace_poll_endpoint(
+    workspace_id: str,
+    payload: CreatePollRequest,
+    current_user=Depends(get_current_user),
+):
+    return create_workspace_poll(
+        workspace_id=workspace_id,
+        user_id=str(current_user.id),
+        payload=payload,
+    )
+
+
+@router.get("/workspaces/{workspace_id}/polls")
+def list_workspace_polls_endpoint(
+    workspace_id: str,
+    current_user=Depends(get_current_user),
+):
+    return list_workspace_polls(
+        workspace_id=workspace_id,
+        user_id=str(current_user.id),
+    )
+
+
+@router.get("/polls/{poll_id}")
+def get_workspace_poll_details_endpoint(
+    poll_id: str,
+    current_user=Depends(get_current_user),
+):
+    return get_workspace_poll_details(
+        poll_id=poll_id,
+        user_id=str(current_user.id),
+    )
+
+
+@router.post("/polls/{poll_id}/vote")
+def cast_workspace_poll_vote_endpoint(
+    poll_id: str,
+    payload: CastPollVoteRequest,
+    current_user=Depends(get_current_user),
+):
+    return cast_workspace_poll_vote(
+        poll_id=poll_id,
+        option_id=payload.option_id,
+        user_id=str(current_user.id),
+    )
+
+
+@router.patch("/polls/{poll_id}/close")
+def close_workspace_poll_endpoint(
+    poll_id: str,
+    current_user=Depends(get_current_user),
+):
+    return close_workspace_poll(
+        poll_id=poll_id,
+        user_id=str(current_user.id),
+    )
+
+
+@router.patch("/polls/{poll_id}/pin")
+def set_workspace_poll_pin_endpoint(
+    poll_id: str,
+    payload: PinPollRequest,
+    current_user=Depends(get_current_user),
+):
+    return set_workspace_poll_pin(
+        poll_id=poll_id,
+        user_id=str(current_user.id),
+        is_pinned=payload.is_pinned,
     )

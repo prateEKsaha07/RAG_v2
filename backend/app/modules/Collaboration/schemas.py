@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 from uuid import UUID
 from pydantic import BaseModel
+
 
 
 class WorkspaceCreate(BaseModel):
@@ -22,3 +23,44 @@ class WorkspaceMemberResponse(BaseModel):
 
 class WorkspaceRoleUpdate(BaseModel):
     role: Literal["admin", "member"]
+
+class WorkspaceNoteShare(BaseModel):
+    note_id: UUID
+
+class WorkspaceMessageCreate(BaseModel):
+    content: str = Field(min_length=1, max_length=4000)
+
+class WorkspaceMessageResponse(BaseModel):
+    id: UUID
+    workspace_id: UUID
+    sender_id: UUID
+    content: str
+    created_at: datetime
+
+class WorkspaceUpdateResponse(BaseModel):
+    updates: list[dict] = Field(default_factory=list)
+    has_more: bool = False
+
+class CreatePollRequest(BaseModel):
+    question: str = Field(..., min_length=1, max_length=300)
+    options: list[str] = Field(..., min_length=2, max_length=10)
+    description: Optional[str] = None
+    resource_id: Optional[str] = None
+    expires_at: Optional[datetime] = None
+
+class CastPollVoteRequest(BaseModel):
+    option_id: str
+
+class PinPollRequest(BaseModel):
+    is_pinned: bool
+
+class PollResponse(BaseModel):
+    success: bool
+    message: Optional[str] = None
+    data: Optional[dict] = None
+
+class PollListResponse(BaseModel):
+    polls: list[dict]
+
+class PollDetailsResponse(BaseModel):
+    poll: dict
