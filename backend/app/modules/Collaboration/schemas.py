@@ -4,8 +4,6 @@ from typing import Literal, Optional
 from uuid import UUID
 from pydantic import BaseModel
 
-
-
 class WorkspaceCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     description: str = Field(default="", max_length=2000)
@@ -64,3 +62,27 @@ class PollListResponse(BaseModel):
 
 class PollDetailsResponse(BaseModel):
     poll: dict
+
+class CreateWorkspaceTaskRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=150)
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+
+
+class WorkspaceTaskListResponse(BaseModel):
+    tasks: list[dict]
+    total: int
+
+class UpdateWorkspaceTaskRequest(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=150)
+    description: Optional[str] = None
+    status: Optional[str] = None
+    blocker_reason: Optional[str] = None
+    due_date: Optional[datetime] = None
+
+class CreateTaskCommentRequest(BaseModel):
+    content: str = Field(..., min_length=1, max_length=2000)
+
+class TaskCommentsResponse(BaseModel):
+    comments: list[dict]
+    total: int

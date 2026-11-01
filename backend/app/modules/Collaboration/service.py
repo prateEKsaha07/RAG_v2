@@ -812,3 +812,141 @@ def set_workspace_poll_pin(
 
     except Exception as exc:
         _rpc_error(exc)
+
+def create_workspace_task(workspace_id: str, user_id: str, payload):
+    try:
+        response = supabase.rpc(
+            "create_workspace_task",
+            {
+                "p_workspace_id": workspace_id,
+                "p_user_id": user_id,
+                "p_title": payload.title,
+                "p_description": payload.description,
+                "p_due_date": (
+                    payload.due_date.isoformat()
+                    if payload.due_date else None
+                ),
+            },
+        ).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Task creation returned no data."
+            )
+
+        return response.data
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        _rpc_error(exc)
+
+
+def list_workspace_tasks(workspace_id: str, user_id: str):
+    try:
+        response = supabase.rpc(
+            "get_workspace_tasks",
+            {
+                "p_workspace_id": workspace_id,
+                "p_user_id": user_id,
+            },
+        ).execute()
+
+        return response.data or {"tasks": [], "total": 0}
+
+    except Exception as exc:
+        _rpc_error(exc)
+
+def update_workspace_task(
+    task_id: str,
+    user_id: str,
+    payload
+):
+    try:
+        response = supabase.rpc(
+            "update_workspace_task",
+            {
+                "p_task_id": task_id,
+                "p_user_id": user_id,
+                "p_title": payload.title,
+                "p_description": payload.description,
+                "p_status": payload.status,
+                "p_blocker_reason": payload.blocker_reason,
+                "p_due_date": (
+                    payload.due_date.isoformat()
+                    if payload.due_date else None
+                ),
+            },
+        ).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Task update returned no data."
+            )
+
+        return response.data
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        _rpc_error(exc)
+
+def add_workspace_task_comment(
+    task_id: str,
+    user_id: str,
+    content: str
+):
+    try:
+        response = supabase.rpc(
+            "add_workspace_task_comment",
+            {
+                "p_task_id": task_id,
+                "p_user_id": user_id,
+                "p_content": content,
+            },
+        ).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Comment creation returned no data."
+            )
+
+        return response.data
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        _rpc_error(exc)
+
+def list_workspace_task_comments(task_id: str, user_id: str):
+    try:
+        response = supabase.rpc(
+            "get_workspace_task_comments",
+            {
+                "p_task_id": task_id,
+                "p_user_id": user_id,
+            },
+        ).execute()
+
+        return response.data or {"comments": [], "total": 0}
+
+    except Exception as exc:
+        _rpc_error(exc)
+
+def delete_workspace_task(task_id: str, user_id: str):
+    try:
+        response = supabase.rpc(
+            "delete_workspace_task",
+            {
+                "p_task_id": task_id,
+                "p_user_id": user_id,
+            },
+        ).execute()
+
+        return response.data
+
+    except Exception as exc:
+        _rpc_error(exc)

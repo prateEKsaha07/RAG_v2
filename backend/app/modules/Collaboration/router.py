@@ -12,10 +12,15 @@ from app.modules.Collaboration.schemas import (
     WorkspaceUpdateResponse,
     CreatePollRequest,
     CastPollVoteRequest,
-    PinPollRequest
+    PinPollRequest,
+    CreateWorkspaceTaskRequest,
+    UpdateWorkspaceTaskRequest,
+    CreateTaskCommentRequest
 )
 from app.modules.Collaboration.service import (
     create_workspace,
+    delete_workspace_task,
+    list_workspace_task_comments,
     list_workspaces,
     create_invitation,
     list_invitations,
@@ -35,6 +40,10 @@ from app.modules.Collaboration.service import (
     cast_workspace_poll_vote,
     close_workspace_poll,
     set_workspace_poll_pin,
+    create_workspace_task,
+    list_workspace_tasks,
+    update_workspace_task,
+    add_workspace_task_comment
 ) 
 
 router = APIRouter(
@@ -309,4 +318,74 @@ def set_workspace_poll_pin_endpoint(
         poll_id=poll_id,
         user_id=str(current_user.id),
         is_pinned=payload.is_pinned,
+    )
+
+@router.post(
+    "/workspaces/{workspace_id}/tasks",
+    status_code=status.HTTP_201_CREATED
+)
+def create_workspace_task_endpoint(
+    workspace_id: str,
+    payload: CreateWorkspaceTaskRequest,
+    current_user=Depends(get_current_user),
+):
+    return create_workspace_task(
+        workspace_id=workspace_id,
+        user_id=str(current_user.id),
+        payload=payload,
+    )
+
+
+@router.get("/workspaces/{workspace_id}/tasks")
+def list_workspace_tasks_endpoint(
+    workspace_id: str,
+    current_user=Depends(get_current_user),
+):
+    return list_workspace_tasks(
+        workspace_id=workspace_id,
+        user_id=str(current_user.id),
+    )
+
+@router.patch("/tasks/{task_id}")
+def update_workspace_task_endpoint(
+    task_id: str,
+    payload: UpdateWorkspaceTaskRequest,
+    current_user=Depends(get_current_user),
+):
+    return update_workspace_task(
+        task_id=task_id,
+        user_id=str(current_user.id),
+        payload=payload,
+    )
+
+@router.post("/tasks/{task_id}/comments", status_code=status.HTTP_201_CREATED)
+def add_workspace_task_comment_endpoint(
+    task_id: str,
+    payload: CreateTaskCommentRequest,
+    current_user=Depends(get_current_user),
+):
+    return add_workspace_task_comment(
+        task_id=task_id,
+        user_id=str(current_user.id),
+        content=payload.content,
+    )
+
+@router.get("/tasks/{task_id}/comments")
+def list_workspace_task_comments_endpoint(
+    task_id: str,
+    current_user=Depends(get_current_user),
+):
+    return list_workspace_task_comments(
+        task_id=task_id,
+        user_id=str(current_user.id),
+    )
+
+@router.delete("/tasks/{task_id}")
+def delete_workspace_task_endpoint(
+    task_id: str,
+    current_user=Depends(get_current_user),
+):
+    return delete_workspace_task(
+        task_id=task_id,
+        user_id=str(current_user.id),
     )
