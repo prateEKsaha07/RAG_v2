@@ -276,3 +276,107 @@ The following items remain outside the completed backend scope:
 The backend now supports workspace management, invitations, membership and roles, group messaging, resource sharing, notes sharing, activity tracking, update retrieval, and polls with voting.
 
 The next major development stage is frontend integration, after completing the remaining backend verification and cleanup.
+
+## 11/2/26
+# Overview
+Completed the core Collaboration Backend V1, introducing workspace-based collaboration features for students, including shared resources, messaging, polls, tasks, activity tracking, and invitations.
+
+## 1. Workspace Management
+- Implemented workspace creation and listing.
+- Added workspace membership management.
+- Implemented invitation-based workspace joining.
+- Added member role management and removal.
+- Added invitation acceptance and rejection workflows.
+- Enforced authenticated user identity across workspace operations.
+
+## 2. Shared Resources
+- Implemented workspace resource management.
+- Added resource listing and access controls.
+- Restricted resource access to workspace members.
+- Resource creation testing remains pending.
+
+## 3. Workspace Messaging
+- Implemented workspace message creation and retrieval.
+- Added sender attribution and timestamps.
+- Enforced workspace membership checks for reading and sending messages.
+- Prevented non-members from accessing workspace message history.
+
+## 4. Polls and Voting
+- Implemented poll creation and retrieval.
+- Added poll options and voting functionality.
+- Supported vote updates and result calculations.
+- Added poll closing and pinning functionality.
+- Added poll expiration handling.
+- Enforced workspace membership checks for poll access and voting.
+
+## 5. Workspace Tasks
+- Implemented task creation, retrieval, updating, and deletion.
+- Added task statuses:
+  - Todo
+  - In Progress
+  - On Hold
+  - Completed
+- Added blocker reasons for On Hold tasks.
+- Implemented task comments.
+- Restricted task modifications and deletion to task owners.
+- Allowed workspace members to view and comment on shared tasks.
+
+## 6. Activity Feed
+- Implemented workspace activity tracking.
+- Added activity events for:
+  - Member joining
+  - Messages sent
+  - Resource and invitation activities
+  - Task creation, updates, deletion, and comments
+- Added actor attribution through transaction-local PostgreSQL configuration.
+- Implemented paginated activity retrieval.
+- Added workspace membership validation.
+
+## 7. Security and Authorization
+- Enforced authenticated user IDs through FastAPI dependencies.
+- Added workspace membership validation to protected RPC operations.
+- Restricted task modifications to task owners.
+- Restricted invitation responses to the intended recipient.
+- Added cross-workspace access protection for tasks, polls, messages, and activity feeds.
+- Kept service-role database operations protected by explicit SQL permission checks.
+
+## 8. Error Handling Improvements
+- Improved centralized `_rpc_error()` handling.
+- Added HTTP error mappings:
+  - 400 — Validation errors
+  - 403 — Authorization errors
+  - 404 — Not found errors
+  - 409 — Conflict errors
+  - 500 — Unexpected server errors
+- Added handling for workspace membership errors.
+- Added handling for already-accepted or rejected invitations.
+- Improved Supabase RPC error message extraction to avoid exposing raw error objects.
+
+## 9. Regression Testing
+
+Verified through Postman and Supabase SQL Editor:
+
+- Task ownership and modification restrictions.
+- Cross-workspace task isolation.
+- Poll listing and detail access restrictions.
+- Cross-workspace voting restrictions.
+- Authorized poll voting.
+- Workspace message access and creation.
+- Non-member message restrictions.
+- Workspace resource access restrictions.
+- Activity feed membership validation.
+- Activity event creation and actor attribution.
+- Activity pagination.
+- Invitation listing and response authorization.
+- Already-accepted invitation conflict handling.
+
+## 10. Pending Work
+- Complete workspace resource creation testing.
+- Complete remaining member role and permission regression tests.
+- Integrate Collaboration APIs with the React frontend.
+- Build collaboration UI for workspaces, messages, polls, tasks, resources, and activity feeds.
+- Perform end-to-end testing after frontend integration.
+
+---
+
+**Current Status:** Collaboration Backend V1 core implementation completed. Initial regression and security testing completed for major modules. Remaining edge cases and frontend integration are pending.

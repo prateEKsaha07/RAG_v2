@@ -1,31 +1,47 @@
 from fastapi import HTTPException
+import re
 
+from pymupdf import message
 from app.core.supabase_client import supabase
 from app.modules.Collaboration.schemas import (
     WorkspaceCreate,
     WorkspaceInvite,
 )
 
+
 def _rpc_error(exc: Exception):
     message = str(exc)
+    match = re.search(r"'message':\s*'([^']+)'", message)
+    if match:
+        message = match.group(1)
     lowered = message.lower()
 
     # Authorization errors
-    if "not authorized" in lowered:
+    if any(term in lowered for term in (
+        "not authorized",
+        "not the task owner",
+        "only the task owner",
+        "permission denied",
+        "not a member of this workspace",
+    )):
         raise HTTPException(
             status_code=403,
             detail="You are not allowed to perform this action."
         )
 
     # Not found errors
-    if "not found" in lowered:
+    if any(term in lowered for term in (
+        "not found",
+        "no registered user found",
+    )):
         raise HTTPException(
             status_code=404,
             detail=message
         )
 
-    # Poll validation errors
+    # Validation errors
     if any(term in lowered for term in (
+        "invalid invitation action",
         "poll is closed",
         "poll has expired",
         "no longer accepts votes",
@@ -34,6 +50,10 @@ def _rpc_error(exc: Exception):
         "question must",
         "options must",
         "poll expiration",
+        "title must",
+        "invalid task status",
+        "blocker reason",
+        "content must",
     )):
         raise HTTPException(
             status_code=400,
@@ -46,16 +66,10 @@ def _rpc_error(exc: Exception):
         "already a workspace member",
         "cannot invite yourself",
         "pending invitation already exists",
+        "invitation is no longer pending",
     )):
         raise HTTPException(
             status_code=409,
-            detail=message
-        )
-
-    # Missing registered user
-    if "no registered user found" in lowered:
-        raise HTTPException(
-            status_code=404,
             detail=message
         )
 
@@ -63,6 +77,7 @@ def _rpc_error(exc: Exception):
         status_code=500,
         detail="Collaboration operation failed."
     )
+
 
 
 def create_workspace(payload: WorkspaceCreate, user_id: str):
@@ -635,6 +650,7 @@ def get_workspace_messages(
         )
 
 
+
 def get_workspace_updates(
     workspace_id: str,
     user_id: str,
@@ -655,10 +671,7 @@ def get_workspace_updates(
         return response.data
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to fetch workspace updates: {str(e)}"
-        )
+        _rpc_error(e)
 
 def create_workspace_poll(
     workspace_id: str,
