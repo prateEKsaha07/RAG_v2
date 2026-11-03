@@ -66,65 +66,55 @@ export const revokeWorkspaceResource = (workspaceId, resourceId) =>
 
 // WORKSPACE MESSAGES
 
-export const getWorkspaceMessages = (workspaceId, params = {}) =>
-  apiClient.get(
-    `/collaboration/workspaces/${workspaceId}/messages`,
-    { params }
-  );
+export const getWorkspaceMessages = (workspaceId, limit = 50, before = null) =>
+  apiClient.get(`/collaboration/workspaces/${workspaceId}/messages`, {
+    params: { limit, before },
+  });
 
 export const sendWorkspaceMessage = (workspaceId, content) =>
-  apiClient.post(
-    `/collaboration/workspaces/${workspaceId}/messages`,
-    { content }
-  );
+  apiClient.post(`/collaboration/workspaces/${workspaceId}/messages`, {
+    content,
+  });
 
 
 // WORKSPACE ACTIVITY
 
-export const getWorkspaceUpdates = (workspaceId, params = {}) =>
-  apiClient.get(
-    `/collaboration/workspaces/${workspaceId}/updates`,
-    { params }
-  );
+export const getWorkspaceUpdates = (workspaceId, limit = 50, after = null) =>
+  apiClient.get(`/collaboration/workspaces/${workspaceId}/updates`, {
+    params: { limit, after },
+  });
 
-
+  
 // POLLS
+
+export const createWorkspacePoll = (workspaceId, pollData) =>
+  apiClient.post(`/collaboration/workspaces/${workspaceId}/polls`, pollData);
 
 export const getWorkspacePolls = (workspaceId) =>
   apiClient.get(`/collaboration/workspaces/${workspaceId}/polls`);
 
-export const getPollDetails = (pollId) =>
+export const getWorkspacePollDetails = (pollId) =>
   apiClient.get(`/collaboration/polls/${pollId}`);
 
-export const createWorkspacePoll = (workspaceId, pollData) =>
-  apiClient.post(
-    `/collaboration/workspaces/${workspaceId}/polls`,
-    pollData
-  );
+export const castWorkspacePollVote = (pollId, optionId) =>
+  apiClient.post(`/collaboration/polls/${pollId}/vote`, {
+    option_id: optionId,
+  });
 
-export const voteOnPoll = (pollId, optionId) =>
-  apiClient.post(
-    `/collaboration/polls/${pollId}/vote`,
-    { option_id: optionId }
-  );
-
-export const closePoll = (pollId) =>
+export const closeWorkspacePoll = (pollId) =>
   apiClient.patch(`/collaboration/polls/${pollId}/close`);
 
-export const setPollPin = (pollId, isPinned) =>
-  apiClient.patch(
-    `/collaboration/polls/${pollId}/pin`,
-    { is_pinned: isPinned }
-  );
+export const setWorkspacePollPin = (pollId, isPinned) =>
+  apiClient.patch(`/collaboration/polls/${pollId}/pin`, {
+    is_pinned: isPinned,
+  });
+
 // TASKS
+export const createWorkspaceTask = (workspaceId, taskData) =>
+  apiClient.post(`/collaboration/workspaces/${workspaceId}/tasks`, taskData);
+
 export const getWorkspaceTasks = (workspaceId) =>
   apiClient.get(`/collaboration/workspaces/${workspaceId}/tasks`);
-
-export const createWorkspaceTask = (workspaceId, taskData) =>
-  apiClient.post(
-    `/collaboration/workspaces/${workspaceId}/tasks`,
-    taskData
-  );
 
 export const updateWorkspaceTask = (taskId, taskData) =>
   apiClient.patch(`/collaboration/tasks/${taskId}`, taskData);
@@ -132,15 +122,11 @@ export const updateWorkspaceTask = (taskId, taskData) =>
 export const deleteWorkspaceTask = (taskId) =>
   apiClient.delete(`/collaboration/tasks/${taskId}`);
 
-// TASK COMMENTS
-export const getTaskComments = (taskId) =>
-  apiClient.get(`/collaboration/tasks/${taskId}/comments`);
+export const addWorkspaceTaskComment = (taskId, content) =>
+  apiClient.post(`/collaboration/tasks/${taskId}/comments`, { content });
 
-export const addTaskComment = (taskId, content) =>
-  apiClient.post(
-    `/collaboration/tasks/${taskId}/comments`,
-    { content }
-  );
+export const getWorkspaceTaskComments = (taskId) =>
+  apiClient.get(`/collaboration/tasks/${taskId}/comments`);
 
 export const getMyNotes = () => apiClient.get("/notes");
 

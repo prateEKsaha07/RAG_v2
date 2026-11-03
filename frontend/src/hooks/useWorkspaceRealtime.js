@@ -1,36 +1,34 @@
 import { useEffect } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../supabaseClient";
 
-export default function useWorkspaceRealtime(
-    workspaceId,
-    onMessage
-) {
-    useEffect(() => {
-        if (!workspaceId || !onMessage) return;
+export default function useWorkspaceRealtime(workspaceId, onMessage) {
+  useEffect(() => {
+    if (!workspaceId || !onMessage) return;
 
-        const channel = supabase
-            .channel(`workspace-messages-${workspaceId}`)
-            .on(
-                "postgres_changes",
-                {
-                    event: "INSERT",
-                    schema: "public",
-                    table: "workspace_messages",
-                    filter: `workspace_id=eq.${workspaceId}`,
-                },
-                (payload) => {
-                    onMessage(payload.new);
-                }
-            )
-            .subscribe((status) => {
-                console.log(
-                    "Workspace Realtime status:",
-                    status
-                );
-            });
+    console.log("Setting up Realtime for:", workspaceId);
 
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [workspaceId, onMessage]);
+    const channel = supabase
+      .channel(`workspace-messages-${workspaceId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "workspace_messages",
+          filter: `workspace_id=eq.${workspaceId}`,
+        },
+        (payload) => {
+          console.log("REALTIME MESSAGE RECEIVED:", payload.new);
+          onMessage(payload.new);
+        }
+      )
+      .subscribe((status, err) => {
+        console.log("Realtime status:", status, err || "");
+      });
+
+    return () => {
+      console.log("Removing Realtime channel");
+      supabase.removeChannel(channel);
+    };
+  }, [workspaceId, onMessage]);
 }

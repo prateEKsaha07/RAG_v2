@@ -649,7 +649,6 @@ def get_workspace_messages(
         )
 
 
-
 def get_workspace_updates(
     workspace_id: str,
     user_id: str,
@@ -671,6 +670,7 @@ def get_workspace_updates(
 
     except Exception as e:
         _rpc_error(e)
+
 
 def create_workspace_poll(
     workspace_id: str,
@@ -708,7 +708,6 @@ def create_workspace_poll(
     except Exception as exc:
         _rpc_error(exc)
 
-
 def list_workspace_polls(
     workspace_id: str,
     user_id: str
@@ -726,7 +725,6 @@ def list_workspace_polls(
 
     except Exception as exc:
         _rpc_error(exc)
-
 
 def get_workspace_poll_details(
     poll_id: str,
@@ -754,7 +752,6 @@ def get_workspace_poll_details(
 
     except Exception as exc:
         _rpc_error(exc)
-
 
 def cast_workspace_poll_vote(
     poll_id: str,
@@ -785,7 +782,6 @@ def cast_workspace_poll_vote(
     except Exception as exc:
         _rpc_error(exc)
 
-
 def close_workspace_poll(
     poll_id: str,
     user_id: str
@@ -803,7 +799,6 @@ def close_workspace_poll(
 
     except Exception as exc:
         _rpc_error(exc)
-
 
 def set_workspace_poll_pin(
     poll_id: str,
@@ -824,6 +819,7 @@ def set_workspace_poll_pin(
 
     except Exception as exc:
         _rpc_error(exc)
+
 
 def create_workspace_task(workspace_id: str, user_id: str, payload):
     try:
@@ -853,7 +849,6 @@ def create_workspace_task(workspace_id: str, user_id: str, payload):
         raise
     except Exception as exc:
         _rpc_error(exc)
-
 
 def list_workspace_tasks(workspace_id: str, user_id: str):
     try:
