@@ -20,6 +20,36 @@ import ProfileScreen from "./components/profiles/ProfileScreen"
 import ModuleNav from "./components/common/ModuleNav"
 import { getMyProfile } from "./api/profiles";
 import UpdateScreen from "./components/profiles/UpdateScreen"
+import CollaborationHub from "./components/collaboration/pages/CollaborationHub"
+import WorkspaceOverview from "./components/collaboration/pages/WorkspaceOverview"
+
+// --- Minimal error boundary: shows the real error instead of a blank page ---
+import { Component } from "react"
+class Boundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { error: null }
+  }
+  static getDerivedStateFromError(error) {
+    return { error }
+  }
+  componentDidCatch(error, info) {
+    console.error("CollaborationHub crashed:", error, info)
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 24, color: "#5c1a1a", fontFamily: "monospace" }}>
+          <h3>Collaboration page failed to render</h3>
+          <pre style={{ whiteSpace: "pre-wrap" }}>
+            {String(this.state.error?.message || this.state.error)}
+          </pre>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 function App() {
   const [user, setUser] = useState(null)
@@ -31,6 +61,8 @@ function App() {
   const [editingNote, setEditingNote] = useState(null)
   const [roadmapSubject, setRoadmapSubject] = useState("")
   const [selectedBook, setSelectedBook] = useState(null);
+  const [selectedWorkspace, setSelectedWorkspace] = useState(null);
+  const [workspaceSection, setWorkspaceSection] = useState("overview");
 
   // profile state — owned here, populated from the separate data file
   const [profile, setProfile] = useState(null)
@@ -99,6 +131,9 @@ function App() {
     setScreen("dashboard")
   }
 
+  // DEBUG: log every render so we can see if screen ever becomes "collaboration"
+  console.log("RENDER App | screen =", screen, "| user =", user?.id ?? null)
+
   return (
     <div>
       {screen === "landing" && (
@@ -155,8 +190,73 @@ function App() {
           onAnalyticsV2={() => setScreen("analytics-v2")}
           onLogout={handleLogout}
           onProfile={() => setScreen("profile")}
+          onCollaboration={() => { console.log("COLLAB CLICKED"); setScreen("collaboration") }}
         />
       )}
+
+      {screen === "collaboration" && (
+        <>
+          <ModuleNav
+            active="collaboration"
+            onDashboard={() => setScreen("dashboard")}
+            onStudy={() => setScreen("study")}
+            onUpload={() => setScreen("upload")}
+            onNotes={() => setScreen("notes")}
+            onRoadmap={() => setScreen("goal-setup")}
+            onAnalyticsV2={() => setScreen("analytics-v2")}
+            onLogout={handleLogout}
+            onProfile={() => setScreen("profile")}
+            onCollaboration={() => setScreen("collaboration")}
+            user={user}
+            profile={profile}
+          />
+          <Boundary>
+            <CollaborationHub
+        user={user}
+        onBack={() => setScreen("dashboard")}
+        onOpenWorkspace={(workspace) => {
+          setSelectedWorkspace(workspace);
+          setWorkspaceSection("overview");
+          setScreen("workspace");
+        }}
+      />
+          </Boundary>
+        </>
+      )}
+
+      {screen === "workspace" && selectedWorkspace && (
+  <>
+    <ModuleNav
+      active="collaboration"
+      onDashboard={() => setScreen("dashboard")}
+      onStudy={() => setScreen("study")}
+      onUpload={() => setScreen("upload")}
+      onNotes={() => setScreen("notes")}
+      onRoadmap={() => setScreen("goal-setup")}
+      onAnalyticsV2={() => setScreen("analytics-v2")}
+      onLogout={handleLogout}
+      onProfile={() => setScreen("profile")}
+      onCollaboration={() => setScreen("collaboration")}
+      user={user}
+      profile={profile}
+    />
+
+    <Boundary>
+      <WorkspaceOverview
+  workspace={selectedWorkspace}
+  activeSection={workspaceSection}
+  onNavigate={(section) => {
+    if (section === "hub") {
+      setScreen("collaboration");
+      return;
+    }
+
+    setWorkspaceSection(section);
+  }}
+/>
+    </Boundary>
+  </>
+)}
 
       {screen === "quiz" && (
         <QuizScreen
@@ -177,6 +277,7 @@ function App() {
             onAnalyticsV2={() => setScreen("analytics-v2")}
             onLogout={handleLogout}
             onProfile={() => {}}
+            onCollaboration={() => setScreen("collaboration")}
             user={user}
             profile={profile}
           />
@@ -190,28 +291,28 @@ function App() {
       )}
 
       {screen === "update-profile" && (
-  <>
-    <ModuleNav
-      active="profile"
-      onDashboard={() => setScreen("dashboard")}
-      onStudy={() => setScreen("study")}
-      onUpload={() => setScreen("upload")}
-      onNotes={() => setScreen("notes")}
-      onRoadmap={() => setScreen("goal-setup")}
-      onAnalyticsV2={() => setScreen("analytics-v2")}
-      onLogout={handleLogout}
-      onProfile={() => setScreen("profile")}
-      user={user}
-      profile={profile}
-    />
-    <UpdateScreen
-      profile={profile}
-      setProfile={setProfile}
-      onBack={() => setScreen("profile")}
-    />
-  </>
-)}
-
+        <>
+          <ModuleNav
+            active="profile"
+            onDashboard={() => setScreen("dashboard")}
+            onStudy={() => setScreen("study")}
+            onUpload={() => setScreen("upload")}
+            onNotes={() => setScreen("notes")}
+            onRoadmap={() => setScreen("goal-setup")}
+            onAnalyticsV2={() => setScreen("analytics-v2")}
+            onLogout={handleLogout}
+            onProfile={() => setScreen("profile")}
+            onCollaboration={() => setScreen("collaboration")}
+            user={user}
+            profile={profile}
+          />
+          <UpdateScreen
+            profile={profile}
+            setProfile={setProfile}
+            onBack={() => setScreen("profile")}
+          />
+        </>
+      )}
 
       {screen === "results" && (
         <ResultScreen

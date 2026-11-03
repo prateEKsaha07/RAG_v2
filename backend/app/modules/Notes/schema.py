@@ -28,3 +28,4 @@ class UpdateNoteRequest(BaseModel):
     content: str
     tags: List[str]
     urls: List[Any] = []
+

@@ -86,3 +86,10 @@ class CreateTaskCommentRequest(BaseModel):
 class TaskCommentsResponse(BaseModel):
     comments: list[dict]
     total: int
+
+class SharedNoteResponse(BaseModel):
+    id: UUID
+    title: str
+    subject: Optional[str] = None
+    content: str
+    filename: str

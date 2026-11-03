@@ -17,7 +17,8 @@ function Dashboard({
   onAnalyticsV2,
   onStudy,
   onProfile,
-  profile
+  profile,
+  onCollaboration
 }) {
   const [isBlocked, setIsBlocked] = useState(!subject);
 
@@ -45,6 +46,7 @@ function Dashboard({
   onProfile={onProfile}
   user={user}
   profile={profile}
+  onCollaboration={onCollaboration}
 />
 
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-10 space-y-8 relative">

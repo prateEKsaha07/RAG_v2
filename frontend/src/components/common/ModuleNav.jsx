@@ -40,9 +40,10 @@ function ModuleNav({
   onRoadmap,
   onAnalyticsV2,
   onLogout,
-  onProfile,       // ← optional: navigate to ProfileScreen
+  onProfile,      
   user,
-  profile,         // ← optional: profile row (preferred over `user`)
+  profile,
+  onCollaboration
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -61,6 +62,7 @@ function ModuleNav({
     { id: "notes", label: "Notes", action: onNotes },
     { id: "roadmap", label: "Roadmap", action: onRoadmap },
     { id: "analytics-v2", label: "Analytics", action: onAnalyticsV2 },
+    { id: "collaboration", label: "Collaboration", action: onCollaboration },
   ];
 
   // Prefer profile, fall back to user (auth user / legacy shape)

@@ -20,6 +20,7 @@ from app.modules.Collaboration.schemas import (
 from app.modules.Collaboration.service import (
     create_workspace,
     delete_workspace_task,
+    get_shared_note,
     list_workspace_task_comments,
     list_workspaces,
     create_invitation,
@@ -196,6 +197,20 @@ def revoke_workspace_resource_endpoint(
         workspace_id=workspace_id,
         resource_id=resource_id,
         actor_id=str(current_user.id),
+    )
+
+@router.get(
+    "/workspaces/{workspace_id}/resources/{resource_id}/note"
+)
+def get_shared_note_endpoint(
+    workspace_id: str,
+    resource_id: str,
+    current_user=Depends(get_current_user),
+):
+    return get_shared_note(
+        workspace_id=workspace_id,
+        resource_id=resource_id,
+        user_id=str(current_user.id),
     )
 
 @router.post(

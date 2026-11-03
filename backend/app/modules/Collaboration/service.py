@@ -508,7 +508,6 @@ def list_workspace_resources(workspace_id: str, user_id: str):
             detail="Unable to retrieve workspace resources.",
         )
 
-
 def revoke_workspace_resource(
     workspace_id: str,
     resource_id: str,
@@ -963,3 +962,86 @@ def delete_workspace_task(task_id: str, user_id: str):
 
     except Exception as exc:
         _rpc_error(exc)
+
+def get_shared_note(
+    workspace_id: str,
+    resource_id: str,
+    user_id: str,
+):
+    try:
+        # Verify workspace membership
+        membership = (
+            supabase.table("workspace_members")
+            .select("user_id")
+            .eq("workspace_id", workspace_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        if not membership.data:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not a member of this workspace.",
+            )
+
+        # Verify that the resource is actively shared
+        resource_response = (
+            supabase.table("workspace_resources")
+            .select("*")
+            .eq("id", resource_id)
+            .eq("workspace_id", workspace_id)
+            .eq("resource_type", "note")
+            .is_("revoked_at", "null")
+            .execute()
+        )
+
+        if not resource_response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Shared note not found or no longer available.",
+            )
+
+        resource = resource_response.data[0]
+        note_id = resource["resource_id"]
+
+        # Retrieve the note using its UUID
+        note_response = (
+            supabase.table("notes")
+            .select("*")
+            .eq("id", note_id)
+            .execute()
+        )
+
+        if not note_response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Original note no longer exists.",
+            )
+
+        note = note_response.data[0]
+
+        # Retrieve content from the owner's storage folder
+        filename = note["filename"]
+        owner_id = note["user_id"]
+
+        file_data = supabase.storage.from_("notes").download(
+            f"{owner_id}/{filename}"
+        )
+
+        return {
+            "id": str(note["id"]),
+            "title": note.get("title") or filename,
+            "subject": note.get("subject"),
+            "filename": filename,
+            "content": file_data.decode("utf-8"),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        print(f"Shared note retrieval error: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve shared note.",
+        )
