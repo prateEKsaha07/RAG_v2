@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import AboutContact from "./AboutContact";
 import Footer from "../common/Footer";
@@ -14,7 +14,6 @@ import {
   BarChart3,
   Target,
   TrendingUp,
-  Rocket,
   GraduationCap,
   Upload,
   Award,
@@ -22,9 +21,26 @@ import {
   Info,
 } from "lucide-react";
 
-import {
-  wake_backend
-} from  "../../api/client"
+import { wake_backend } from "../../api/client";
+
+// Centralised status constants — prevents casing bugs
+const WAKE_STATUS = {
+  IDLE: "idle",
+  WAKING: "waking",
+  STARTING: "starting",
+  READY: "ready",
+  ERROR: "error",
+};
+
+// Hoisted outside component so it isn't recreated on every render
+const FEATURES = [
+  { icon: Upload,        title: "Smart Notes Upload",    desc: "Upload markdown notes and turn them into AI searchable knowledge." },
+  { icon: MessageCircle, title: "AI Chat Assistant",     desc: "Ask anything from your notes and get instant answers." },
+  { icon: Brain,         title: "Quiz Generator",        desc: "Auto-generate MCQs from your study topics." },
+  { icon: BarChart3,     title: "Performance Analytics", desc: "Identify weak areas with AI-powered insights." },
+  { icon: Target,        title: "Smart Roadmaps",        desc: "Get personalized study roadmaps for your goals." },
+  { icon: TrendingUp,    title: "Progress Tracking",     desc: "Track your learning with detailed analytics." },
+];
 
 const FullScreenSection = ({
   id,
@@ -99,17 +115,9 @@ function Typewriter({ text = "RAG_V2", speed = 90, delay = 400, reduceMotion = f
 function LandingPage({ onGetStarted, onHome }) {
   const reduceMotion = useReducedMotion();
   const [activeSection, setActiveSection] = useState("home");
-  const [wakeBackend, setWakebackend] = useState("idle");
+  const [wakeBackend, setWakebackend] = useState(WAKE_STATUS.IDLE);
 
-  const features = [
-    { icon: Upload,         title: "Smart Notes Upload",      desc: "Upload markdown notes and turn them into AI searchable knowledge." },
-    { icon: MessageCircle,  title: "AI Chat Assistant",       desc: "Ask anything from your notes and get instant answers." },
-    { icon: Brain,          title: "Quiz Generator",          desc: "Auto-generate MCQs from your study topics." },
-    { icon: BarChart3,      title: "Performance Analytics",   desc: "Identify weak areas with AI-powered insights." },
-    { icon: Target,         title: "Smart Roadmaps",          desc: "Get personalized study roadmaps for your goals." },
-    { icon: TrendingUp,     title: "Progress Tracking",       desc: "Track your learning with detailed analytics." },
-  ];
-
+  // Track active section for side dot navigation
   useEffect(() => {
     const sections = ["home", "features", "about", "contact", "cta"];
     const observers = [];
@@ -130,44 +138,98 @@ function LandingPage({ onGetStarted, onHome }) {
     return () => observers.forEach((o) => o.disconnect());
   }, []);
 
-  const scrollToSection = (id) => {
+  // Poll while backend is "starting" so the UI never gets stuck
+  useEffect(() => {
+    if (wakeBackend !== WAKE_STATUS.STARTING) return;
+
+    let cancelled = false;
+    const intervalId = setInterval(async () => {
+      try {
+        const data = await wake_backend();
+        if (cancelled) return;
+        if (data?.ready) {
+          setWakebackend(WAKE_STATUS.READY);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.log("there was an error while polling backend", err);
+        setWakebackend(WAKE_STATUS.ERROR);
+      }
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, [wakeBackend]);
+
+  const scrollToSection = useCallback((id) => {
     const el = document.getElementById(id);
     if (el) {
       const offset = el.getBoundingClientRect().top + window.pageYOffset - 60;
       window.scrollTo({ top: offset, behavior: "smooth" });
     }
+  }, []);
+
+  const handleWakebackend = async () => {
+    // Guard against double-fire (belt + suspenders; button is disabled too)
+    if (
+      wakeBackend === WAKE_STATUS.WAKING ||
+      wakeBackend === WAKE_STATUS.STARTING ||
+      wakeBackend === WAKE_STATUS.READY
+    ) {
+      return;
+    }
+
+    setWakebackend(WAKE_STATUS.WAKING);
+    try {
+      const data = await wake_backend();
+      if (data?.ready) {
+        setWakebackend(WAKE_STATUS.READY);
+      } else {
+        // Server accepted but isn't ready yet — poll until it is
+        setWakebackend(WAKE_STATUS.STARTING);
+      }
+    } catch (error) {
+      console.log("there was an error", error);
+      setWakebackend(WAKE_STATUS.ERROR);
+    }
   };
 
-  const handleWakebackend = async() => {
-    setWakebackend("Waking")
-    try{
-      const data  = await wake_backend()
-      if (data.ready){
-        setWakebackend("ready")
-      }else{
-        setWakebackend("starting")
-      }
-    }catch(error){
-      console.log("there was a error",error)
-      setWakebackend("error")
+  const isWakeButtonDisabled =
+    wakeBackend === WAKE_STATUS.WAKING ||
+    wakeBackend === WAKE_STATUS.STARTING ||
+    wakeBackend === WAKE_STATUS.READY;
+
+  const wakeButtonLabel = (() => {
+    switch (wakeBackend) {
+      case WAKE_STATUS.WAKING:
+        return "Waking Backend...";
+      case WAKE_STATUS.STARTING:
+        return "Backend Starting...";
+      case WAKE_STATUS.READY:
+        return "Backend Ready";
+      case WAKE_STATUS.ERROR:
+        return "Retry Backend";
+      default:
+        return "Wake Backend";
     }
-  }
+  })();
 
   return (
     <div className="min-h-screen bg-[#f7f3ee] text-[#2a1f14] overflow-x-hidden relative">
-
       {/* NAVBAR */}
-      <Navbar 
-        onHome={onHome} 
-        onGetStarted={onGetStarted} 
+      <Navbar
+        onHome={onHome}
+        onGetStarted={onGetStarted}
         showGetStarted={true}
-        wakeBackend ={wakeBackend} />
+        wakeBackend={wakeBackend}
+      />
       <NoticePopup />
 
       {/* ================= HERO ================= */}
       <FullScreenSection id="home" reduceMotion={reduceMotion}>
         <div className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto">
-
           <motion.div
             initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -205,30 +267,30 @@ function LandingPage({ onGetStarted, onHome }) {
             className="flex flex-wrap justify-center gap-3 mt-10"
           >
             <div className="relative inline-flex items-center gap-2">
-  <button
-    onClick={onGetStarted}
-    disabled={wakeBackend !== "ready"}
-    className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    Start Learning
-    <ArrowRight size={15} strokeWidth={1.8} />
-  </button>
+              <button
+                onClick={onGetStarted}
+                disabled={wakeBackend !== WAKE_STATUS.READY}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Start Learning
+                <ArrowRight size={15} strokeWidth={1.8} />
+              </button>
 
-  {wakeBackend !== "ready" && (
-    <span className="relative inline-flex items-center group">
-      <Info
-        size={17}
-        strokeWidth={1.8}
-        className="text-[#5c1a1a] cursor-help"
-      />
-
-      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-max max-w-48 rounded-lg bg-[#2a1f14] px-3 py-2 text-xs font-medium text-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
-        Wake backend first
-        <span className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#2a1f14]" />
-      </span>
-    </span>
-  )}
-</div>
+              {wakeBackend !== WAKE_STATUS.READY && (
+                <span className="relative inline-flex items-center group">
+                  <Info
+                    size={17}
+                    strokeWidth={1.8}
+                    className="text-[#5c1a1a] cursor-help"
+                    aria-label="Wake the backend before starting"
+                  />
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-max max-w-[12rem] rounded-lg bg-[#2a1f14] px-3 py-2 text-xs font-medium text-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 pointer-events-none">
+                    Wake backend first
+                    <span className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#2a1f14]" />
+                  </span>
+                </span>
+              )}
+            </div>
 
             <button
               onClick={() => scrollToSection("features")}
@@ -238,21 +300,12 @@ function LandingPage({ onGetStarted, onHome }) {
             </button>
 
             <button
-  onClick={handleWakebackend}
-  disabled={
-    wakeBackend === "starting" ||
-    wakeBackend === "waking" ||
-    wakeBackend === "ready"
-  }
-  className="inline-flex items-center gap-2 px-6 py-3 rounded-md border border-[#e8dfd3] bg-white text-[#2a1f14] text-sm font-medium hover:bg-[#faf7f3] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
->
-  {wakeBackend === "starting" && "Backend Starting..."}
-  {wakeBackend === "waking" && "Waking Backend..."}
-  {wakeBackend === "ready" && "Backend Ready"}
-  {wakeBackend === "error" && "Retry Backend"}
-  {wakeBackend === "idle" && "Wake Backend"}
-</button>
-
+              onClick={handleWakebackend}
+              disabled={isWakeButtonDisabled}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-md border border-[#e8dfd3] bg-white text-[#2a1f14] text-sm font-medium hover:bg-[#faf7f3] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {wakeButtonLabel}
+            </button>
           </motion.div>
         </div>
       </FullScreenSection>
@@ -280,7 +333,7 @@ function LandingPage({ onGetStarted, onHome }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((feature, index) => {
+            {FEATURES.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <motion.div

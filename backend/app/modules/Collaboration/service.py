@@ -1,84 +1,102 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, logger
 import re
-
+import logging
 from pymupdf import message
 from app.core.supabase_client import supabase
 from app.modules.Collaboration.schemas import (
     WorkspaceCreate,
     WorkspaceInvite,
 )
-
+logger = logging.getLogger(__name__)
 
 def _rpc_error(exc: Exception):
+    """this will map a supabase rpc exception to a more appropriate HTTPException"""
     message = str(exc)
-    match = re.search(r"'message':\s*'([^']+)'", message)
-    if match:
-        message = match.group(1)
-    lowered = message.lower()
 
-    # Authorization errors
+    extracted = None
+    for attr in ("message", "detail"):
+        value = getattr(exc, attr, None)
+        if hasattr(exc, attr) and value:
+            extracted = value
+            break
+
+    if extracted is None:
+        match = re.search(
+            r"""['"]message['"]\s*[:=]\s*['"](.+?)['"]""", # matches this {'message': 'whatever error'}
+            message,
+            re.S,
+        )
+        extracted = match.group(1) if match else message
+
+    lowered = extracted.lower()
+    logger.warning("RPC error: %s", extracted)
+    
+    # already closed errors -> comes under 400
+    if "already closed" in lowered:
+        raise HTTPException(status_code=400,detail="The resource is already closed.")
+
+    # authorization errors -> comes under 403
     if any(term in lowered for term in (
         "not authorized",
         "not the task owner",
         "only the task owner",
         "permission denied",
+        "not a workspace member", # this one is new add 11/8/2026
         "not a member of this workspace",
+        "only workspace owners and admins", # this one too
     )):
-        raise HTTPException(
-            status_code=403,
-            detail="You are not allowed to perform this action."
-        )
+        raise HTTPException(status_code=403,detail="You are not allowed to perform this action.")
 
-    # Not found errors
+    # shared resource lookup errors -> comes under 400
+    if "shared resource not found" in lowered:
+        raise HTTPException(status_code=400,detail="Shared resource not found or no longer available.")
+
+    # now not found errors -> comes under 404
     if any(term in lowered for term in (
         "not found",
-        "no registered user found",
-    )):
-        raise HTTPException(
-            status_code=404,
-            detail=message
-        )
+        "no registered user found")):
+        raise HTTPException(status_code=404,detail=extracted)
 
-    # Validation errors
+    # validation errors -> comes under 400 added more terms to catch more validation errors
     if any(term in lowered for term in (
         "invalid invitation action",
         "poll is closed",
         "poll has expired",
         "no longer accepts votes",
         "option does not belong to poll",
+        "invalid poll option",                
         "invalid poll options",
+        "a poll must have",               
+        "each option must",                    
         "question must",
         "options must",
+        "expiration must be",                  
         "poll expiration",
         "title must",
         "invalid task status",
         "blocker reason",
         "content must",
+        "email is required",                   
+        "workspace name must",                 
+        "workspace description is too long",   
+        "limit must be between",               
+        "invalid message limit",
     )):
-        raise HTTPException(
-            status_code=400,
-            detail=message
-        )
+        raise HTTPException(status_code=400,detail=extracted)
 
-    # Conflict errors
+    # conflict errors -> comes under 409
     if any(term in lowered for term in (
         "already exists",
-        "already a workspace member",
-        "cannot invite yourself",
-        "pending invitation already exists",
-        "invitation is no longer pending",
+               "already a workspace member",
+               "cannot invite yourself",
+               "pending invitation already exists",
+               "invitation is no longer pending",
+               "already pinned",
     )):
-        raise HTTPException(
-            status_code=409,
-            detail=message
-        )
+        raise HTTPException(status_code=409,detail=extracted)
 
-    raise HTTPException(
-        status_code=500,
-        detail="Collaboration operation failed."
-    )
-
-
+    # fallback to 500 for any other unhandled errors
+    raise HTTPException(status_code=500,detail="Collaboration operation failed.")
 
 def create_workspace(payload: WorkspaceCreate, user_id: str):
     try:
@@ -97,7 +115,6 @@ def create_workspace(payload: WorkspaceCreate, user_id: str):
         raise
     except Exception as exc:
         _rpc_error(exc)
-
 
 def list_workspaces(user_id: str):
     try:
@@ -129,7 +146,6 @@ def list_workspaces(user_id: str):
     except Exception:
         raise HTTPException(status_code=500, detail="Unable to retrieve workspaces.")
 
-
 def create_invitation(
     workspace_id: str,
     payload: WorkspaceInvite,
@@ -147,7 +163,6 @@ def create_invitation(
         return response.data
     except Exception as exc:
         _rpc_error(exc)
-
 
 def list_invitations(user_id: str, user_email: str | None):
     try:
@@ -180,7 +195,6 @@ def list_invitations(user_id: str, user_email: str | None):
     except Exception:
         raise HTTPException(status_code=500, detail="Unable to retrieve invitations.")
 
-
 def respond_to_invitation(
     invitation_id: str,
     user_id: str,
@@ -198,7 +212,6 @@ def respond_to_invitation(
         return response.data
     except Exception as exc:
         _rpc_error(exc)
-
 
 def list_workspace_members(workspace_id: str, user_id: str):
     try:
@@ -263,7 +276,6 @@ def list_workspace_members(workspace_id: str, user_id: str):
             status_code=500,
             detail="Unable to retrieve workspace members.",
         )
-
 
 def update_workspace_member_role(
     workspace_id: str,
@@ -560,9 +572,6 @@ def revoke_workspace_resource(
             detail="Unable to revoke workspace resource.",
         )
 
-
-# message function
-
 def send_workspace_message(
     workspace_id: str,
     sender_id: str,
@@ -648,7 +657,6 @@ def get_workspace_messages(
             detail="Unable to retrieve workspace messages.",
         )
 
-
 def get_workspace_updates(
     workspace_id: str,
     user_id: str,
@@ -670,7 +678,6 @@ def get_workspace_updates(
 
     except Exception as e:
         _rpc_error(e)
-
 
 def create_workspace_poll(
     workspace_id: str,
@@ -819,7 +826,6 @@ def set_workspace_poll_pin(
 
     except Exception as exc:
         _rpc_error(exc)
-
 
 def create_workspace_task(workspace_id: str, user_id: str, payload):
     try:
