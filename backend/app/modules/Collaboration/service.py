@@ -16,7 +16,7 @@ def _rpc_error(exc: Exception):
     extracted = None
     for attr in ("message", "detail"):
         value = getattr(exc, attr, None)
-        if hasattr(exc, attr) and value:
+        if isinstance(value, str) and value:
             extracted = value
             break
 
@@ -32,9 +32,13 @@ def _rpc_error(exc: Exception):
     logger.warning("RPC error: %s", extracted)
     
     # already closed errors -> comes under 400
-    if "already closed" in lowered:
-        raise HTTPException(status_code=400,detail="The resource is already closed.")
+    # if "already closed" in lowered:
+    #     raise HTTPException(status_code=400,detail="The resource is already closed.")
 
+    # workspace membership errors -> comes under 403
+    if "workspace membership not found" in lowered:
+        raise HTTPException(status_code=403, detail="You are not a member of this workspace.")
+    
     # authorization errors -> comes under 403
     if any(term in lowered for term in (
         "not authorized",
@@ -87,13 +91,16 @@ def _rpc_error(exc: Exception):
     # conflict errors -> comes under 409
     if any(term in lowered for term in (
         "already exists",
-               "already a workspace member",
-               "cannot invite yourself",
-               "pending invitation already exists",
-               "invitation is no longer pending",
-               "already pinned",
+        "already a workspace member",
+        "cannot invite yourself",
+        "pending invitation already exists",
+        "invitation is no longer pending",
+        "already pinned",
+        "duplicate key violates",       # Postgres unique violation
+        "violates unique constraint",
+        "already closed",
     )):
-        raise HTTPException(status_code=409,detail=extracted)
+        raise HTTPException(status_code=409,detail="This action conflicts with the current state of the workspace.")
 
     # fallback to 500 for any other unhandled errors
     raise HTTPException(status_code=500,detail="Collaboration operation failed.")
