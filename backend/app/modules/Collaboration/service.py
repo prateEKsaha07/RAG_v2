@@ -1,4 +1,6 @@
 from fastapi import HTTPException, logger
+import uuid
+from typing import BinaryIO
 import re
 import logging
 from pymupdf import message
@@ -8,6 +10,33 @@ from app.modules.Collaboration.schemas import (
     WorkspaceInvite,
 )
 logger = logging.getLogger(__name__)
+
+# Module-level constant 
+ALLOWED_RESOURCE_MIME_TYPES = {
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
+    "text/markdown",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+}
+MAX_RESOURCE_BYTES = 26_214_400  # 25 MB
+
+def _sanitize_filename(name: str) -> str:
+    """Strip path separators and keep only the basename. Defensive against
+    clients that send '../' or backslashes in the multipart filename."""
+    if not name:
+        return "file"
+    name = name.replace("\\", "/").split("/")[-1]
+    name = name.strip().replace("\x00", "")
+    return name or "file"
+
+
+
+
+
+
 
 def _rpc_error(exc: Exception):
     """this will map a supabase rpc exception to a more appropriate HTTPException"""
@@ -408,6 +437,7 @@ def remove_workspace_member(
             detail="Unable to remove workspace member.",
         )
 
+
 def share_workspace_note(
     workspace_id: str,
     note_id: str,
@@ -578,6 +608,233 @@ def revoke_workspace_resource(
             status_code=500,
             detail="Unable to revoke workspace resource.",
         )
+
+
+def share_workspace_file(
+    workspace_id: str,
+    actor_id: str,
+    filename: str,
+    content_type: str | None,
+    file_bytes: bytes,
+) -> dict:
+    """Upload a file to the workspace_resources bucket and register it as a
+    'material' resource. Returns the new workspace_resources row."""
+
+    # --- Validate ---
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    if len(file_bytes) > MAX_RESOURCE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds the {MAX_RESOURCE_BYTES // (1024 * 1024)} MB limit.",
+        )
+
+    if not content_type or content_type not in ALLOWED_RESOURCE_MIME_TYPES:
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported file type: {content_type or 'unknown'}.",
+        )
+
+    safe_name = _sanitize_filename(filename)
+    unique_id = uuid.uuid4().hex
+    storage_path = f"{workspace_id}/{actor_id}/{unique_id}/{safe_name}"
+
+    # --- Membership check ---
+    try:
+        membership = (
+            supabase.table("workspace_members")
+            .select("user_id")
+            .eq("workspace_id", workspace_id)
+            .eq("user_id", actor_id)
+            .limit(1)
+            .execute()
+        )
+    except Exception as exc:
+        logger.exception("Membership lookup failed during file share")
+        raise HTTPException(status_code=500, detail="Unable to verify workspace membership.")
+
+    if not membership.data:
+        raise HTTPException(status_code=403, detail="You are not a member of this workspace.")
+
+    # --- Upload ---
+    try:
+        supabase.storage.from_("workspace_resources").upload(
+            path=storage_path,
+            file=file_bytes,
+            file_options={
+                "content-type": content_type,
+                "upsert": "false",
+            },
+        )
+    except Exception as exc:
+        logger.exception("Storage upload failed for workspace resource")
+        raise HTTPException(status_code=500, detail="File upload failed.")
+
+    # --- Insert row (rollback storage on failure) ---
+    try:
+        insert_response = (
+            supabase.table("workspace_resources")
+            .insert({
+                "workspace_id": workspace_id,
+                "resource_type": "material",
+                "resource_id": storage_path,
+                "resource_owner_id": actor_id,
+                "shared_by": actor_id,
+                "title": safe_name,
+                "metadata": {
+                    "storage_path": storage_path,
+                    "mime_type": content_type,
+                    "file_size_bytes": len(file_bytes),
+                    "original_filename": safe_name,
+                },
+            })
+            .execute()
+        )
+    except Exception as exc:
+        logger.exception("DB insert failed for workspace resource; rolling back storage")
+        try:
+            supabase.storage.from_("workspace_resources").remove([storage_path])
+        except Exception:
+            logger.exception("Rollback of storage object failed")
+        raise HTTPException(status_code=500, detail="Unable to register shared file.")
+
+    if not insert_response.data:
+        try:
+            supabase.storage.from_("workspace_resources").remove([storage_path])
+        except Exception:
+            logger.exception("Rollback of storage object failed")
+        raise HTTPException(status_code=500, detail="Shared file row not created.")
+
+    return insert_response.data[0]
+
+
+def get_shared_resource(
+    workspace_id: str,
+    resource_id: str,
+    user_id: str,
+) -> dict:
+    """Unified getter for a shared resource.
+
+    'note'     -> returns the note content as text (same shape as get_shared_note)
+    'material' -> returns a signed URL + metadata
+    """
+
+    # Membership check
+    try:
+        membership = (
+            supabase.table("workspace_members")
+            .select("user_id")
+            .eq("workspace_id", workspace_id)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+    except Exception:
+        logger.exception("Membership lookup failed during shared-resource fetch")
+        raise HTTPException(status_code=500, detail="Unable to verify workspace membership.")
+
+    if not membership.data:
+        raise HTTPException(status_code=403, detail="You are not a member of this workspace.")
+
+    # Fetch the resource row (active only)
+    try:
+        resource_response = (
+            supabase.table("workspace_resources")
+            .select("*")
+            .eq("id", resource_id)
+            .eq("workspace_id", workspace_id)
+            .is_("revoked_at", "null")
+            .execute()
+        )
+    except Exception:
+        logger.exception("Resource lookup failed")
+        raise HTTPException(status_code=500, detail="Unable to retrieve shared resource.")
+
+    if not resource_response.data:
+        raise HTTPException(status_code=404, detail="Shared resource not found or no longer available.")
+
+    resource = resource_response.data[0]
+    resource_type = resource.get("resource_type")
+
+    # --- Branch: note (legacy behavior preserved) ---
+    if resource_type == "note":
+        note_id = resource["resource_id"]
+
+        try:
+            note_response = (
+                supabase.table("notes")
+                .select("*")
+                .eq("id", note_id)
+                .execute()
+            )
+        except Exception:
+            logger.exception("Note lookup failed")
+            raise HTTPException(status_code=500, detail="Unable to retrieve shared note.")
+
+        if not note_response.data:
+            raise HTTPException(status_code=404, detail="Original note no longer exists.")
+
+        note = note_response.data[0]
+        filename = note["filename"]
+        owner_id = note["user_id"]
+
+        try:
+            file_data = supabase.storage.from_("notes").download(f"{owner_id}/{filename}")
+        except Exception:
+            logger.exception("Note download failed")
+            raise HTTPException(status_code=500, detail="Unable to download shared note.")
+
+        try:
+            content = file_data.decode("utf-8")
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=415, detail="Shared note is not valid UTF-8 text.")
+
+        return {
+            "id": str(note["id"]),
+            "resource_type": "note",
+            "title": note.get("title") or filename,
+            "subject": note.get("subject"),
+            "filename": filename,
+            "content": content,
+        }
+
+    # --- Branch: material (new) ---
+    if resource_type == "material":
+        metadata = resource.get("metadata") or {}
+        storage_path = metadata.get("storage_path")
+
+        if not storage_path:
+            raise HTTPException(status_code=500, detail="Shared file is missing its storage path.")
+
+        try:
+            signed = supabase.storage.from_("workspace_resources").create_signed_url(
+                storage_path,
+                3600,  # 1 hour TTL
+            )
+        except Exception:
+            logger.exception("Signed URL generation failed")
+            raise HTTPException(status_code=500, detail="Unable to generate download link.")
+
+        signed_url = signed.get("signedURL") or signed.get("signedUrl")
+        if not signed_url:
+            raise HTTPException(status_code=500, detail="Signed URL generation returned no URL.")
+
+        return {
+            "id": resource["id"],
+            "resource_type": "material",
+            "title": resource.get("title"),
+            "filename": metadata.get("original_filename"),
+            "mime_type": metadata.get("mime_type"),
+            "file_size_bytes": metadata.get("file_size_bytes"),
+            "url": signed_url,
+            "expires_in": 3600,
+        }
+
+    raise HTTPException(status_code=400, detail=f"Unknown resource type: {resource_type}")
+
+
+
 
 def send_workspace_message(
     workspace_id: str,

@@ -68,7 +68,6 @@ class CreateWorkspaceTaskRequest(BaseModel):
     description: Optional[str] = None
     due_date: Optional[datetime] = None
 
-
 class WorkspaceTaskListResponse(BaseModel):
     tasks: list[dict]
     total: int
@@ -93,3 +92,24 @@ class SharedNoteResponse(BaseModel):
     subject: Optional[str] = None
     content: str
     filename: str
+
+class SharedResourceResponse(BaseModel):
+    id: str
+    resource_type: Literal["note", "material"]
+    title: str
+    filename: str | None = None
+    # note branch
+    subject: str | None = None
+    content: str | None = None
+    # material branch
+    mime_type: str | None = None
+    file_size_bytes: int | None = None
+    url: str | None = None
+    expires_in: int | None = None
+
+
+
+
+
+
+

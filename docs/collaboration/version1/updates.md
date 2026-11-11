@@ -1,8 +1,8 @@
 ## 0. Summary Table
 
-| # | Area | Severity | Effort |
+| # | Area | Severity | Effort | status
 |---:|---|---|---|
-| 1 | `_rpc_error` missing 11 patterns | 🔴 | 30 min |
+| 1 | `_rpc_error` missing 11 patterns | 🔴 | 30 min | done
 | 2 | `update_workspace_member_role` wrong status (404→403) | 🔴 | 5 min |
 | 3 | `get_workspace_updates` pagination direction | 🔴 | Verify + 15 min |
 | 4 | `get_workspace_updates` `has_more` full count | 🟡 | 10 min |

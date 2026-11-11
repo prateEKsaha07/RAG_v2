@@ -1,6 +1,15 @@
-
 import { useEffect, useState } from "react";
-import { getSharedNote } from "../../../api/collaborationApi";
+import ReactMarkdown from "react-markdown";
+import { getSharedResource } from "../../../api/collaborationApi";
+
+// Remove the YAML frontmatter block your create_note() writes at the top,
+// so ReactMarkdown doesn't render it as a horizontal rule + raw text.
+function stripFrontmatter(text) {
+  if (!text || !text.startsWith("---")) return text;
+  const end = text.indexOf("\n---", 3);
+  if (end === -1) return text;
+  return text.slice(end + 4).replace(/^\s+/, "");
+}
 
 export default function SharedNoteViewer({
   workspaceId,
@@ -17,7 +26,9 @@ export default function SharedNoteViewer({
         setLoading(true);
         setError("");
 
-        const data = await getSharedNote(workspaceId, resourceId);
+        // Unified endpoint handles notes and materials; this viewer only
+        // receives notes, but the shape for 'note' is identical to before.
+        const data = await getSharedResource(workspaceId, resourceId);
         setNote(data);
       } catch (err) {
         setError(err.message || "Unable to load shared note.");
@@ -42,9 +53,7 @@ export default function SharedNoteViewer({
 
   return (
     <section className="space-y-4">
-      <button onClick={onClose}>
-        ← Back to Resources
-      </button>
+      <button onClick={onClose}>← Back to Resources</button>
 
       <header>
         <h2 className="text-2xl font-semibold">{note.title}</h2>
@@ -53,8 +62,9 @@ export default function SharedNoteViewer({
         </p>
       </header>
 
-      <article className="border rounded-lg p-5 whitespace-pre-wrap break-words">
-        {note.content}
+      {/* FIXED: render Markdown instead of raw text */}
+      <article className="border rounded-lg p-5 markdown-body">
+        <ReactMarkdown>{stripFrontmatter(note.content || "")}</ReactMarkdown>
       </article>
     </section>
   );

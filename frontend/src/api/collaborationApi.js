@@ -135,3 +135,18 @@ export const getSharedNote = (workspaceId, resourceId) =>
     `/collaboration/workspaces/${workspaceId}/resources/${resourceId}/note`
   );
 
+// NEW: Multi-format resource sharing (materials)
+export const shareWorkspaceFile = (workspaceId, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return apiClient.post(
+    `/collaboration/workspaces/${workspaceId}/resources/files`,
+    formData
+  );
+};
+
+export const getSharedResource = (workspaceId, resourceId) =>
+  apiClient.get(
+    `/collaboration/workspaces/${workspaceId}/resources/${resourceId}`
+  );

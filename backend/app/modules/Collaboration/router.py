@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, UploadFile, File
 from datetime import datetime
 from app.core.auth import get_current_user
 from app.modules.Collaboration.schemas import (
@@ -15,7 +15,8 @@ from app.modules.Collaboration.schemas import (
     PinPollRequest,
     CreateWorkspaceTaskRequest,
     UpdateWorkspaceTaskRequest,
-    CreateTaskCommentRequest
+    CreateTaskCommentRequest,
+    SharedResourceResponse
 )
 from app.modules.Collaboration.service import (
     create_workspace,
@@ -44,7 +45,9 @@ from app.modules.Collaboration.service import (
     create_workspace_task,
     list_workspace_tasks,
     update_workspace_task,
-    add_workspace_task_comment
+    add_workspace_task_comment,
+    share_workspace_file,
+    get_shared_resource,
 ) 
 
 router = APIRouter(
@@ -404,3 +407,38 @@ def delete_workspace_task_endpoint(
         task_id=task_id,
         user_id=str(current_user.id),
     )
+
+@router.post(
+    "/workspaces/{workspace_id}/resources/files",
+    status_code=status.HTTP_201_CREATED,
+)
+async def share_workspace_file_endpoint(
+    workspace_id: str,
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user),
+):
+    content = await file.read()
+    return share_workspace_file(
+        workspace_id=workspace_id,
+        actor_id=str(current_user.id),
+        filename=file.filename or "file",
+        content_type=file.content_type,
+        file_bytes=content,
+    )
+
+
+@router.get(
+    "/workspaces/{workspace_id}/resources/{resource_id}",
+    response_model=SharedResourceResponse,
+)
+def get_shared_resource_endpoint(
+    workspace_id: str,
+    resource_id: str,
+    current_user=Depends(get_current_user),
+):
+    return get_shared_resource(
+        workspace_id=workspace_id,
+        resource_id=resource_id,
+        user_id=str(current_user.id),
+    )
+

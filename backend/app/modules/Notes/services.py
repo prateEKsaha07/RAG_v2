@@ -10,12 +10,10 @@ METADATA_FILE = "notes_metadata.json"
 def get_notes_faiss_path(user_id) -> str:
     return os.path.join("notes_faiss_index", str(user_id))
 
-
 def generate_filename(subject: str) -> str:
     now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     safe_subject = re.sub(r"[^\w\-]+", "-", subject).strip("-")
     return f"{now}_{safe_subject}.md"
-
 
 def load_metadata():
     if not os.path.exists(METADATA_FILE):
@@ -23,11 +21,9 @@ def load_metadata():
     with open(METADATA_FILE, "r") as f:
         return json.load(f)
 
-
 def save_metadata(metadata):
     with open(METADATA_FILE, "w") as f:
         json.dump(metadata, f, indent=2)
-
 
 def load_tags(subject):
     """
@@ -74,8 +70,6 @@ def load_tags(subject):
                     flat.add(entry["topic"])
 
     return sorted(flat)
-
-
 
 # Supabase: create
 def create_note(subject, title, content, tags, urls=None, user_id=None):
@@ -131,7 +125,6 @@ referenced_urls: {', '.join(urls)}
 
     return {"success": True, "filename": filename}
 
-
 # Supabase: read
 def get_all_notes(subject=None, tags=None, user_id=None):
     from app.core.supabase_client import supabase
@@ -155,7 +148,6 @@ def get_all_notes(subject=None, tags=None, user_id=None):
         ]
     return notes
 
-
 def get_note_content(filename, user_id=None):
     from app.core.supabase_client import supabase
 
@@ -175,7 +167,6 @@ def get_note_content(filename, user_id=None):
     except Exception as e:
         print(f"Storage download error: {e}")
         return {"error": "File not found in storage"}
-
 
 # Supabase: update
 def update_note(filename, title, content, tags, urls=None, user_id=None):
@@ -238,8 +229,6 @@ referenced_urls: {', '.join(map(str, urls))}
 
     return {"success": True}
 
-
-
 # Supabase: delete
 def delete_note(filename, user_id=None):
     from app.core.supabase_client import supabase
@@ -261,7 +250,6 @@ def delete_note(filename, user_id=None):
 
     supabase.table("notes").delete().eq("filename", filename).eq("user_id", user_id).execute()
     return {"success": True}
-
 
 # Subjects list
 def get_subjects():
@@ -316,7 +304,6 @@ Return format: ["tag1", "tag2", "tag3"]"""
     except Exception:
         return subject_tags[:3]
 
-
 # URL title fetcher
 def fetch_url_title(url):
     try:
@@ -328,8 +315,6 @@ def fetch_url_title(url):
         return title.strip()
     except Exception:
         return url
-
-
 
 # Notes ingestion (per user) — SYNC now (was async with no awaits)
 def ingest_notes(embeddings, user_id):
