@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -72,7 +73,23 @@ export default function WorkspaceChat({ workspace }) {
   const messageContainerRef = useRef(null);
   const shouldScrollRef = useRef(true);
 
-  // Add messages without duplicates.
+  // FIX 3: store the pre-update scroll metrics here, restore in a layout
+  // effect after React commits the new messages to the DOM.
+  const pendingScrollRestoreRef = useRef(null);
+
+  // FIX 1: merge by id so a transient empty fetch never wipes visible messages.
+  const mergeMessages = useCallback((incoming) => {
+    const fresh = Array.isArray(incoming) ? incoming : [];
+    setMessages((prev) => {
+      const byId = new Map(prev.map((m) => [m.id, m]));
+      fresh.forEach((m) => byId.set(m.id, m));
+      return [...byId.values()].sort(
+        (a, b) => new Date(a.created_at) - new Date(b.created_at)
+      );
+    });
+  }, []);
+
+  // Add a single message without duplicates (used by realtime + send).
   const addMessage = useCallback((newMessage) => {
     setMessages((previous) => {
       const exists = previous.some(
@@ -98,7 +115,11 @@ export default function WorkspaceChat({ workspace }) {
     try {
       const data = await getWorkspaceMessages(workspace.id, 50);
 
-      setMessages(Array.isArray(data) ? data : []);
+      // FIX 1: use merge instead of replace.
+      mergeMessages(data);
+
+      // FIX 2: keep heuristic but note the boundary case — a full page
+      // (50) means "maybe more"; any smaller result means "no more".
       setHasMore(Array.isArray(data) && data.length === 50);
       shouldScrollRef.current = true;
     } catch (err) {
@@ -106,7 +127,7 @@ export default function WorkspaceChat({ workspace }) {
     } finally {
       setLoading(false);
     }
-  }, [workspace.id]);
+  }, [workspace.id, mergeMessages]);
 
   // Get current authenticated user.
   useEffect(() => {
@@ -192,7 +213,19 @@ export default function WorkspaceChat({ workspace }) {
     }
   }, [messages, loading]);
 
-  // Send message and refresh the latest message history.
+  // FIX 3: runs after DOM commit, so scrollHeight reflects the new messages.
+  useLayoutEffect(() => {
+    if (!pendingScrollRestoreRef.current) return;
+    const { oldHeight, oldScrollTop } = pendingScrollRestoreRef.current;
+    pendingScrollRestoreRef.current = null;
+    const container = messageContainerRef.current;
+    if (container) {
+      container.scrollTop =
+        container.scrollHeight - oldHeight + oldScrollTop;
+    }
+  }, [messages]);
+
+  // Send message and append the returned row optimistically.
   const handleSend = async (e) => {
     e.preventDefault();
 
@@ -204,22 +237,25 @@ export default function WorkspaceChat({ workspace }) {
     setError("");
 
     try {
-      await sendWorkspaceMessage(workspace.id, content);
+      const sent = await sendWorkspaceMessage(workspace.id, content);
 
       setMessageText("");
 
-      // Fetch the latest messages after sending.
-      const latestMessages = await getWorkspaceMessages(
-        workspace.id,
-        50
-      );
-
-      setMessages(Array.isArray(latestMessages) ? latestMessages : []);
-      setHasMore(
-        Array.isArray(latestMessages) && latestMessages.length === 50
-      );
-
-      shouldScrollRef.current = true;
+      // FIX 4: use the returned row directly; fall back to a merge-refresh
+      // only if the response shape is unexpected.
+      if (sent?.id) {
+        addMessage(sent);
+      } else {
+        const latestMessages = await getWorkspaceMessages(
+          workspace.id,
+          50
+        );
+        mergeMessages(latestMessages);
+        setHasMore(
+          Array.isArray(latestMessages) && latestMessages.length === 50
+        );
+        shouldScrollRef.current = true;
+      }
     } catch (err) {
       setError(err.message || "Unable to send message.");
     } finally {
@@ -232,8 +268,12 @@ export default function WorkspaceChat({ workspace }) {
     if (!hasMore || loadingOlder || messages.length === 0) return;
 
     const container = messageContainerRef.current;
-    const oldHeight = container?.scrollHeight || 0;
-    const oldScrollTop = container?.scrollTop || 0;
+
+    // FIX 3: record pre-update metrics; restore in the layout effect above.
+    pendingScrollRestoreRef.current = {
+      oldHeight: container?.scrollHeight || 0,
+      oldScrollTop: container?.scrollTop || 0,
+    };
 
     setLoadingOlder(true);
     setError("");
@@ -262,15 +302,10 @@ export default function WorkspaceChat({ workspace }) {
       });
 
       setHasMore(olderMessages.length === 50);
-
-      requestAnimationFrame(() => {
-        if (container) {
-          container.scrollTop =
-            container.scrollHeight - oldHeight + oldScrollTop;
-        }
-      });
     } catch (err) {
       setError(err.message || "Unable to load older messages.");
+      // If the fetch failed, don't try to restore scroll.
+      pendingScrollRestoreRef.current = null;
     } finally {
       setLoadingOlder(false);
     }

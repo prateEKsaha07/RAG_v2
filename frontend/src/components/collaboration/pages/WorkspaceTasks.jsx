@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from "react";
 import {
   createWorkspaceTask,
@@ -8,6 +7,7 @@ import {
   addWorkspaceTaskComment,
   getWorkspaceTaskComments,
 } from "../../../api/collaborationApi";
+import { supabase } from "../../../supabaseClient";
 
 function UserInfo({ name, username, avatarUrl, fallback = "Unknown user" }) {
   const displayName = name || username || fallback;
@@ -41,6 +41,14 @@ function formatDate(date) {
   return new Date(date).toLocaleString();
 }
 
+// Valid statuses match the backend CHECK in update_workspace_task.
+const STATUS_OPTIONS = [
+  { value: "todo", label: "To do" },
+  { value: "in_progress", label: "In progress" },
+  { value: "on_hold", label: "On hold" },
+  { value: "completed", label: "Completed" },
+];
+
 export default function WorkspaceTasks({ workspace }) {
   const [tasks, setTasks] = useState([]);
   const [total, setTotal] = useState(0);
@@ -57,6 +65,17 @@ export default function WorkspaceTasks({ workspace }) {
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
+
+  // NEW: current user id, so we can gate edit/delete to the task owner
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setCurrentUserId(data?.user?.id || null);
+    };
+    loadUser();
+  }, []);
 
   const loadTasks = useCallback(async () => {
     setLoading(true);
@@ -76,6 +95,11 @@ export default function WorkspaceTasks({ workspace }) {
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+
+  // NEW: does the current user own this task?
+  // Matches the backend rule: only `created_by` can update or delete.
+  const isTaskOwner = (task) =>
+    Boolean(currentUserId && task?.created_by === currentUserId);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -236,79 +260,97 @@ export default function WorkspaceTasks({ workspace }) {
           <p>No tasks yet.</p>
         ) : (
           <div className="space-y-3">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                className="border rounded-lg p-4 space-y-3"
-              >
-                <div className="flex justify-between gap-3">
-                  <div className="min-w-0 space-y-2">
-                    <h3 className="font-semibold">{task.title}</h3>
+            {tasks.map((task) => {
+              const owned = isTaskOwner(task);
 
-                    <UserInfo
-                      name={task.creator_name}
-                      username={task.creator_username}
-                      avatarUrl={task.creator_avatar_url}
-                    />
+              return (
+                <div
+                  key={task.id}
+                  className="border rounded-lg p-4 space-y-3"
+                >
+                  <div className="flex justify-between gap-3">
+                    <div className="min-w-0 space-y-2">
+                      <h3 className="font-semibold">{task.title}</h3>
 
-                    {task.created_at && (
-                      <p className="text-xs text-gray-500">
-                        Created {formatDate(task.created_at)}
-                      </p>
-                    )}
+                      <UserInfo
+                        name={task.creator_name}
+                        username={task.creator_username}
+                        avatarUrl={task.creator_avatar_url}
+                      />
 
-                    {task.description && (
-                      <p className="text-sm text-gray-600">
-                        {task.description}
-                      </p>
-                    )}
+                      {task.created_at && (
+                        <p className="text-xs text-gray-500">
+                          Created {formatDate(task.created_at)}
+                        </p>
+                      )}
 
-                    {task.due_date && (
-                      <p className="text-sm text-gray-500">
-                        Due: {formatDate(task.due_date)}
-                      </p>
+                      {task.description && (
+                        <p className="text-sm text-gray-600">
+                          {task.description}
+                        </p>
+                      )}
+
+                      {task.due_date && (
+                        <p className="text-sm text-gray-500">
+                          Due: {formatDate(task.due_date)}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* CHANGED: Delete button only for the task owner */}
+                    {owned && (
+                      <button
+                        onClick={() => handleDelete(task.id)}
+                        className="text-red-600 text-sm shrink-0"
+                      >
+                        Delete
+                      </button>
                     )}
                   </div>
 
-                  <button
-                    onClick={() => handleDelete(task.id)}
-                    className="text-red-600 text-sm shrink-0"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* CHANGED: Status control only for the task owner */}
+                    {owned ? (
+                      <>
+                        <label className="text-sm">Status:</label>
+
+                        <select
+                          value={task.status || "todo"}
+                          onChange={(e) =>
+                            handleStatusChange(task, e.target.value)
+                          }
+                          className="border rounded-md px-2 py-1"
+                        >
+                          {STATUS_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    ) : (
+                      // Non-owners see a read-only status pill
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 capitalize">
+                        {(task.status || "todo").replaceAll("_", " ")}
+                      </span>
+                    )}
+
+                    <button
+                      onClick={() => openComments(task)}
+                      className="text-blue-600 text-sm"
+                    >
+                      Comments
+                    </button>
+                  </div>
+
+                  {task.blocker_reason && (
+                    <p className="text-sm text-red-600">
+                      Blocker: {task.blocker_reason}
+                    </p>
+                  )}
                 </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <label className="text-sm">Status:</label>
-
-                  <select
-                    value={task.status || "todo"}
-                    onChange={(e) =>
-                      handleStatusChange(task, e.target.value)
-                    }
-                    className="border rounded-md px-2 py-1"
-                  >
-                    <option value="todo">To do</option>
-                    <option value="in_progress">In progress</option>
-                    <option value="blocked">Blocked</option>
-                    <option value="completed">Completed</option>
-                  </select>
-
-                  <button
-                    onClick={() => openComments(task)}
-                    className="text-blue-600 text-sm"
-                  >
-                    Comments
-                  </button>
-                </div>
-
-                {task.blocker_reason && (
-                  <p className="text-sm text-red-600">
-                    Blocker: {task.blocker_reason}
-                  </p>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

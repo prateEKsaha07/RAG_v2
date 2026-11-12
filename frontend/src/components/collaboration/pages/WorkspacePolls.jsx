@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from "react";
 import {
   createWorkspacePoll,
@@ -8,6 +7,7 @@ import {
   closeWorkspacePoll,
   setWorkspacePollPin,
 } from "../../../api/collaborationApi";
+import { supabase } from "../../../supabaseClient";
 
 function formatDate(date) {
   return date ? new Date(date).toLocaleString() : "";
@@ -26,6 +26,30 @@ export default function WorkspacePolls({ workspace }) {
   const [description, setDescription] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [expiresAt, setExpiresAt] = useState("");
+
+  // NEW: current user + role for permission checks
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const currentUserRole = workspace.current_user_role;
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setCurrentUserId(data?.user?.id || null);
+    };
+    loadUser();
+  }, []);
+
+  // NEW: helper predicates mirroring the backend RPC rules
+  //   close: allowed if creator, workspace owner, or workspace admin
+  //   pin:   allowed only for workspace owner or admin
+  const canClose = (poll) => {
+    if (!poll) return false;
+    if (currentUserRole === "owner" || currentUserRole === "admin") return true;
+    return Boolean(currentUserId && poll.created_by === currentUserId);
+  };
+
+  const canPin = () =>
+    currentUserRole === "owner" || currentUserRole === "admin";
 
   const loadPolls = useCallback(async () => {
     setLoading(true);
@@ -269,68 +293,77 @@ export default function WorkspacePolls({ workspace }) {
         {polls.length === 0 ? (
           <p className="text-sm text-gray-500">No polls created yet.</p>
         ) : (
-          polls.map((poll) => (
-            <div
-              key={poll.id}
-              className="border rounded-lg p-4 space-y-3"
-            >
-              <div className="flex justify-between gap-3">
-                <div>
-                  <h3 className="font-semibold">{poll.question}</h3>
-                  {poll.description && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      {poll.description}
-                    </p>
+          polls.map((poll) => {
+            const owned = canClose(poll);
+            const pinnable = canPin();
+
+            return (
+              <div
+                key={poll.id}
+                className="border rounded-lg p-4 space-y-3"
+              >
+                <div className="flex justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold">{poll.question}</h3>
+                    {poll.description && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {poll.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {poll.is_pinned && (
+                    <span className="text-sm text-amber-600 shrink-0">
+                      Pinned
+                    </span>
                   )}
                 </div>
 
-                {poll.is_pinned && (
-                  <span className="text-sm text-amber-600 shrink-0">
-                    Pinned
+                <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                  <span>
+                    {poll.status === "closed" ? "Closed" : "Active"}
                   </span>
-                )}
-              </div>
 
-              <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-                <span>
-                  {poll.status === "closed" ? "Closed" : "Active"}
-                </span>
+                  {poll.created_at && (
+                    <span>Created {formatDate(poll.created_at)}</span>
+                  )}
 
-                {poll.created_at && (
-                  <span>Created {formatDate(poll.created_at)}</span>
-                )}
+                  {poll.expires_at && (
+                    <span>Expires {formatDate(poll.expires_at)}</span>
+                  )}
+                </div>
 
-                {poll.expires_at && (
-                  <span>Expires {formatDate(poll.expires_at)}</span>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => openPoll(poll)}
-                  className="text-sm text-blue-600"
-                >
-                  View poll and results
-                </button>
-
-                <button
-                  onClick={() => handlePin(poll)}
-                  className="text-sm text-gray-600"
-                >
-                  {poll.is_pinned ? "Unpin" : "Pin"}
-                </button>
-
-                {poll.status === "active" && (
+                <div className="flex flex-wrap gap-3">
                   <button
-                    onClick={() => handleClose(poll.id)}
-                    className="text-sm text-red-600"
+                    onClick={() => openPoll(poll)}
+                    className="text-sm text-blue-600"
                   >
-                    Close poll
+                    View poll and results
                   </button>
-                )}
+
+                  {/* CHANGED: Pin only for owner/admin */}
+                  {pinnable && (
+                    <button
+                      onClick={() => handlePin(poll)}
+                      className="text-sm text-gray-600"
+                    >
+                      {poll.is_pinned ? "Unpin" : "Pin"}
+                    </button>
+                  )}
+
+                  {/* CHANGED: Close only for creator or owner/admin */}
+                  {poll.status === "active" && owned && (
+                    <button
+                      onClick={() => handleClose(poll.id)}
+                      className="text-sm text-red-600"
+                    >
+                      Close poll
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </section>
 

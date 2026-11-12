@@ -142,9 +142,13 @@ export const shareWorkspaceFile = (workspaceId, file) => {
 
   return apiClient.post(
     `/collaboration/workspaces/${workspaceId}/resources/files`,
-    formData
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
   );
 };
+
 
 export const getSharedResource = (workspaceId, resourceId) =>
   apiClient.get(
