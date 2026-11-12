@@ -132,7 +132,7 @@ function App() {
   }
 
   // DEBUG: log every render so we can see if screen ever becomes "collaboration"
-  console.log("RENDER App | screen =", screen, "| user =", user?.id ?? null)
+  // console.log("RENDER App | screen =", screen, "| user =", user?.id ?? null)
 
   return (
     <div>

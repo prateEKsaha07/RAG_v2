@@ -5,7 +5,7 @@ export default function useWorkspaceRealtime(workspaceId, onMessage) {
   useEffect(() => {
     if (!workspaceId || !onMessage) return;
 
-    console.log("Setting up Realtime for:", workspaceId);
+    // console.log("Setting up Realtime for:", workspaceId);
 
     const channel = supabase
       .channel(`workspace-messages-${workspaceId}`)
@@ -18,16 +18,16 @@ export default function useWorkspaceRealtime(workspaceId, onMessage) {
           filter: `workspace_id=eq.${workspaceId}`,
         },
         (payload) => {
-          console.log("REALTIME MESSAGE RECEIVED:", payload.new);
+          // console.log("REALTIME MESSAGE RECEIVED:", payload.new);
           onMessage(payload.new);
         }
       )
       .subscribe((status, err) => {
-        console.log("Realtime status:", status, err || "");
+        // console.log("Realtime status:", status, err || "");
       });
 
     return () => {
-      console.log("Removing Realtime channel");
+      // console.log("Removing Realtime channel");
       supabase.removeChannel(channel);
     };
   }, [workspaceId, onMessage]);

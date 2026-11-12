@@ -15,6 +15,11 @@ import {
   LogOut,
 } from "lucide-react";
 
+// Must match the key used in Dashboard / HeroSection / GoalSetupScreen
+// so the selected subject is shared across the whole app.
+const SUBJECT_STORAGE_KEY = (userId) =>
+  `hero:selected-subject:${userId || "guest"}`;
+
 function UploadScreen({
   onSuccess,
   onBack,
@@ -44,13 +49,38 @@ function UploadScreen({
     setSubjectsLoading(true);
     try {
       const res = await axios.get(`${API_URL}/uploads`);
-      setSubjects(res.data || []);
+      const list = res.data || [];
+      setSubjects(list);
+
+      // Pre-select the stored subject only if it still exists in the list.
+      try {
+        const stored = localStorage.getItem(SUBJECT_STORAGE_KEY(user?.id));
+        if (stored && list.includes(stored) && !subject) {
+          setSubject(stored);
+        }
+      } catch {
+        // ignore storage errors
+      }
     } catch (err) {
       console.error("Failed to fetch subjects:", err);
     } finally {
       setSubjectsLoading(false);
     }
   };
+
+  // Persist subject on change so the rest of the app stays in sync.
+  useEffect(() => {
+    try {
+      const key = SUBJECT_STORAGE_KEY(user?.id);
+      if (subject) {
+        localStorage.setItem(key, subject);
+      } else {
+        localStorage.removeItem(key);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [subject, user?.id]);
 
   const handleUpload = async () => {
     if (!file || !subject.trim()) {
@@ -117,10 +147,12 @@ function UploadScreen({
   const initials = user?.email ? user.email.split("@")[0].slice(0, 2).toUpperCase() : "U";
   const userName = user?.email ? user.email.split("@")[0] : "User";
 
+  // CHANGED: nav order now matches the rest of the app
+  // (Dashboard → Study → Upload → Notes → Roadmap → Analytics).
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, action: onDashboard || onBack },
-    { id: "upload", label: "Upload", icon: UploadIcon, action: () => {} },
     { id: "study", label: "Study", icon: BookOpen, action: onStudy },
+    { id: "upload", label: "Upload", icon: UploadIcon, action: () => {} },
     { id: "notes", label: "Notes", icon: FileText, action: onNotes },
     { id: "roadmap", label: "Roadmap", icon: Map, action: onRoadmap },
     { id: "analytics-v2", label: "Analytics", icon: BarChart3, action: onAnalyticsV2 },

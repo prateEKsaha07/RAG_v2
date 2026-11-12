@@ -17,6 +17,10 @@ import {
 import ModuleNav from "../common/ModuleNav"
 import Footer from "../common/Footer"
 
+// Same key as Dashboard / HeroSection / UploadScreen / NotesScreen.
+const SUBJECT_STORAGE_KEY = (userId) =>
+  `hero:selected-subject:${userId || "guest"}`
+
 function GoalSetupScreen({
   onBack,
   onViewRoadmap,
@@ -28,9 +32,17 @@ function GoalSetupScreen({
   onUpload,
 }) {
   const [subjects, setSubjects] = useState([])
-  const [selectedSubject, setSelectedSubject] = useState("")
+
+  // Initialize from storage so a refresh keeps the previously chosen subject.
+  const [selectedSubject, setSelectedSubject] = useState(() => {
+    try {
+      return localStorage.getItem(SUBJECT_STORAGE_KEY(user?.id)) || ""
+    } catch {
+      return ""
+    }
+  })
+
   const [existingRoadmap, setExistingRoadmap] = useState(null)
-  const [noRoadmap, setNoRoadmap] = useState(false)
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState("")
@@ -44,18 +56,38 @@ function GoalSetupScreen({
     fetchSubjects()
   }, [])
 
+  // Persist the selection whenever it changes (and clear when blank).
+  useEffect(() => {
+    try {
+      const key = SUBJECT_STORAGE_KEY(user?.id)
+      if (selectedSubject) {
+        localStorage.setItem(key, selectedSubject)
+      } else {
+        localStorage.removeItem(key)
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [selectedSubject, user?.id])
+
   const fetchSubjects = async () => {
     const response = await axios.get(
       import.meta.env.VITE_API_URL + "/subjects"
     )
     setSubjects(response.data.subjects)
+
+    // If we restored a subject from storage, auto-run the roadmap check
+    // so the UI shows the existing roadmap immediately.
+    const restored = selectedSubject
+    if (restored) {
+      handleSubjectChange(restored)
+    }
   }
 
   const handleSubjectChange = async (subject) => {
     const token = localStorage.getItem("access_token")
     setSelectedSubject(subject)
     setExistingRoadmap(null)
-    setNoRoadmap(false)
     setError("")
 
     if (!subject) return
@@ -72,13 +104,11 @@ function GoalSetupScreen({
 
       const data = response.data
       if (!data || data.error || !data.weeks || data.weeks.length === 0) {
-        setNoRoadmap(true)
         setExistingRoadmap(null)
       } else {
         setExistingRoadmap(data)
       }
     } catch (err) {
-      setNoRoadmap(true)
       setExistingRoadmap(null)
     } finally {
       setChecking(false)
@@ -97,7 +127,6 @@ function GoalSetupScreen({
         }
       )
       setExistingRoadmap(null)
-      setNoRoadmap(true)
     } catch (err) {
       setError("Failed to delete roadmap")
     }
@@ -135,7 +164,6 @@ function GoalSetupScreen({
       }
 
       setExistingRoadmap(response.data)
-      setNoRoadmap(false)
       onViewRoadmap(selectedSubject)
     } catch (err) {
       setError("Failed to generate roadmap")
@@ -266,27 +294,6 @@ function GoalSetupScreen({
                     Delete
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* No roadmap */}
-        {noRoadmap && selectedSubject && !checking && (
-          <div className="bg-white border border-[#e8dfd3] rounded-lg p-6 mb-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-md border border-[#e8dfd3] bg-[#faf7f3] flex items-center justify-center flex-shrink-0">
-                <AlertCircle size={16} strokeWidth={1.8} className="text-[#8a7965]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-[#2a1f14] mb-1.5">
-                  No Roadmap Found
-                </h3>
-                <p className="text-sm text-[#8a7965] leading-relaxed">
-                  You have not created a roadmap for{" "}
-                  <span className="font-semibold text-[#2a1f14]">{selectedSubject}</span> yet.
-                  Fill in the form below to generate one.
-                </p>
               </div>
             </div>
           </div>

@@ -30,7 +30,7 @@ function QAInput({ question, setQuestion, onAsk, loading }) {
         <button
           onClick={onAsk}
           disabled={loading || !question.trim()}
-          className={`w-full sm:w-auto px-6 py-3 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 flex-shrink-0 min-h-[48px] sm:min-h-[52px] ${
+          className={`w-full sm:w-auto px-8 py-6 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 flex-shrink-0 min-h-[48px] sm:min-h-[52px] ${
             loading || !question.trim()
               ? "bg-[#f0e9e0] text-[#a89880] cursor-not-allowed"
               : "bg-[#5c1a1a] text-white hover:bg-[#4a1414] sm:hover:scale-[1.02] active:scale-[0.98]"

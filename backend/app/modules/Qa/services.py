@@ -133,7 +133,7 @@ def _get_or_load_notes_db(user_id, embeddings):
     Return the user's notes FAISS if already in rag.notes_dbs, else try
     to load from disk (once) and cache. Returns None if no index exists.
     """
-    from app.modules.Notes.notes import get_notes_faiss_path
+    from app.modules.Notes.services import get_notes_faiss_path
 
     cached = rag.notes_dbs.get(user_id)
     if cached is not None:

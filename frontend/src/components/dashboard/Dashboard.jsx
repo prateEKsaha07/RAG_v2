@@ -4,6 +4,10 @@ import HeroSection from "./HeroSection";
 import QuickActions from "./QuickActions";
 import Footer from "../common/Footer";
 
+// Scoped per user so different accounts don't share subjects.
+const SUBJECT_STORAGE_KEY = (userId) =>
+  `hero:selected-subject:${userId || "guest"}`;
+
 function Dashboard({
   subject,
   onQuiz,
@@ -18,13 +22,36 @@ function Dashboard({
   onStudy,
   onProfile,
   profile,
-  onCollaboration
+  onCollaboration,
 }) {
-  const [isBlocked, setIsBlocked] = useState(!subject);
+  // Restore from storage on mount if the prop is empty.
+  const [activeSubject, setActiveSubject] = useState(() => {
+    if (subject) return subject;
+    try {
+      return localStorage.getItem(SUBJECT_STORAGE_KEY(user?.id)) || null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Keep activeSubject in sync when the parent pushes a new value.
+  // And persist any change so a refresh restores it.
+  useEffect(() => {
+    if (subject) {
+      setActiveSubject(subject);
+      try {
+        localStorage.setItem(SUBJECT_STORAGE_KEY(user?.id), subject);
+      } catch {
+        // ignore storage errors (private mode, quota, etc.)
+      }
+    }
+  }, [subject, user?.id]);
+
+  const [isBlocked, setIsBlocked] = useState(!activeSubject);
 
   useEffect(() => {
-    setIsBlocked(!subject);
-  }, [subject]);
+    setIsBlocked(!activeSubject);
+  }, [activeSubject]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50/80 via-orange-50/60 to-rose-50/40">
@@ -35,19 +62,19 @@ function Dashboard({
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-rose-100/10 rounded-full blur-3xl -z-10" />
 
       <ModuleNav
-  active="dashboard"
-  onDashboard={() => {}}
-  onStudy={onStudy}
-  onUpload={onUpload}
-  onNotes={onNotes}
-  onRoadmap={onRoadmap}
-  onAnalyticsV2={onAnalyticsV2}
-  onLogout={onLogout}
-  onProfile={onProfile}
-  user={user}
-  profile={profile}
-  onCollaboration={onCollaboration}
-/>
+        active="dashboard"
+        onDashboard={() => {}}
+        onStudy={onStudy}
+        onUpload={onUpload}
+        onNotes={onNotes}
+        onRoadmap={onRoadmap}
+        onAnalyticsV2={onAnalyticsV2}
+        onLogout={onLogout}
+        onProfile={onProfile}
+        user={user}
+        profile={profile}
+        onCollaboration={onCollaboration}
+      />
 
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-10 space-y-8 relative">
 
@@ -57,7 +84,7 @@ function Dashboard({
           <HeroSection
             user={user}
             profile={profile}
-            subject={subject}
+            subject={activeSubject}
             onUpload={onUpload}
           />
         </div>
@@ -72,7 +99,7 @@ function Dashboard({
             onUpload={onUpload}
             onAnalytics={onAnalytics}
             onRoadmap={onRoadmap}
-            isDisabled={!subject}
+            isDisabled={!activeSubject}
           />
         </div>
 

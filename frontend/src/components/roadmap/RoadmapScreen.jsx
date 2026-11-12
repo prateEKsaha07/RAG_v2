@@ -23,8 +23,27 @@ import {
     Target,
 } from "lucide-react"
 
+// Same storage key used across the app.
+const SUBJECT_STORAGE_KEY = (userId) =>
+    `hero:selected-subject:${userId || "guest"}`
+
+// Normalize the roadmap response from `getRoadmap`. Accepts:
+//   { subject, weeks, ... }
+//   { data: { subject, weeks, ... } }
+//   { roadmap: { subject, weeks, ... } }
+// Returns null if the payload has no usable weeks.
+function normalizeRoadmap(raw) {
+    if (!raw || typeof raw !== "object") return null
+    const candidate = raw.roadmap || raw.data || raw
+    if (!candidate || typeof candidate !== "object") return null
+    if (Array.isArray(candidate.weeks) && candidate.weeks.length > 0) {
+        return candidate
+    }
+    return null
+}
+
 function RoadmapScreen({
-    subject,
+    subject: subjectProp,
     onBack,
     onLogout,
     user,
@@ -33,6 +52,15 @@ function RoadmapScreen({
     onNotes,
     onAnalyticsV2,
 }) {
+    const [subject] = useState(() => {
+        if (subjectProp) return subjectProp
+        try {
+            return localStorage.getItem(SUBJECT_STORAGE_KEY(user?.id)) || ""
+        } catch {
+            return ""
+        }
+    })
+
     const [roadmap, setRoadmap] = useState(null)
     const [loading, setLoading] = useState(true)
     const [extending, setExtending] = useState(false)
@@ -41,18 +69,28 @@ function RoadmapScreen({
     const [messageType, setMessageType] = useState("info")
 
     useEffect(() => {
-        fetchRoadmap()
-    }, [])
+        if (subject) fetchRoadmap()
+        else {
+            setLoading(false)
+            onBack?.()
+        }
+    }, [subject])
 
     const fetchRoadmap = async () => {
         try {
             setLoading(true)
             const data = await getRoadmap(subject)
-            setRoadmap(data)
+            const normalized = normalizeRoadmap(data)
+            if (!normalized) {
+                // No usable roadmap → bail to setup screen instead of
+                // rendering an empty state.
+                onBack?.()
+                return
+            }
+            setRoadmap(normalized)
         } catch (err) {
             console.error(err)
-            setMessage("Failed to load roadmap")
-            setMessageType("error")
+            onBack?.()
         } finally {
             setLoading(false)
         }
@@ -86,15 +124,6 @@ function RoadmapScreen({
         }
     }
 
-    const stats = getRoadmapStats(roadmap)
-
-    const paceConfig = {
-        ahead: { label: "Ahead of schedule", icon: Target },
-        on_track: { label: "On track", icon: Target },
-        behind: { label: "Behind schedule", icon: Target },
-    }
-    const pace = paceConfig[stats.pace] || paceConfig.on_track
-
     if (loading) return (
         <div className="min-h-screen bg-[#f7f3ee] flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
@@ -104,25 +133,18 @@ function RoadmapScreen({
         </div>
     )
 
-    if (!roadmap || roadmap.error) return (
-        <div className="min-h-screen bg-[#f7f3ee] flex items-center justify-center p-4">
-            <div className="bg-white border border-[#e8dfd3] rounded-lg p-8 max-w-md w-full text-center">
-                <div className="w-12 h-12 rounded-md border border-[#e8dfd3] bg-[#faf7f3] mx-auto flex items-center justify-center mb-4">
-                    <AlertCircle size={20} strokeWidth={1.8} className="text-[#5c1a1a]" />
-                </div>
-                <h3 className="text-lg font-semibold text-[#2a1f14] mb-2">No Roadmap Found</h3>
-                <p className="text-sm text-[#8a7965] mb-6">
-                    No roadmap found for {subject}
-                </p>
-                <button
-                    onClick={onBack}
-                    className="px-5 py-2.5 rounded-md bg-[#5c1a1a] text-white text-sm font-medium hover:bg-[#4a1414] transition-colors"
-                >
-                    Go Back
-                </button>
-            </div>
-        </div>
-    )
+    // If the roadmap is missing we've already called onBack above;
+    // render nothing for the brief moment before navigation takes over.
+    if (!roadmap) return null
+
+    const stats = getRoadmapStats(roadmap)
+
+    const paceConfig = {
+        ahead: { label: "Ahead of schedule", icon: Target },
+        on_track: { label: "On track", icon: Target },
+        behind: { label: "Behind schedule", icon: Target },
+    }
+    const pace = paceConfig[stats.pace] || paceConfig.on_track
 
     return (
         <div className="min-h-screen bg-[#f7f3ee] text-[#2a1f14]">

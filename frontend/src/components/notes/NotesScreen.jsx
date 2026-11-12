@@ -15,6 +15,11 @@ import {
 } from "lucide-react"
 import ModuleNav from "../common/ModuleNav"
 
+// Same key as Dashboard / HeroSection / UploadScreen / GoalSetupScreen.
+// Empty string "" is stored as a sentinel meaning "All subjects".
+const SUBJECT_STORAGE_KEY = (userId) =>
+  `hero:selected-subject:${userId || "guest"}`
+
 function NotesScreen({
   onBack,
   onCreateNote,
@@ -29,15 +34,45 @@ function NotesScreen({
 }) {
   const [notes, setNotes] = useState([])
   const [subjects, setSubjects] = useState([])
-  const [selectedSubject, setSelectedSubject] = useState("")
+
+  // Initialize from storage so refresh keeps the last filter.
+  const [selectedSubject, setSelectedSubject] = useState(() => {
+    try {
+      return localStorage.getItem(SUBJECT_STORAGE_KEY(user?.id)) || ""
+    } catch {
+      return ""
+    }
+  })
+
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [isIngesting, setIsIngesting] = useState(false)
 
   useEffect(() => {
     fetchSubjects()
-    fetchNotes()
   }, [])
+
+  // Persist the current filter on every change.
+  useEffect(() => {
+    try {
+      const key = SUBJECT_STORAGE_KEY(user?.id)
+      if (selectedSubject) {
+        localStorage.setItem(key, selectedSubject)
+      } else {
+        localStorage.removeItem(key)
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [selectedSubject, user?.id])
+
+  // Once subjects are known, auto-fetch notes for the stored filter
+  // (the initial fetchNotes call below runs with the empty string).
+  useEffect(() => {
+    if (loading) return
+    fetchNotes(selectedSubject)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjects])
 
   const fetchSubjects = async () => {
     const response = await axios.get(
@@ -61,6 +96,12 @@ function NotesScreen({
     setNotes(response.data.notes)
     setLoading(false)
   }
+
+  // Initial notes fetch, independent of the subject auto-fetch above.
+  useEffect(() => {
+    fetchNotes(selectedSubject)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubjectFilter = (subject) => {
     setSelectedSubject(subject)

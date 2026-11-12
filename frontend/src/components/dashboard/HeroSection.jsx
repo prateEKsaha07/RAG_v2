@@ -7,15 +7,45 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+// Storage key scoped per user so switching accounts doesn't share subjects.
+const SUBJECT_STORAGE_KEY = (userId) =>
+  `hero:selected-subject:${userId || "guest"}`;
+
 function HeroSection({ user, subject, onUpload, profile }) {
   const [mounted, setMounted] = useState(false);
+  const [localSubject, setLocalSubject] = useState(subject);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(t);
   }, []);
 
+  // Restore from storage on mount if the parent didn't pass a subject.
+  useEffect(() => {
+    if (subject) {
+      setLocalSubject(subject);
+      return;
+    }
+    try {
+      const saved = localStorage.getItem(SUBJECT_STORAGE_KEY(user?.id));
+      if (saved) setLocalSubject(saved);
+    } catch {
+      // ignore storage errors
+    }
+  }, [subject, user?.id]);
+
+  // Persist whenever the parent's subject changes.
+  useEffect(() => {
+    if (!subject) return;
+    try {
+      localStorage.setItem(SUBJECT_STORAGE_KEY(user?.id), subject);
+    } catch {
+      // ignore storage errors
+    }
+  }, [subject, user?.id]);
+
   const username = profile?.display_name || "";
+  const activeSubject = localSubject;
 
   return (
     <section
@@ -39,7 +69,7 @@ function HeroSection({ user, subject, onUpload, profile }) {
       {/* Status line */}
       <p className="flex items-center gap-2 text-sm text-[#6a5a48] mb-7">
         <span className="w-1.5 h-1.5 rounded-full bg-[#a83232]" />
-        {subject
+        {activeSubject
           ? "Continue learning where you left off"
           : "Select a subject to begin your journey"}
       </p>
@@ -53,13 +83,13 @@ function HeroSection({ user, subject, onUpload, profile }) {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           {/* Subject display */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            {subject ? (
+            {activeSubject ? (
               <>
                 <div className="w-10 h-10 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center flex-shrink-0">
                   <Book size={18} strokeWidth={1.8} className="text-[#5c1a1a]" />
                 </div>
                 <span className="text-base sm:text-lg font-semibold text-[#2a1f14] truncate">
-                  {subject}
+                  {activeSubject}
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-[#e8dfd3] rounded-full text-[11px] uppercase tracking-[0.08em] text-[#5a4a3a] flex-shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#a83232]" />
@@ -93,7 +123,7 @@ function HeroSection({ user, subject, onUpload, profile }) {
               flex-shrink-0
             "
           >
-            {subject ? (
+            {activeSubject ? (
               <>
                 <RefreshCw size={15} strokeWidth={1.8} />
                 Change Subject
