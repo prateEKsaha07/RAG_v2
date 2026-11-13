@@ -51,3 +51,53 @@
 
 ### Cleanup
 - `.gitignore`: removed stray backtick in `*.py.class` pattern; added `venv/`, `__pycache__/`, IDE files, `.env.*` variants.
+
+# Changelog — 2026-11-13
+
+## Collaboration Module — Reference-in-Chat Feature
+
+### Backend (SQL)
+- Added `metadata jsonb NOT NULL DEFAULT '{}'` column to `workspace_messages`
+- Added partial index `idx_workspace_messages_referenced` for lookups by `metadata->>'referenced_id'`
+- Replaced `send_workspace_message` RPC (dropped old 3-arg, created new 5-arg) — accepts optional `p_referenced_type` and `p_referenced_id`, validates entity exists in the same workspace, stores reference in `metadata`
+- Updated `get_workspace_messages` RPC to return `metadata` on each message
+- Validation supports four entity types: `task`, `poll`, `note`, `material`
+
+### Backend (Python)
+- `schemas.py` — extended `WorkspaceMessageCreate` with `referenced_type: Optional[Literal[...]]` and `referenced_id: Optional[UUID]`; extended `WorkspaceMessageResponse` with `metadata: dict`
+- `router.py` — `send_workspace_message_endpoint` now forwards `payload.referenced_type` and `payload.referenced_id` to the service (this was the final missing piece)
+- `service.py` — `send_workspace_message` extended with two optional kwargs; RPC call now includes `p_referenced_type` and `p_referenced_id`; added four new error patterns for reference validation → 400 `Invalid reference on message.`
+- Fixed stale import in `Qa/services.py` (`Notes.notes` → `Notes.services`) after Notes refactor
+- Created `__init__.py` in `Notes/` and `Qa/` packages (fixes intermittent `ModuleNotFoundError`)
+
+### Frontend
+- New `ReferenceChip.jsx` — renders `[📋 Task: title]` / `[📊 Poll: question]` / `[📄 Note: title]` / `[📁 File: filename]` above messages; clickable when entity exists, muted `[⚠ ... deleted]` when it doesn't; resolves titles lazily per type
+- `WorkspaceChat.jsx` — accepts `pendingReference`, `onClearPendingReference`, `onOpenReference` props; renders a "Replying about: …" chip above the composer when attaching; sends reference in `sendWorkspaceMessage`; renders message chips; clears reference after successful send
+- `WorkspaceTasks.jsx` — `onAskInChat` prop + "Ask in chat" button per task card
+- `WorkspacePolls.jsx` — `onAskInChat` prop + "Ask in chat" button per poll card
+- `WorkspaceResources.jsx` — `onAskInChat` prop + "Ask in chat" button per resource card, with type dispatch (`note` vs `material`)
+- `WorkspaceOverview.jsx` — new `pendingChatReference` state; `openChatWithReference` sets reference and navigates to Messages; `handleOpenReference` navigates back to the correct section when a chip is clicked; wired to all four child components
+- `collaborationApi.js` — `sendWorkspaceMessage` extended to accept `referencedType` and `referencedId` (previously 2-arg, silently dropped references)
+
+### Behaviour
+- Any workspace member can click "Ask in chat" on a task, poll, note, or material
+- Land on Messages with a pre-attached reference chip above the composer
+- Type a question → send → message stores `metadata.referenced_type` + `metadata.referenced_id`
+- Chip renders above the sent message; clicking it navigates back to the referenced entity's section
+- Deleted references render as muted chips, message text preserved
+- Plain messages (no reference) behave identically to before — no regression
+
+### Testing verified
+- SQL direct calls: plain message stores `{}`, referenced message stores the metadata correctly, cross-workspace reference rejected with 400
+- Postman: message with task reference returns 201 with populated metadata
+- Frontend end-to-end: click from all four entity types → chip appears → send → chip renders → click navigates back
+
+### Known follow-ups (not blocking)
+- Deleted entity chips currently show "…deleted" but the exact-title-before-deletion isn't preserved — could be added by storing a `title_snapshot` in metadata at send time
+- No mention of references in the activity feed yet — the trigger's payload could include `referenced_type`/`referenced_id` for richer activity entries
+- Reference lookup in `ReferenceChip` fetches per chip; a shared title cache would reduce calls if usage grows
+- `@mentions` (second half of the original feature request) not started — same `metadata` column can host `mentioned_user_ids`
+
+### Session effort
+- 3 diagnostics that surfaced real bugs (missing RPC replacement, dropped fields in router/service, stale API client signature)
+- ~200 lines net change across 8 files (2 SQL RPCs, 3 Python files, 6 JSX files, 1 API client)

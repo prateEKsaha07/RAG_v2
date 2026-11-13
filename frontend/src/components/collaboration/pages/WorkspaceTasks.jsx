@@ -41,7 +41,6 @@ function formatDate(date) {
   return new Date(date).toLocaleString();
 }
 
-// Valid statuses match the backend CHECK in update_workspace_task.
 const STATUS_OPTIONS = [
   { value: "todo", label: "To do" },
   { value: "in_progress", label: "In progress" },
@@ -49,7 +48,7 @@ const STATUS_OPTIONS = [
   { value: "completed", label: "Completed" },
 ];
 
-export default function WorkspaceTasks({ workspace }) {
+export default function WorkspaceTasks({ workspace, onAskInChat }) {
   const [tasks, setTasks] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -66,7 +65,6 @@ export default function WorkspaceTasks({ workspace }) {
   const [commentText, setCommentText] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
 
-  // NEW: current user id, so we can gate edit/delete to the task owner
   const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
@@ -96,8 +94,6 @@ export default function WorkspaceTasks({ workspace }) {
     loadTasks();
   }, [loadTasks]);
 
-  // NEW: does the current user own this task?
-  // Matches the backend rule: only `created_by` can update or delete.
   const isTaskOwner = (task) =>
     Boolean(currentUserId && task?.created_by === currentUserId);
 
@@ -297,7 +293,6 @@ export default function WorkspaceTasks({ workspace }) {
                       )}
                     </div>
 
-                    {/* CHANGED: Delete button only for the task owner */}
                     {owned && (
                       <button
                         onClick={() => handleDelete(task.id)}
@@ -309,7 +304,6 @@ export default function WorkspaceTasks({ workspace }) {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
-                    {/* CHANGED: Status control only for the task owner */}
                     {owned ? (
                       <>
                         <label className="text-sm">Status:</label>
@@ -329,7 +323,6 @@ export default function WorkspaceTasks({ workspace }) {
                         </select>
                       </>
                     ) : (
-                      // Non-owners see a read-only status pill
                       <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 capitalize">
                         {(task.status || "todo").replaceAll("_", " ")}
                       </span>
@@ -341,6 +334,18 @@ export default function WorkspaceTasks({ workspace }) {
                     >
                       Comments
                     </button>
+
+                    {/* Ask in chat — available to every member */}
+                    {onAskInChat && (
+                      <button
+                        onClick={() =>
+                          onAskInChat({ type: "task", id: task.id })
+                        }
+                        className="text-sm text-[#5c1a1a] hover:underline"
+                      >
+                        Ask in chat
+                      </button>
+                    )}
                   </div>
 
                   {task.blocker_reason && (

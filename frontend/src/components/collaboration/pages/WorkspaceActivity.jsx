@@ -1,5 +1,17 @@
-
 import { useEffect, useState } from "react";
+import {
+  UserPlus,
+  MessageSquare,
+  Plus,
+  RefreshCw,
+  Minus,
+  Edit3,
+  Upload,
+  Trash2,
+  Send,
+  CheckCircle,
+  Circle,
+} from "lucide-react";
 import { getWorkspaceUpdates } from "../../../api/collaborationApi";
 import { supabase } from "../../../supabaseClient";
 
@@ -26,21 +38,24 @@ function getActivityDescription(activity) {
   switch (activity.event_type) {
     case "member_joined":
       return "joined the workspace";
-
     case "message_sent":
       return "sent a message";
-
     case "task_created":
       return "created a task";
-
     case "task_updated":
       return "updated a task";
-
     case "task_deleted":
       return "deleted a task";
-
     case "task_comment_added":
       return "commented on a task";
+    case "resource_shared":
+      return "shared a resource";
+    case "resource_removed":
+      return "removed a resource";
+    case "invitation_sent":
+      return "invited a member";
+    case "invitation_accepted":
+      return "accepted an invitation";
 
     default:
       return (
@@ -52,22 +67,31 @@ function getActivityDescription(activity) {
   }
 }
 
+// Returns the Lucide icon component for an event type
 function getActivityIcon(eventType) {
   switch (eventType) {
     case "member_joined":
-      return "👤";
+      return UserPlus;
     case "message_sent":
-      return "💬";
+      return MessageSquare;
     case "task_created":
-      return "+";
+      return Plus;
     case "task_updated":
-      return "↻";
+      return RefreshCw;
     case "task_deleted":
-      return "−";
+      return Minus;
     case "task_comment_added":
-      return "✎";
+      return Edit3;
+    case "resource_shared":
+      return Upload;
+    case "resource_removed":
+      return Trash2;
+    case "invitation_sent":
+      return Send;
+    case "invitation_accepted":
+      return CheckCircle;
     default:
-      return "•";
+      return Circle;
   }
 }
 
@@ -139,11 +163,9 @@ export default function WorkspaceActivity({ workspace }) {
 
   useEffect(() => {
     loadActivities();
-    // Load the first page when the selected workspace changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace.id]);
 
-  // Load profiles for activity actors.
   useEffect(() => {
     const actorIds = [
       ...new Set(
@@ -198,7 +220,9 @@ export default function WorkspaceActivity({ workspace }) {
         <div>
           <h2 className="text-lg font-semibold">Workspace Activity</h2>
           <p className="text-xs text-gray-500">
-            Recent updates in {workspace.name}
+            {activities.length > 0
+              ? `${activities.length} update${activities.length === 1 ? "" : "s"} in ${workspace.name}`
+              : `Recent updates in ${workspace.name}`}
           </p>
         </div>
 
@@ -215,10 +239,10 @@ export default function WorkspaceActivity({ workspace }) {
       )}
 
       {activities.length === 0 ? (
-        <div className="border rounded-lg p-6 text-center">
-          <p className="text-sm font-medium">No activity yet</p>
+        <div className="border border-dashed border-gray-200 rounded-lg p-6 text-center">
+          <p className="text-sm font-medium text-gray-700">No activity yet</p>
           <p className="text-xs text-gray-500 mt-1">
-            Workspace activities will appear here.
+            Actions across tasks, messages, and resources will show up here.
           </p>
         </div>
       ) : (
@@ -230,13 +254,15 @@ export default function WorkspaceActivity({ workspace }) {
               profile?.username ||
               "Workspace member";
 
+            const Icon = getActivityIcon(activity.event_type);
+
             return (
               <div
                 key={activity.id}
                 className="px-3 py-2 flex items-center gap-2"
               >
-                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-sm">
-                  {getActivityIcon(activity.event_type)}
+                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                  <Icon size={13} strokeWidth={1.8} className="text-[#5c1a1a]" />
                 </div>
 
                 <div className="flex-1 min-w-0 flex items-center gap-1 text-sm">

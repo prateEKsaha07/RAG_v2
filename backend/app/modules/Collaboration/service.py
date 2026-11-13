@@ -834,12 +834,12 @@ def get_shared_resource(
     raise HTTPException(status_code=400, detail=f"Unknown resource type: {resource_type}")
 
 
-
-
 def send_workspace_message(
     workspace_id: str,
     sender_id: str,
     content: str,
+    referenced_type: str | None = None,
+    referenced_id: str | None = None,
 ):
     try:
         response = supabase.rpc(
@@ -848,6 +848,8 @@ def send_workspace_message(
                 "p_workspace_id": workspace_id,
                 "p_sender_id": sender_id,
                 "p_content": content,
+                "p_referenced_type": referenced_type,
+                "p_referenced_id": referenced_id,
             },
         ).execute()
 
@@ -877,10 +879,22 @@ def send_workspace_message(
                 detail="Message must contain between 1 and 4000 characters.",
             )
 
+        if any(term in message for term in (
+            "invalid reference type",
+            "referenced entity not in this workspace",
+            "reference id required when reference type is set",
+            "reference type required when reference id is set",
+        )):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid reference on message.",
+            )
+
         raise HTTPException(
             status_code=500,
             detail="Unable to send workspace message.",
         )
+
 
 def get_workspace_messages(
     workspace_id: str,

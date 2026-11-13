@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from datetime import datetime
 from typing import Literal, Optional
 from uuid import UUID
@@ -27,12 +27,25 @@ class WorkspaceNoteShare(BaseModel):
 
 class WorkspaceMessageCreate(BaseModel):
     content: str = Field(min_length=1, max_length=4000)
+    referenced_type: Optional[Literal["task", "poll", "note", "material"]] = None
+    referenced_id: Optional[UUID] = None
+
+    @model_validator(mode="after")
+    def _validate_reference_pair(self):
+        has_type = self.referenced_type is not None
+        has_id = self.referenced_id is not None
+        if has_type != has_id:
+            raise ValueError(
+                "referenced_type and referenced_id must be provided together"
+            )
+        return self
 
 class WorkspaceMessageResponse(BaseModel):
     id: UUID
     workspace_id: UUID
     sender_id: UUID
     content: str
+    metadata: dict = Field(default_factory=dict)
     created_at: datetime
 
 class WorkspaceUpdateResponse(BaseModel):

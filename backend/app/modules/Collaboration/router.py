@@ -149,6 +149,7 @@ def update_workspace_member_role_endpoint(
         new_role=payload.role,
     )
 
+
 @router.delete(
     "/workspaces/{workspace_id}/members/{user_id}"
 )
@@ -162,6 +163,7 @@ def remove_workspace_member_endpoint(
         target_user_id=user_id,
         actor_id=str(current_user.id),
     )
+
 
 @router.post(
     "/workspaces/{workspace_id}/resources/notes",
@@ -178,6 +180,7 @@ def share_workspace_note_endpoint(
         actor_id=str(current_user.id),
     )
 
+
 @router.get("/workspaces/{workspace_id}/resources")
 def list_workspace_resources_endpoint(
     workspace_id: str,
@@ -187,6 +190,7 @@ def list_workspace_resources_endpoint(
         workspace_id=workspace_id,
         user_id=str(current_user.id),
     )
+
 
 @router.delete(
     "/workspaces/{workspace_id}/resources/{resource_id}"
@@ -202,6 +206,7 @@ def revoke_workspace_resource_endpoint(
         actor_id=str(current_user.id),
     )
 
+
 @router.get(
     "/workspaces/{workspace_id}/resources/{resource_id}/note"
 )
@@ -216,6 +221,7 @@ def get_shared_note_endpoint(
         user_id=str(current_user.id),
     )
 
+
 @router.post(
     "/workspaces/{workspace_id}/messages",
     status_code=status.HTTP_201_CREATED,
@@ -229,6 +235,10 @@ def send_workspace_message_endpoint(
         workspace_id=workspace_id,
         sender_id=str(current_user.id),
         content=payload.content,
+        referenced_type=payload.referenced_type,
+        referenced_id=(
+            str(payload.referenced_id) if payload.referenced_id else None
+        ),
     )
 
 @router.get("/workspaces/{workspace_id}/messages")
@@ -244,6 +254,7 @@ def get_workspace_messages_endpoint(
         limit=limit,
         before=before,
     )
+
 
 @router.get(
     "/workspaces/{workspace_id}/updates",
@@ -263,6 +274,7 @@ def get_workspace_updates_route(
     )
 
     return result
+
 
 @router.post(
     "/workspaces/{workspace_id}/polls",
@@ -338,6 +350,7 @@ def set_workspace_poll_pin_endpoint(
         is_pinned=payload.is_pinned,
     )
 
+
 @router.post(
     "/workspaces/{workspace_id}/tasks",
     status_code=status.HTTP_201_CREATED
@@ -364,6 +377,7 @@ def list_workspace_tasks_endpoint(
         user_id=str(current_user.id),
     )
 
+
 @router.patch("/tasks/{task_id}")
 def update_workspace_task_endpoint(
     task_id: str,
@@ -375,6 +389,7 @@ def update_workspace_task_endpoint(
         user_id=str(current_user.id),
         payload=payload,
     )
+
 
 @router.post("/tasks/{task_id}/comments", status_code=status.HTTP_201_CREATED)
 def add_workspace_task_comment_endpoint(
@@ -388,6 +403,7 @@ def add_workspace_task_comment_endpoint(
         content=payload.content,
     )
 
+
 @router.get("/tasks/{task_id}/comments")
 def list_workspace_task_comments_endpoint(
     task_id: str,
@@ -398,6 +414,7 @@ def list_workspace_task_comments_endpoint(
         user_id=str(current_user.id),
     )
 
+
 @router.delete("/tasks/{task_id}")
 def delete_workspace_task_endpoint(
     task_id: str,
@@ -407,6 +424,7 @@ def delete_workspace_task_endpoint(
         task_id=task_id,
         user_id=str(current_user.id),
     )
+
 
 @router.post(
     "/workspaces/{workspace_id}/resources/files",
@@ -425,6 +443,7 @@ async def share_workspace_file_endpoint(
         content_type=file.content_type,
         file_bytes=content,
     )
+
 
 
 @router.get(

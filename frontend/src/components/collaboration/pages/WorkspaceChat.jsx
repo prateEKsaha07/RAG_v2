@@ -13,6 +13,7 @@ import {
 
 import useWorkspaceRealtime from "../../../hooks/useWorkspaceRealtime";
 import { supabase } from "../../../supabaseClient";
+import ReferenceChip from "../../collaboration/components/ReferenceChip";
 
 function formatDate(date) {
   if (!date) return "";
@@ -56,7 +57,12 @@ function UserInfo({
   );
 }
 
-export default function WorkspaceChat({ workspace }) {
+export default function WorkspaceChat({
+  workspace,
+  pendingReference = null,
+  onClearPendingReference,
+  onOpenReference,
+}) {
   const [messages, setMessages] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -69,6 +75,11 @@ export default function WorkspaceChat({ workspace }) {
   const [error, setError] = useState("");
   const [hasMore, setHasMore] = useState(true);
 
+  // Reference the user attaches to the next outgoing message.
+  // Initialized from pendingReference (set by WorkspaceOverview when
+  // arriving from a card's "Ask in chat" button).
+  const [activeReference, setActiveReference] = useState(pendingReference);
+
   const bottomRef = useRef(null);
   const messageContainerRef = useRef(null);
   const shouldScrollRef = useRef(true);
@@ -76,6 +87,14 @@ export default function WorkspaceChat({ workspace }) {
   // FIX 3: store the pre-update scroll metrics here, restore in a layout
   // effect after React commits the new messages to the DOM.
   const pendingScrollRestoreRef = useRef(null);
+
+  // Keep activeReference in sync if the parent updates pendingReference
+  // after mount (e.g. user clicks another card while already on chat).
+  useEffect(() => {
+    if (pendingReference) {
+      setActiveReference(pendingReference);
+    }
+  }, [pendingReference]);
 
   // FIX 1: merge by id so a transient empty fetch never wipes visible messages.
   const mergeMessages = useCallback((incoming) => {
@@ -111,6 +130,8 @@ export default function WorkspaceChat({ workspace }) {
   const loadMessages = useCallback(async () => {
     setLoading(true);
     setError("");
+
+    console.log("[chat] activeReference at send:", activeReference);
 
     try {
       const data = await getWorkspaceMessages(workspace.id, 50);
@@ -237,9 +258,16 @@ export default function WorkspaceChat({ workspace }) {
     setError("");
 
     try {
-      const sent = await sendWorkspaceMessage(workspace.id, content);
+      const sent = await sendWorkspaceMessage(
+        workspace.id,
+        content,
+        activeReference?.type || null,
+        activeReference?.id || null
+      );
 
       setMessageText("");
+      setActiveReference(null);
+      if (onClearPendingReference) onClearPendingReference();
 
       // FIX 4: use the returned row directly; fall back to a merge-refresh
       // only if the response shape is unexpected.
@@ -357,6 +385,8 @@ export default function WorkspaceChat({ workspace }) {
           messages.map((message) => {
             const profile = profiles[message.sender_id];
             const isMine = message.sender_id === currentUserId;
+            const refType = message.metadata?.referenced_type;
+            const refId = message.metadata?.referenced_id;
 
             return (
               <div
@@ -379,6 +409,15 @@ export default function WorkspaceChat({ workspace }) {
                     fallback={isMine ? "You" : "Workspace member"}
                   />
 
+                  {refType && refId && (
+                    <ReferenceChip
+                      workspaceId={workspace.id}
+                      referencedType={refType}
+                      referencedId={refId}
+                      onOpen={onOpenReference}
+                    />
+                  )}
+
                   <p className="text-sm whitespace-pre-wrap break-words">
                     {message.content}
                   </p>
@@ -395,6 +434,30 @@ export default function WorkspaceChat({ workspace }) {
         <div ref={bottomRef} />
       </div>
 
+      {/* Active reference chip above the composer */}
+      {activeReference && (
+        <div className="border-t px-3 py-2 flex items-center gap-2 bg-[#faf7f3]">
+          <span className="text-xs text-[#8a7965]">Replying about:</span>
+          <ReferenceChip
+            workspaceId={workspace.id}
+            referencedType={activeReference.type}
+            referencedId={activeReference.id}
+            onOpen={onOpenReference}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setActiveReference(null);
+              if (onClearPendingReference) onClearPendingReference();
+            }}
+            className="ml-auto text-xs text-[#8a7965] hover:text-[#5c1a1a]"
+            aria-label="Remove reference"
+          >
+            Remove
+          </button>
+        </div>
+      )}
+
       {/* Message input */}
       <form
         onSubmit={handleSend}
@@ -403,7 +466,11 @@ export default function WorkspaceChat({ workspace }) {
         <textarea
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
-          placeholder="Write a message..."
+          placeholder={
+            activeReference
+              ? "Ask a question about this item…"
+              : "Write a message..."
+          }
           maxLength={4000}
           rows={2}
           className="flex-1 border rounded-md px-3 py-2 resize-none"

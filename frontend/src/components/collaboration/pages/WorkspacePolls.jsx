@@ -13,7 +13,7 @@ function formatDate(date) {
   return date ? new Date(date).toLocaleString() : "";
 }
 
-export default function WorkspacePolls({ workspace }) {
+export default function WorkspacePolls({ workspace, onAskInChat }) {
   const [polls, setPolls] = useState([]);
   const [selectedPoll, setSelectedPoll] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,6 @@ export default function WorkspacePolls({ workspace }) {
   const [options, setOptions] = useState(["", ""]);
   const [expiresAt, setExpiresAt] = useState("");
 
-  // NEW: current user + role for permission checks
   const [currentUserId, setCurrentUserId] = useState(null);
   const currentUserRole = workspace.current_user_role;
 
@@ -39,9 +38,6 @@ export default function WorkspacePolls({ workspace }) {
     loadUser();
   }, []);
 
-  // NEW: helper predicates mirroring the backend RPC rules
-  //   close: allowed if creator, workspace owner, or workspace admin
-  //   pin:   allowed only for workspace owner or admin
   const canClose = (poll) => {
     if (!poll) return false;
     if (currentUserRole === "owner" || currentUserRole === "admin") return true;
@@ -341,7 +337,6 @@ export default function WorkspacePolls({ workspace }) {
                     View poll and results
                   </button>
 
-                  {/* CHANGED: Pin only for owner/admin */}
                   {pinnable && (
                     <button
                       onClick={() => handlePin(poll)}
@@ -351,13 +346,24 @@ export default function WorkspacePolls({ workspace }) {
                     </button>
                   )}
 
-                  {/* CHANGED: Close only for creator or owner/admin */}
                   {poll.status === "active" && owned && (
                     <button
                       onClick={() => handleClose(poll.id)}
                       className="text-sm text-red-600"
                     >
                       Close poll
+                    </button>
+                  )}
+
+                  {/* NEW: Ask in chat — available to every member */}
+                  {onAskInChat && (
+                    <button
+                      onClick={() =>
+                        onAskInChat({ type: "poll", id: poll.id })
+                      }
+                      className="text-sm text-[#5c1a1a] hover:underline"
+                    >
+                      Ask in chat
                     </button>
                   )}
                 </div>

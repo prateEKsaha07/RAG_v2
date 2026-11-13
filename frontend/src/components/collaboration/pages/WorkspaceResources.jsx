@@ -10,7 +10,7 @@ import {
 import { getMyNotes } from "../../../api/collaborationApi";
 import { supabase } from "../../../supabaseClient";
 
-export default function WorkspaceResources({ workspace }) {
+export default function WorkspaceResources({ workspace, onAskInChat }) {
   const [resources, setResources] = useState([]);
   const [notes, setNotes] = useState([]);
   const [selectedNoteId, setSelectedNoteId] = useState("");
@@ -49,7 +49,6 @@ export default function WorkspaceResources({ workspace }) {
     loadData();
   }, [loadData]);
 
-  // Resolve current user (matches WorkspaceChat.jsx)
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -58,7 +57,6 @@ export default function WorkspaceResources({ workspace }) {
     loadUser();
   }, []);
 
-  // Profile lookup (unchanged)
   useEffect(() => {
     const ids = [
       ...new Set(
@@ -92,8 +90,6 @@ export default function WorkspaceResources({ workspace }) {
     return p?.display_name || p?.username || "Workspace member";
   };
 
-  // Can the current user delete this resource?
-  // Mirrors the backend RPC rule: role IN ('owner','admin') OR shared_by == currentUserId
   const canDelete = (resource) => {
     if (currentUserRole === "owner" || currentUserRole === "admin") return true;
     if (!currentUserId) return false;
@@ -315,6 +311,21 @@ export default function WorkspaceResources({ workspace }) {
                     >
                       {isNote ? "View Note" : "View File"}
                     </button>
+
+                    {/* NEW: Ask in chat */}
+                    {onAskInChat && (
+                      <button
+                        onClick={() =>
+                          onAskInChat({
+                            type: isNote ? "note" : "material",
+                            id: resource.id,
+                          })
+                        }
+                        className="text-sm text-[#5c1a1a] hover:underline"
+                      >
+                        Ask in chat
+                      </button>
+                    )}
 
                     {deletable && (
                       <button

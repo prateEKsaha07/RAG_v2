@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import WorkspaceMembers from "./WorkspaceMembers";
 import WorkspaceResources from "./WorkspaceResources";
@@ -38,6 +38,32 @@ function formatTime(date) {
   });
 }
 
+// CHANGED: returns a short relative-time for recent items ("2h", "yesterday")
+function formatRelative(date) {
+  if (!date) return "";
+  const then = new Date(date).getTime();
+  const now = Date.now();
+  const diff = Math.max(0, now - then);
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return formatDate(date);
+}
+
+// CHANGED: due-soon detector
+function isDueSoon(task) {
+  if (!task?.due_date) return false;
+  if (task.status === "completed" || task.status === "cancelled") return false;
+  const due = new Date(task.due_date).getTime();
+  const now = Date.now();
+  const week = 7 * 24 * 60 * 60 * 1000;
+  return due >= now && due - now <= week;
+}
+
 function getMemberName(member) {
   return (
     member?.display_name ||
@@ -63,21 +89,21 @@ function getActorName(item, type = "actor") {
 
 function getActivityDescription(eventType) {
   const descriptions = {
-    member_joined: "Joined the workspace",
-    message_sent: "Sent a message",
-    task_created: "Created a task",
-    task_updated: "Updated a task",
-    task_deleted: "Deleted a task",
-    task_comment_added: "Commented on a task",
-    resource_shared: "Shared a resource",
-    resource_removed: "Removed a resource",
-    invitation_sent: "Invited a member",
-    invitation_accepted: "Accepted an invitation",
+    member_joined: "joined the workspace",
+    message_sent: "sent a message",
+    task_created: "created a task",
+    task_updated: "updated a task",
+    task_deleted: "deleted a task",
+    task_comment_added: "commented on a task",
+    resource_shared: "shared a resource",
+    resource_removed: "removed a resource",
+    invitation_sent: "invited a member",
+    invitation_accepted: "accepted an invitation",
   };
 
   return (
     descriptions[eventType] ||
-    (eventType || "Workspace activity").replaceAll("_", " ")
+    (eventType || "workspace activity").replaceAll("_", " ")
   );
 }
 
@@ -139,6 +165,31 @@ export default function WorkspaceOverview({
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [pendingChatReference, setPendingChatReference] = useState(null);
+
+  const openChatWithReference = useCallback(
+    (ref) => {
+      setPendingChatReference(ref);
+      onNavigate("messages");
+    },
+    [onNavigate]
+  );
+
+  const handleOpenReference = useCallback(
+    (ref) => {
+      if (!ref?.type) return;
+      if (ref.type === "task") onNavigate("tasks");
+      else if (ref.type === "poll") onNavigate("polls");
+      else if (ref.type === "note" || ref.type === "material")
+        onNavigate("resources");
+    },
+    [onNavigate]
+  );
+
+  const clearPendingReference = useCallback(() => {
+    setPendingChatReference(null);
+  }, []);
 
   useEffect(() => {
     if (!workspace?.id) return;
@@ -214,7 +265,14 @@ export default function WorkspaceOverview({
 
   function renderMainContent() {
     if (activeSection === "messages") {
-      return <WorkspaceChat workspace={workspace} />;
+      return (
+        <WorkspaceChat
+          workspace={workspace}
+          pendingReference={pendingChatReference}
+          onClearPendingReference={clearPendingReference}
+          onOpenReference={handleOpenReference}
+        />
+      );
     }
     if (activeSection === "activity") {
       return <WorkspaceActivity workspace={workspace} />;
@@ -223,13 +281,28 @@ export default function WorkspaceOverview({
       return <WorkspaceMembers workspace={workspace} />;
     }
     if (activeSection === "resources") {
-      return <WorkspaceResources workspace={workspace} />;
+      return (
+        <WorkspaceResources
+          workspace={workspace}
+          onAskInChat={openChatWithReference}
+        />
+      );
     }
     if (activeSection === "tasks") {
-      return <WorkspaceTasks workspace={workspace} />;
+      return (
+        <WorkspaceTasks
+          workspace={workspace}
+          onAskInChat={openChatWithReference}
+        />
+      );
     }
     if (activeSection === "polls") {
-      return <WorkspacePolls workspace={workspace} />;
+      return (
+        <WorkspacePolls
+          workspace={workspace}
+          onAskInChat={openChatWithReference}
+        />
+      );
     }
     if (activeSection !== "overview") {
       return (
@@ -255,7 +328,7 @@ export default function WorkspaceOverview({
                 {workspace.description || "Welcome to your workspace."}
               </p>
             </div>
-            <span className="px-3 py-1 rounded-full bg-burgundy-50 text-burgundy-700 text-xs font-medium">
+            <span className="px-3 py-1 rounded-full bg-burgundy-50 text-burgundy-700 text-xs font-medium capitalize">
               {workspace.current_user_role || "Member"}
             </span>
           </div>
@@ -301,7 +374,7 @@ export default function WorkspaceOverview({
             <PreviewCard>
               <SectionHeader title="Recent Tasks" onViewAll={() => onNavigate("tasks")} />
               {recentTasks.length === 0 ? (
-                <EmptyMessage>No tasks created yet.</EmptyMessage>
+                <EmptyMessage>No tasks yet — create one to get started.</EmptyMessage>
               ) : (
                 <div className="divide-y divide-gray-100">
                   {recentTasks.map((task) => (
@@ -312,7 +385,8 @@ export default function WorkspaceOverview({
                         </p>
                         <p className="text-xs text-gray-400 mt-1 truncate">
                           By {getActorName(task, "creator")}
-                          {task.created_at ? ` · ${formatDate(task.created_at)}` : ""}
+                          {task.created_at ? ` · ${formatRelative(task.created_at)}` : ""}
+                          {isDueSoon(task) ? ` · due ${formatDate(task.due_date)}` : ""}
                         </p>
                       </div>
                       <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 shrink-0 capitalize">
@@ -328,17 +402,19 @@ export default function WorkspaceOverview({
             <PreviewCard>
               <SectionHeader title="Recent Activity" onViewAll={() => onNavigate("activity")} />
               {recentUpdates.length === 0 ? (
-                <EmptyMessage>No recent activity.</EmptyMessage>
+                <EmptyMessage>No activity yet.</EmptyMessage>
               ) : (
                 <div className="divide-y divide-gray-100">
                   {recentUpdates.map((update) => (
                     <div key={update.id} className="py-2">
-                      <p className="text-sm text-gray-700 truncate capitalize">
+                      <p className="text-sm text-gray-700 truncate">
+                        <span className="font-medium text-gray-800">
+                          {getActorName(update)}
+                        </span>{" "}
                         {getActivityDescription(update.event_type)}
                       </p>
                       <p className="text-xs text-gray-400 mt-1 truncate">
-                        By {getActorName(update)}
-                        {update.created_at ? ` · ${formatDate(update.created_at)}` : ""}
+                        {update.created_at ? formatRelative(update.created_at) : ""}
                       </p>
                     </div>
                   ))}
@@ -355,7 +431,6 @@ export default function WorkspaceOverview({
                 <div className="divide-y divide-gray-100">
                   {recentResources.map((resource) => (
                     <div key={resource.id} className="py-2">
-                      {/* FIXED: fall back to metadata.original_filename for materials */}
                       <p className="text-sm font-medium text-gray-800 truncate">
                         {resource.title ||
                           resource.metadata?.original_filename ||
@@ -365,7 +440,7 @@ export default function WorkspaceOverview({
                       </p>
                       <p className="text-xs text-gray-400 mt-1 truncate">
                         Shared by {getActorName(resource, "shared_by")}
-                        {resource.created_at ? ` · ${formatDate(resource.created_at)}` : ""}
+                        {resource.created_at ? ` · ${formatRelative(resource.created_at)}` : ""}
                       </p>
                     </div>
                   ))}

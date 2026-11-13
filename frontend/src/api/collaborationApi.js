@@ -1,4 +1,3 @@
-
 import apiClient from "./client";
 
 // WORKSPACES
@@ -71,9 +70,18 @@ export const getWorkspaceMessages = (workspaceId, limit = 50, before = null) =>
     params: { limit, before },
   });
 
-export const sendWorkspaceMessage = (workspaceId, content) =>
+// CHANGED: accepts optional reference (type + id) to attach to the message
+export const sendWorkspaceMessage = (
+  workspaceId,
+  content,
+  referencedType = null,
+  referencedId = null
+) =>
   apiClient.post(`/collaboration/workspaces/${workspaceId}/messages`, {
     content,
+    ...(referencedType && referencedId
+      ? { referenced_type: referencedType, referenced_id: referencedId }
+      : {}),
   });
 
 
