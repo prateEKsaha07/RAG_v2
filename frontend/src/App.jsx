@@ -190,7 +190,7 @@ function App() {
           onAnalyticsV2={() => setScreen("analytics-v2")}
           onLogout={handleLogout}
           onProfile={() => setScreen("profile")}
-          onCollaboration={() => { console.log("COLLAB CLICKED"); setScreen("collaboration") }}
+          onCollaboration={() => {setScreen("collaboration") }}
         />
       )}
 
@@ -341,6 +341,8 @@ function App() {
           onNotes={() => setScreen("notes")}
           onRoadmap={() => setScreen("roadmap")}
           onAnalyticsV2={() => setScreen("analytics-v2")}
+          onProfile={() => setScreen("profile")}
+          onCollaboration={() => setScreen("collaboration")}
         />
       )}
 
@@ -366,6 +368,8 @@ function App() {
           onRoadmap={() => setScreen("roadmap")}
           onAnalytics={() => setScreen("analytics")}
           onAnalyticsV2={() => setScreen("analytics-v2")}
+          onProfile={() => setScreen("profile")}
+          onCollaboration={() => setScreen("collaboration")}
         />
       )}
 

@@ -31,6 +31,8 @@ function NotesScreen({
   onUpload,
   onRoadmap,
   onAnalyticsV2,
+  onProfile,
+  onCollaboration,
 }) {
   const [notes, setNotes] = useState([])
   const [subjects, setSubjects] = useState([])
@@ -171,6 +173,8 @@ function NotesScreen({
         onAnalyticsV2={onAnalyticsV2}
         onLogout={onLogout}
         user={user}
+        onProfile={onProfile}
+        onCollaboration={onCollaboration}
       />
 
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-10 space-y-8">

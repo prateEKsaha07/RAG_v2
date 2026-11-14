@@ -20,6 +20,8 @@ function QAScreen({
   onNotes,
   onRoadmap,
   onAnalyticsV2,
+  onProfile,
+  onCollaboration,
 }) {
   const [question, setQuestion] = useState("")
   const [loading, setLoading] = useState(false)
@@ -105,6 +107,8 @@ function QAScreen({
         onAnalyticsV2={onAnalyticsV2}
         onLogout={onLogout}
         user={user}
+        onProfile={onProfile}
+        onCollaboration={onCollaboration}
       />
 
       {/* ← NEW: floating popup notice */}
