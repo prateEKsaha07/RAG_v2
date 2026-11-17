@@ -23,6 +23,7 @@ function Dashboard({
   onProfile,
   profile,
   onCollaboration,
+  onNotifications,
 }) {
   // Restore from storage on mount if the prop is empty.
   const [activeSubject, setActiveSubject] = useState(() => {
@@ -74,6 +75,7 @@ function Dashboard({
         user={user}
         profile={profile}
         onCollaboration={onCollaboration}
+        onNotifications={onNotifications}
       />
 
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-10 space-y-8 relative">

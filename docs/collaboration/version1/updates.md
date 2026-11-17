@@ -116,3 +116,24 @@
     - notify_on_invitation() trigger
   
 ## 17/11/2026
+### Changelog — Notifications Module
+**Backend**
+- Created `public.notifications` table with indexes for unread counts and pagination.
+- Added three RPCs: `notification_unread_count`, `list_notifications`, and `notifications_read`.
+- Added database triggers for workspace invitations and task comments.
+- Implemented Python notification module with schemas, services, and three API endpoints.
+
+**Frontend**
+- Added notifications API client.
+- Built notification bell with 30-second unread polling, badge, dropdown, and optimistic mark-as-read.
+- Created full notifications page with category filters, pagination, bulk mark-as-read, and empty states.
+- Integrated notification navigation across dashboard, collaboration, workspace, and profile screens.
+- Added navigation history so users can return to their previous screen.
+
+**Verification**
+- Verified invitation and task-comment notification triggers.
+- Tested all three API endpoints.
+- Confirmed unread counts, pagination, and idempotent mark-as-read.
+- Tested notification bell, dropdown, navigation, filters, and bulk actions.
+
+**Status:** Core Notifications Module implemented and end-to-end tested.

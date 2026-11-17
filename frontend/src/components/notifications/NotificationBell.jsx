@@ -101,7 +101,7 @@ export default function NotificationBell({ onNavigateToAll }) {
     };
   }, []);
 
-  // Fetch latest notifications when dropdown opens
+  // Fetch latest notifications when dropdown opens.
   useEffect(() => {
     if (!open) return;
 
@@ -127,17 +127,13 @@ export default function NotificationBell({ onNavigateToAll }) {
     };
   }, [open]);
 
-  // FIX: use 'click' (not 'mousedown') so dropdown buttons get their
-  // onClick first. mousedown fires before click, so the previous handler
-  // unmounted the button before its click handler could run.
+  // Close dropdown when clicking outside.
+  // Uses 'click' (not 'mousedown') so button onClick fires first.
   useEffect(() => {
     if (!open) return;
 
     function handleClickOutside(e) {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(e.target)
-      ) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
         setOpen(false);
       }
     }
@@ -147,6 +143,25 @@ export default function NotificationBell({ onNavigateToAll }) {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [open]);
+
+  // Centralized handler — called by both item clicks and "View all".
+  const navigateToAll = useCallback(() => {
+    console.log("[bell] navigateToAll fired; onNavigateToAll =", onNavigateToAll);
+
+    if (typeof onNavigateToAll === "function") {
+      onNavigateToAll();
+    } else {
+      // Fallback — gives the user *something* instead of a dead click.
+      console.warn(
+        "[bell] onNavigateToAll prop is missing. Falling back to hash navigation."
+      );
+      try {
+        window.location.hash = "#notifications";
+      } catch {
+        /* no-op */
+      }
+    }
+  }, [onNavigateToAll]);
 
   const handleItemClick = useCallback(
     async (notification) => {
@@ -165,9 +180,7 @@ export default function NotificationBell({ onNavigateToAll }) {
         } catch {
           setNotifications((prev) =>
             prev.map((n) =>
-              n.id === notification.id
-                ? { ...n, read_at: null }
-                : n
+              n.id === notification.id ? { ...n, read_at: null } : n
             )
           );
           setUnreadCount((prev) => prev + 1);
@@ -175,9 +188,9 @@ export default function NotificationBell({ onNavigateToAll }) {
       }
 
       setOpen(false);
-      if (onNavigateToAll) onNavigateToAll();
+      navigateToAll();
     },
-    [onNavigateToAll]
+    [navigateToAll]
   );
 
   return (
@@ -271,9 +284,10 @@ export default function NotificationBell({ onNavigateToAll }) {
           <button
             type="button"
             onClick={(e) => {
+              console.log("[bell] View all button clicked (raw)");
               e.stopPropagation();
               setOpen(false);
-              if (onNavigateToAll) onNavigateToAll();
+              navigateToAll();
             }}
             className="w-full text-center text-xs font-medium text-[#5c1a1a] hover:bg-[#faf7f3] py-2.5 border-t border-[#e8dfd3]"
           >
