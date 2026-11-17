@@ -102,9 +102,17 @@
 - 3 diagnostics that surfaced real bugs (missing RPC replacement, dropped fields in router/service, stale API client signature)
 - ~200 lines net change across 8 files (2 SQL RPCs, 3 Python files, 6 JSX files, 1 API client)
 
-15/11/2026
-
+## 15/11/2026
 - creatd table notifications
 - created 2 idx one for unread and ther one is for listing
 - created one rpc function
-  -notifications_unread_count(p_user_id uuid)
+  - notifications_unread_count(p_user_id uuid)
+
+## 16/11/2026
+ - new function
+    - list notifications
+    - mark multiple notifications as read and return how many notifications were updated
+    - automatically notifies the task creator whenever another user comments on their task trigger
+    - notify_on_invitation() trigger
+  
+## 17/11/2026

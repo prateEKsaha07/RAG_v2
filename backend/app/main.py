@@ -69,3 +69,6 @@ app.include_router(profile_router)
 
 from app.modules.Collaboration.router import router as collaboration_router
 app.include_router(collaboration_router)
+
+from app.modules.Notifications.router import router as notifications_router
+app.include_router(notifications_router)

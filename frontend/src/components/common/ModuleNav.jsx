@@ -1,6 +1,7 @@
 // ModuleNav.jsx - Editorial theme
 import { useState, useEffect } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
+import NotificationBell from "../notifications/NotificationBell";
 
 // Inline SVG placeholder — editorial palette, no asset file needed.
 const DEFAULT_AVATAR =
@@ -40,10 +41,11 @@ function ModuleNav({
   onRoadmap,
   onAnalyticsV2,
   onLogout,
-  onProfile,      
+  onProfile,
   user,
   profile,
-  onCollaboration
+  onCollaboration,
+  onNotifications,   // NEW
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -65,7 +67,6 @@ function ModuleNav({
     { id: "collaboration", label: "Collaboration", action: onCollaboration },
   ];
 
-  // Prefer profile, fall back to user (auth user / legacy shape)
   const avatarUrl = profile?.avatar_url || user?.avatar_url || "";
   const displayName =
     profile?.display_name ||
@@ -116,6 +117,9 @@ function ModuleNav({
 
         {/* Desktop right */}
         <div className="hidden lg:flex items-center gap-4">
+          {/* NEW: NotificationBell */}
+          <NotificationBell onNavigateToAll={onNotifications} />
+
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
@@ -170,14 +174,17 @@ function ModuleNav({
           </div>
         </div>
 
-        {/* Mobile toggle */}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="lg:hidden w-9 h-9 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center text-[#5a4a3a] hover:text-[#5c1a1a] transition-colors duration-200"
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X size={16} strokeWidth={1.8} /> : <Menu size={16} strokeWidth={1.8} />}
-        </button>
+        {/* Mobile: bell + toggle side by side */}
+        <div className="lg:hidden flex items-center gap-2">
+          <NotificationBell onNavigateToAll={onNotifications} />
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="w-9 h-9 rounded-md border border-[#e8dfd3] bg-white flex items-center justify-center text-[#5a4a3a] hover:text-[#5c1a1a] transition-colors duration-200"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={16} strokeWidth={1.8} /> : <Menu size={16} strokeWidth={1.8} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}

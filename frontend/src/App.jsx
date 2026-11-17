@@ -22,6 +22,7 @@ import { getMyProfile } from "./api/profiles";
 import UpdateScreen from "./components/profiles/UpdateScreen"
 import CollaborationHub from "./components/collaboration/pages/CollaborationHub"
 import WorkspaceOverview from "./components/collaboration/pages/WorkspaceOverview"
+import NotificationsPage from "./components/notifications/pages/NotificationsPage";
 
 // --- Minimal error boundary: shows the real error instead of a blank page ---
 import { Component } from "react"
@@ -64,12 +65,21 @@ function App() {
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
   const [workspaceSection, setWorkspaceSection] = useState("overview");
 
-  // profile state — owned here, populated from the separate data file
+  // Remember where the user was before opening notifications,
+  // so "Back" returns them there.
+  const [screenBeforeNotifications, setScreenBeforeNotifications] = useState("dashboard")
+
   const [profile, setProfile] = useState(null)
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileError, setProfileError] = useState(null)
 
   const handleGetStarted = () => setScreen("upload")
+
+  // Helper other screens can call to open notifications.
+  const openNotifications = () => {
+    setScreenBeforeNotifications(screen)
+    setScreen("notifications")
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -87,7 +97,6 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // load profile whenever the signed-in user changes
   useEffect(() => {
     if (!user) {
       setProfile(null)
@@ -130,9 +139,6 @@ function App() {
     setResults(null)
     setScreen("dashboard")
   }
-
-  // DEBUG: log every render so we can see if screen ever becomes "collaboration"
-  // console.log("RENDER App | screen =", screen, "| user =", user?.id ?? null)
 
   return (
     <div>
@@ -190,7 +196,8 @@ function App() {
           onAnalyticsV2={() => setScreen("analytics-v2")}
           onLogout={handleLogout}
           onProfile={() => setScreen("profile")}
-          onCollaboration={() => {setScreen("collaboration") }}
+          onCollaboration={() => { setScreen("collaboration") }}
+          onNotifications={openNotifications}   // NEW
         />
       )}
 
@@ -207,27 +214,63 @@ function App() {
             onLogout={handleLogout}
             onProfile={() => setScreen("profile")}
             onCollaboration={() => setScreen("collaboration")}
+            onNotifications={openNotifications}   // NEW
             user={user}
             profile={profile}
           />
           <Boundary>
             <CollaborationHub
-        user={user}
-        onBack={() => setScreen("dashboard")}
-        onOpenWorkspace={(workspace) => {
-          setSelectedWorkspace(workspace);
-          setWorkspaceSection("overview");
-          setScreen("workspace");
-        }}
-      />
+              user={user}
+              onBack={() => setScreen("dashboard")}
+              onOpenWorkspace={(workspace) => {
+                setSelectedWorkspace(workspace);
+                setWorkspaceSection("overview");
+                setScreen("workspace");
+              }}
+            />
           </Boundary>
         </>
       )}
 
       {screen === "workspace" && selectedWorkspace && (
+        <>
+          <ModuleNav
+            active="collaboration"
+            onDashboard={() => setScreen("dashboard")}
+            onStudy={() => setScreen("study")}
+            onUpload={() => setScreen("upload")}
+            onNotes={() => setScreen("notes")}
+            onRoadmap={() => setScreen("goal-setup")}
+            onAnalyticsV2={() => setScreen("analytics-v2")}
+            onLogout={handleLogout}
+            onProfile={() => setScreen("profile")}
+            onCollaboration={() => setScreen("collaboration")}
+            onNotifications={openNotifications}   // NEW
+            user={user}
+            profile={profile}
+          />
+
+          <Boundary>
+            <WorkspaceOverview
+              workspace={selectedWorkspace}
+              activeSection={workspaceSection}
+              onNavigate={(section) => {
+                if (section === "hub") {
+                  setScreen("collaboration");
+                  return;
+                }
+                setWorkspaceSection(section);
+              }}
+            />
+          </Boundary>
+        </>
+      )}
+
+      {/* NEW: Notifications page */}
+      {screen === "notifications" && (
   <>
     <ModuleNav
-      active="collaboration"
+      active=""
       onDashboard={() => setScreen("dashboard")}
       onStudy={() => setScreen("study")}
       onUpload={() => setScreen("upload")}
@@ -237,24 +280,13 @@ function App() {
       onLogout={handleLogout}
       onProfile={() => setScreen("profile")}
       onCollaboration={() => setScreen("collaboration")}
+      onNotifications={openNotifications}
       user={user}
       profile={profile}
     />
-
-    <Boundary>
-      <WorkspaceOverview
-  workspace={selectedWorkspace}
-  activeSection={workspaceSection}
-  onNavigate={(section) => {
-    if (section === "hub") {
-      setScreen("collaboration");
-      return;
-    }
-
-    setWorkspaceSection(section);
-  }}
-/>
-    </Boundary>
+    <NotificationsPage
+      onBack={() => setScreen(screenBeforeNotifications || "dashboard")}
+    />
   </>
 )}
 
@@ -278,6 +310,7 @@ function App() {
             onLogout={handleLogout}
             onProfile={() => {}}
             onCollaboration={() => setScreen("collaboration")}
+            onNotifications={openNotifications}   // NEW
             user={user}
             profile={profile}
           />
@@ -303,6 +336,7 @@ function App() {
             onLogout={handleLogout}
             onProfile={() => setScreen("profile")}
             onCollaboration={() => setScreen("collaboration")}
+            onNotifications={openNotifications}   // NEW
             user={user}
             profile={profile}
           />
@@ -419,7 +453,6 @@ function App() {
         />
       )}
 
-      {/* LOGIN - Goes straight to dashboard */}
       {screen === "login" && (
         <LoginScreen
           onLogin={(user) => {
@@ -432,7 +465,6 @@ function App() {
         />
       )}
 
-      {/* SIGNUP - Goes straight to dashboard after signup */}
       {screen === "signup" && (
         <SignupScreen
           onSignup={() => {
