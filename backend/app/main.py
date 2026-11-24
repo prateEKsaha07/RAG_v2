@@ -22,6 +22,7 @@ async def add_security_header(request, next):
     response.header['strict-transport-security'] = (
         "max-age=31536000"
     )
+    return response
 
 
 app.add_middleware(
