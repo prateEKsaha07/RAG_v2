@@ -14,6 +14,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# global security header
+app.middleware("http")
+async def add_security_header(request, next):
+    response = await next(request)
+
+    response.header['strict-transport-security'] = (
+        "max-age=31536000"
+    )
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
